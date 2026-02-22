@@ -1,0 +1,71 @@
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[90m┌[39m  Chakra CLI ⚡️
+[90m│[39m
+[34m●[39m  Found 59 snippets
+[90m│[39m
+[34m●[39m  ┌────────────────────┬──────────────────────────────┐
+[90m│[39m  │ name               │ dependencies                 │
+[90m│[39m  ├────────────────────┼──────────────────────────────┤
+[90m│[39m  │ accordion          │ react-icons                  │
+[90m│[39m  │ action-bar         │ -                            │
+[90m│[39m  │ alert              │ -                            │
+[90m│[39m  │ avatar             │ -                            │
+[90m│[39m  │ blockquote         │ -                            │
+[90m│[39m  │ breadcrumb         │ -                            │
+[90m│[39m  │ carousel           │ react-icons                  │
+[90m│[39m  │ checkbox-card      │ -                            │
+[90m│[39m  │ checkbox           │ -                            │
+[90m│[39m  │ clipboard          │ react-icons                  │
+[90m│[39m  │ close-button       │ react-icons                  │
+[90m│[39m  │ color-mode         │ next-themes, react-icons     │
+[90m│[39m  │ color-picker       │ react-icons                  │
+[90m│[39m  │ combobox           │ -                            │
+[90m│[39m  │ data-list          │ -                            │
+[90m│[39m  │ dialog             │ -                            │
+[90m│[39m  │ drawer             │ -                            │
+[90m│[39m  │ empty-state        │ -                            │
+[90m│[39m  │ field              │ -                            │
+[90m│[39m  │ file-upload        │ react-icons                  │
+[90m│[39m  │ hover-card         │ -                            │
+[90m│[39m  │ input-group        │ -                            │
+[90m│[39m  │ link-button        │ -                            │
+[90m│[39m  │ menu               │ react-icons                  │
+[90m│[39m  │ native-select      │ -                            │
+[90m│[39m  │ number-input       │ -                            │
+[90m│[39m  │ pagination         │ react-icons                  │
+[90m│[39m  │ password-input     │ react-icons                  │
+[90m│[39m  │ pin-input          │ -                            │
+[90m│[39m  │ popover            │ -                            │
+[90m│[39m  │ progress-circle    │ -                            │
+[90m│[39m  │ progress           │ -                            │
+[90m│[39m  │ prose              │ -                            │
+[90m│[39m  │ provider           │ -                            │
+[90m│[39m  │ qr-code            │ -                            │
+[90m│[39m  │ radio-card         │ -                            │
+[90m│[39m  │ radio              │ -                            │
+[90m│[39m  │ rating             │ -                            │
+[90m│[39m  │ rich-text-editor-… │ @tiptap/react                │
+[90m│[39m  │ rich-text-editor-… │ @tiptap/react, react-icons   │
+[90m│[39m  │ rich-text-editor-… │ @floating-ui/react, @tiptap… │
+[90m│[39m  │ rich-text-editor   │ @tiptap/react                │
+[90m│[39m  │ segmented-control  │ -                            │
+[90m│[39m  │ select             │ -                            │
+[90m│[39m  │ skeleton           │ -                            │
+[90m│[39m  │ slider             │ -                            │
+[90m│[39m  │ splitter           │ -                            │
+[90m│[39m  │ stat               │ -                            │
+[90m│[39m  │ status             │ -                            │
+[90m│[39m  │ stepper-input      │ react-icons                  │
+[90m│[39m  │ steps              │ react-icons                  │
+[90m│[39m  │ switch             │ -                            │
+[90m│[39m  │ tag                │ -                            │
+[90m│[39m  │ tags-input         │ -                            │
+[90m│[39m  │ timeline           │ -                            │
+[90m│[39m  │ toaster            │ -                            │
+[90m│[39m  │ toggle-tip         │ react-icons                  │
+[90m│[39m  │ toggle             │ -                            │
+[90m│[39m  │ tooltip            │ -                            │
+[90m│[39m  └────────────────────┴──────────────────────────────┘
+[90m│[39m
+[90m└[39m  🎉 Done!
+

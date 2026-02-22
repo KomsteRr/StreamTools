@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model SpotifyToken {
+  id           String   @id @default(cuid())
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+}
+
+model SpotifyConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model TwitchConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+// Generic per-platform settings (Twitch EventSub credentials, YouTube API key, etc.)
+model PlatformConfig {
+  id       String @id @default(cuid())
+  platform String // twitch | youtube | kick
+  key      String // channelName | clientId | accessToken | broadcasterId | apiKey | ...
+  value    String
+
+  @@unique([platform, key])
+}
+
+model AlertConfig {
+  id       String @id @default(cuid())
+  type     String // follow | sub | bits | raid | cheer | gift_sub
+  platform String @default("twitch") // twitch | youtube | kick
+
+  enabled  Boolean @default(true)
+  soundUrl String?
+  imageUrl String?
+
+  // Full-screen background media
+  bgMediaUrl  String?
+  bgMediaType String? // image | gif | video
+
+  // Text & typography
+  text      String @default("{user}")
+  textColor String @default("#ffffff")
+  fontSize  Int    @default(28)
+
+  // Glow / shadow effect on text
+  glowColor String @default("#6441a5")
+  glowSize  Int    @default(0)
+
+  // Alert box border
+  borderColor String @default("#ffffff")
+  borderWidth Int    @default(0)
+
+  // Timing & sound
+  duration Int   @default(5)
+  volume   Float @default(0.8)
+
+  // Background
+  bgColor          String @default("#6441a5")
+  bgOverlayOpacity Float  @default(0.4)
+
+  // Position on screen: top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right
+  position String @default("center")
+
+  // Animations
+  animation     String @default("slide-in")
+  exitAnimation String @default("fade")
+
+  @@unique([type, platform])
+}

@@ -1,0 +1,157 @@
+.body {
+    display: flex;
+    justify-content: var(--sp-justifyContent, center);
+    align-items: var(--sp-alignItems, center);
+    min-height: 100vh;
+    background: transparent;
+    overflow: hidden;
+    font-family: var(--sp-font, "Outfit"), sans-serif;
+}
+
+.widgetContainer {
+    position: relative;
+    width: var(--sp-widgetWidth, 600px);
+    padding: 30px;
+}
+
+.glassCard {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, var(--sp-bgOpacity, 0.1));
+    backdrop-filter: blur(var(--sp-blurStrength, 25px));
+    -webkit-backdrop-filter: blur(var(--sp-blurStrength, 25px));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--sp-borderRadius, 32px);
+    padding: 24px;
+    box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.2);
+    transition: transform 0.3s ease;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.glassCard::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle,
+        var(--sp-brandColor, #ff512f) 0%,
+        transparent 70%
+    );
+    opacity: 0.4;
+    transform: rotate(45deg);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.albumArt {
+    position: relative;
+    width: var(--sp-albumSize, 160px);
+    height: var(--sp-albumSize, 160px);
+    border-radius: calc(var(--sp-borderRadius, 32px) - 8px);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.albumArt img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.trackInfo {
+    flex: 1;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.textContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.trackName {
+    font-size: var(--sp-trackFontSize, 2rem);
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.artistName {
+    font-size: calc(var(--sp-trackFontSize, 2rem) * 0.6);
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.progressContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.currTime,
+.totalTime {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 36px;
+}
+
+.progressBar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--sp-brandColor, #ff512f),
+        var(--sp-accentColor, #dd2476)
+    );
+    border-radius: 4px;
+    box-shadow: 0 0 15px var(--sp-brandColor, #ff512f);
+    transition: width 0.1s linear;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 4px;
+    color: #ffffff;
+    font-size: 1.8rem;
+}
+
+.playBtn {
+    font-size: 2.2rem;
+    background: linear-gradient(
+        135deg,
+        var(--sp-brandColor, #ff512f),
+        var(--sp-accentColor, #dd2476)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 5px rgba(221, 36, 118, 0.3));
+}
