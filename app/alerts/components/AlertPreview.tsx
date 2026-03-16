@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Box, Text, Image } from "@chakra-ui/react";
 
 export interface AlertConfig {
@@ -24,12 +25,33 @@ export interface AlertConfig {
   animation: string;
   exitAnimation?: string;
   position: string;
+  // Container image
+  containerImageUrl?: string | null;
+  containerWidth?: number;
+  containerHeight?: number;
+  // Container layout
+  containerLayout?: string;
+  textAlign?: string;
+  imageSize?: number;
+  // Font
+  fontFamily?: string;
 }
 
 interface AlertPreviewProps {
   config: AlertConfig;
   previewUser?: string;
   previewAmount?: string;
+}
+
+/** Inject a Google Font <link> once */
+function loadGoogleFont(fontFamily: string) {
+  const id = `gfont-${fontFamily.replace(/\s+/g, "-")}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement("link");
+  link.id = id;
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;700;800&display=swap`;
+  document.head.appendChild(link);
 }
 
 /** Maps position string to CSS justify/align values */
@@ -59,6 +81,12 @@ export function AlertPreview({
   previewUser = "TestUser",
   previewAmount = "100",
 }: AlertPreviewProps) {
+  const font = config.fontFamily ?? "Inter";
+
+  useEffect(() => {
+    if (font) loadGoogleFont(font);
+  }, [font]);
+
   const previewText = config.text
     .replace(/\{user\}/g, previewUser)
     .replace(/\{amount\}/g, previewAmount);
@@ -73,13 +101,22 @@ export function AlertPreview({
       : undefined;
 
   const boxBorder =
-    config.borderWidth && config.borderWidth > 0
+    config.borderWidth && config.borderWidth > 0 && !config.containerImageUrl
       ? {
           border: `${config.borderWidth}px solid ${config.borderColor ?? "#ffffff"}`,
         }
       : {};
 
   const overlayOpacity = config.bgOverlayOpacity ?? 0.4;
+  const layout = config.containerLayout ?? "column";
+  const txtAlign = (config.textAlign ?? "center") as "left" | "center" | "right";
+  const imgSize = config.imageSize ?? 80;
+  const hasContainerImage = !!config.containerImageUrl;
+
+  // Scale container dimensions down for preview (~40% of real size)
+  const scale = 0.4;
+  const cWidth = (config.containerWidth ?? 400) * scale;
+  const cHeight = (config.containerHeight ?? 200) * scale;
 
   return (
     <Box w="full" h="full" position="absolute" inset={0} overflow="hidden">
@@ -123,7 +160,7 @@ export function AlertPreview({
       )}
 
       {/* Fallback solid bg tint (when no media) */}
-      {!config.bgMediaUrl && (
+      {!config.bgMediaUrl && !hasContainerImage && (
         <Box position="absolute" inset={0} bg={config.bgColor} opacity={0.15} />
       )}
 
@@ -136,38 +173,57 @@ export function AlertPreview({
         p={3}
       >
         <Box
+          w={hasContainerImage ? `${cWidth}px` : undefined}
+          h={hasContainerImage ? `${cHeight}px` : undefined}
           bg={
-            config.bgMediaUrl
-              ? `rgba(0,0,0,${overlayOpacity + 0.2})`
-              : config.bgColor
+            hasContainerImage
+              ? "transparent"
+              : config.bgMediaUrl
+                ? `rgba(0,0,0,${overlayOpacity + 0.2})`
+                : config.bgColor
           }
-          backdropFilter={config.bgMediaUrl ? "blur(4px)" : undefined}
-          borderRadius="xl"
-          px={6}
-          py={4}
+          backgroundImage={
+            hasContainerImage
+              ? `url(${config.containerImageUrl})`
+              : undefined
+          }
+          backgroundSize={hasContainerImage ? "100% 100%" : undefined}
+          backgroundRepeat={hasContainerImage ? "no-repeat" : undefined}
+          backdropFilter={
+            !hasContainerImage && config.bgMediaUrl ? "blur(4px)" : undefined
+          }
+          borderRadius={hasContainerImage ? undefined : "xl"}
+          px={hasContainerImage ? 3 : 6}
+          py={hasContainerImage ? 2 : 4}
           display="flex"
-          flexDir="column"
+          flexDir={layout as any}
           alignItems="center"
+          justifyContent="center"
           gap={2}
-          boxShadow="2xl"
-          maxW="80%"
-          textAlign="center"
+          boxShadow={hasContainerImage ? undefined : "2xl"}
+          maxW={hasContainerImage ? undefined : "80%"}
+          textAlign={txtAlign}
           style={boxBorder}
         >
           {config.imageUrl && (
             <Image
               src={config.imageUrl}
               alt="alert icon"
-              boxSize="48px"
+              boxSize={`${Math.round(imgSize * scale)}px`}
               objectFit="contain"
               borderRadius="md"
+              flexShrink={0}
             />
           )}
           <Text
             color={config.textColor}
             fontWeight="bold"
+            fontFamily={`'${font}', sans-serif`}
+            textAlign={txtAlign}
+            w="100%"
+            whiteSpace="pre-wrap"
             style={{
-              fontSize: `${Math.round((config.fontSize ?? 28) * 0.4)}px`,
+              fontSize: `${Math.round((config.fontSize ?? 28) * scale)}px`,
               textShadow: glowStyle,
             }}
           >

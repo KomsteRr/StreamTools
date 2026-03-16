@@ -6,38 +6,74 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ─── Users & Invites ─────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String?            // null until invite is completed
+  role         String   @default("user") // "admin" | "user"
+  createdAt    DateTime @default(now())
+
+  spotifyTokens   SpotifyToken[]
+  spotifyConfigs  SpotifyConfig[]
+  platformConfigs PlatformConfig[]
+  alertConfigs    AlertConfig[]
+  inviteTokens    InviteToken[]
+}
+
+model InviteToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+}
+
+// ─── Spotify ─────────────────────────────────────────────────────────────────
 
 model SpotifyToken {
   id           String   @id @default(cuid())
   accessToken  String
   refreshToken String
   expiresAt    DateTime
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SpotifyConfig {
   id    String @id @default(cuid())
-  key   String @unique
+  key   String
   value String
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([key, userId])
 }
 
-model TwitchConfig {
-  id    String @id @default(cuid())
-  key   String @unique
-  value String
-}
+// ─── Platform Configs ────────────────────────────────────────────────────────
 
-// Generic per-platform settings (Twitch EventSub credentials, YouTube API key, etc.)
 model PlatformConfig {
   id       String @id @default(cuid())
-  platform String // twitch | youtube | kick
-  key      String // channelName | clientId | accessToken | broadcasterId | apiKey | ...
+  platform String // twitch | youtube | kick | system | spotify
+  key      String
   value    String
 
-  @@unique([platform, key])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([platform, key, userId])
 }
+
+// ─── Alert Configs ───────────────────────────────────────────────────────────
 
 model AlertConfig {
   id       String @id @default(cuid())
@@ -73,12 +109,28 @@ model AlertConfig {
   bgColor          String @default("#6441a5")
   bgOverlayOpacity Float  @default(0.4)
 
-  // Position on screen: top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right
+  // Position on screen
   position String @default("center")
 
   // Animations
   animation     String @default("slide-in")
   exitAnimation String @default("fade")
 
-  @@unique([type, platform])
+  // Container image
+  containerImageUrl String?
+  containerWidth    Int     @default(400)
+  containerHeight   Int     @default(200)
+
+  // Container layout
+  containerLayout String @default("column")
+  textAlign       String @default("center")
+  imageSize       Int    @default(80)
+
+  // Font family (Google Font name)
+  fontFamily String @default("Inter")
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([type, platform, userId])
 }

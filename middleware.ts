@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { parseSession } from '@/lib/session'
 
 // Pages / routes that are always public (no session required)
 const PUBLIC_OVERLAYS = [
@@ -14,10 +15,19 @@ const PUBLIC_API = [
   '/api/settings/public',
   '/api/alerts/stream',
   '/api/twitch/config',
+  '/api/invite/setup',     // Invite token validation
 ]
 
-export function middleware(request: NextRequest) {
-  const session = request.cookies.get('session')
+const PUBLIC_PAGES = [
+  '/invite/', // Invite pages are public
+]
+
+export async function middleware(request: NextRequest) {
+  const sessionCookie = request.cookies.get('session')?.value
+  let session = null;
+  if (sessionCookie) {
+    session = await parseSession(sessionCookie);
+  }
   const { pathname } = request.nextUrl
 
   // ── Always allow overlay pages (used in OBS, no login required) ───────────
@@ -27,6 +37,25 @@ export function middleware(request: NextRequest) {
 
   // ── Always allow public API endpoints ─────────────────────────────────────
   if (PUBLIC_API.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next()
+  }
+
+  // ── Always allow invite pages ─────────────────────────────────────────────
+  if (PUBLIC_PAGES.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next()
+  }
+
+  // ── Protect admin routes (admin-only) ─────────────────────────────────────
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    if (!session || session.role !== 'admin') {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json(
+          { error: 'Forbidden — admin access required' },
+          { status: 403 }
+        )
+      }
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
     return NextResponse.next()
   }
 

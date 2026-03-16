@@ -1,17 +1,18 @@
 import { subscribeToAlerts } from "@/lib/alertEmitter";
 import { isOverlayAuthorized } from "@/lib/overlay-token";
-import { cookies } from "next/headers";
+import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("session");
+  const session = await getSession();
   const isOverlayAuth = await isOverlayAuthorized(request);
 
-  if (!session && !isOverlayAuth) {
+  if (!session && !isOverlayAuth.authorized) {
     return new Response("Unauthorized", { status: 401 });
   }
+
+  const userId = session?.userId ?? isOverlayAuth.userId ?? null;
 
   const encoder = new TextEncoder();
 
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
       // Send initial ping to confirm connection
       controller.enqueue(encoder.encode("data: {\"type\":\"connected\"}\n\n"));
 
-      const unsubscribe = subscribeToAlerts((data) => {
+      const unsubscribe = subscribeToAlerts(userId, (data) => {
         try {
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
         } catch {

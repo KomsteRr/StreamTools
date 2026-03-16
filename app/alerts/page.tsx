@@ -70,13 +70,6 @@ const PLATFORMS = [
     color: "red",
     disabled: false,
   },
-  {
-    id: "kick",
-    label: "Kick",
-    icon: <span>🎮</span>,
-    color: "green",
-    disabled: true,
-  },
 ];
 
 const ALERT_META: Record<

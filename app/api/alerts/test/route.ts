@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { publishAlert } from "@/lib/alertEmitter";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 const FAKE_DATA: Record<string, { user: string; amount?: string }> = {
   follow: { user: "SuperFan42" },
@@ -13,11 +14,14 @@ const FAKE_DATA: Record<string, { user: string; amount?: string }> = {
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession();
+    const userId = getSafeUserId(session);
     const { type, platform = "twitch" } = await req.json();
     if (!type) return NextResponse.json({ error: "Missing type" }, { status: 400 });
 
-    // Use findFirst since type+platform is compound unique, not type alone
-    const config = await prisma.alertConfig.findFirst({ where: { type, platform } });
+    const config = await prisma.alertConfig.findFirst({
+      where: { type, platform, userId },
+    });
     if (!config) return NextResponse.json({ error: "Alert type not found" }, { status: 404 });
 
     const fake = FAKE_DATA[type] ?? { user: "TestUser", amount: "1" };
@@ -25,7 +29,7 @@ export async function POST(req: Request) {
       .replace(/\{user\}/g, fake.user)
       .replace(/\{amount\}/g, fake.amount ?? "");
 
-    publishAlert({
+    publishAlert(userId, {
       id: `${Date.now()}-${Math.random()}`,
       type,
       platform,
@@ -47,6 +51,13 @@ export async function POST(req: Request) {
       glowSize: config.glowSize,
       borderColor: config.borderColor,
       borderWidth: config.borderWidth,
+      containerImageUrl: config.containerImageUrl,
+      containerWidth: config.containerWidth,
+      containerHeight: config.containerHeight,
+      containerLayout: config.containerLayout,
+      textAlign: config.textAlign,
+      imageSize: config.imageSize,
+      fontFamily: config.fontFamily,
     });
 
     return NextResponse.json({ ok: true });

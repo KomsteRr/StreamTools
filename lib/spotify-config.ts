@@ -16,16 +16,18 @@ const DEFAULT_CONFIG: VisualConfig = {
   clientSecret: "",
 };
 
-export async function getConfig(): Promise<VisualConfig> {
+export async function getConfig(userId?: string | null): Promise<VisualConfig> {
   try {
-    const visualItems = await prisma.spotifyConfig.findMany();
+    const safeUserId = userId ?? null;
+    const visualItems = await prisma.spotifyConfig.findMany({
+      where: { userId: safeUserId },
+    });
     const techItems = await prisma.platformConfig.findMany({
-      where: { platform: "spotify" },
+      where: { platform: "spotify", userId: safeUserId },
     });
     
     if (visualItems.length === 0 && techItems.length === 0) return DEFAULT_CONFIG;
 
-    // Convert array of key-values to object
     const config = { ...DEFAULT_CONFIG } as any;
     visualItems.forEach((item) => {
       config[item.key] = item.value;
@@ -43,33 +45,43 @@ export async function getConfig(): Promise<VisualConfig> {
   }
 }
 
-export async function saveConfig(newConfig: Partial<VisualConfig>) {
+export async function saveConfig(newConfig: Partial<VisualConfig>, userId?: string | null) {
   try {
+    const safeUserId = userId ?? null;
     const visualKeys = ["brandColor", "accentColor", "borderRadius", "showBackground"];
     const techKeys = ["clientId", "clientSecret"];
     
-    const operations: any[] = [];
-    Object.entries(newConfig).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(newConfig)) {
       if (visualKeys.includes(key)) {
-        operations.push(
-          prisma.spotifyConfig.upsert({
-            where: { key },
-            update: { value: String(value) },
-            create: { key, value: String(value) },
-          })
-        );
+        const existing = await prisma.spotifyConfig.findFirst({
+          where: { key, userId: safeUserId },
+        });
+        if (existing) {
+          await prisma.spotifyConfig.update({
+            where: { id: existing.id },
+            data: { value: String(value) },
+          });
+        } else {
+          await prisma.spotifyConfig.create({
+            data: { key, value: String(value), userId: safeUserId },
+          });
+        }
       } else if (techKeys.includes(key)) {
-        operations.push(
-          prisma.platformConfig.upsert({
-            where: { platform_key: { platform: "spotify", key } },
-            update: { value: String(value) },
-            create: { platform: "spotify", key, value: String(value) },
-          })
-        );
+        const existing = await prisma.platformConfig.findFirst({
+          where: { platform: "spotify", key, userId: safeUserId },
+        });
+        if (existing) {
+          await prisma.platformConfig.update({
+            where: { id: existing.id },
+            data: { value: String(value) },
+          });
+        } else {
+          await prisma.platformConfig.create({
+            data: { platform: "spotify", key, value: String(value), userId: safeUserId },
+          });
+        }
       }
-    });
-
-    await prisma.$transaction(operations);
+    }
   } catch (e) {
     console.error("Error saving config", e);
   }

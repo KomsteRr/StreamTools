@@ -4,15 +4,20 @@ import {
   disconnectYouTube,
   isYouTubeConnected,
 } from "@/lib/youtubeAlerts";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 // GET /api/youtube/connect — check connection status
 export async function GET() {
-  return NextResponse.json({ connected: isYouTubeConnected() });
+  const session = await getSession();
+  const userId = getSafeUserId(session);
+  return NextResponse.json({ connected: isYouTubeConnected(userId) });
 }
 
 // POST /api/youtube/connect — connect and start polling
 export async function POST() {
-  const result = await connectYouTube();
+  const session = await getSession();
+  const userId = getSafeUserId(session);
+  const result = await connectYouTube(userId);
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
@@ -21,6 +26,8 @@ export async function POST() {
 
 // DELETE /api/youtube/connect — stop polling
 export async function DELETE() {
-  disconnectYouTube();
+  const session = await getSession();
+  const userId = getSafeUserId(session);
+  disconnectYouTube(userId);
   return NextResponse.json({ connected: false });
 }

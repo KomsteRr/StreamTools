@@ -34,6 +34,7 @@ import {
   FiWifiOff,
   FiYoutube,
   FiEye,
+  FiShield,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -45,6 +46,7 @@ interface DashboardData {
   twitch: { channelName?: string; clientId?: string };
   youtube: { connected: boolean };
   overlayToken?: string;
+  user?: { userId: string; role: string };
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -180,7 +182,7 @@ function ServiceCard({
               )}
               {basicHref && (
                 <Button asChild variant="ghost" size="sm">
-                  <Link href={basicHref} target="_blank">
+                  <Link href={basicHref}>
                     <FiEye /> Utilisation
                   </Link>
                 </Button>
@@ -220,22 +222,25 @@ export default function DashboardPage() {
     setOrigin(window.location.origin);
     async function fetchData() {
       try {
-        const [spotifyRes, twitchRes, youtubeRes, settingsRes] =
+        const [spotifyRes, twitchRes, youtubeRes, settingsRes, meRes] =
           await Promise.all([
             fetch("/api/spotify/status"),
             fetch("/api/twitch/config"),
             fetch("/api/youtube/status"),
             fetch("/api/settings"),
+            fetch("/api/me"),
           ]);
         const spotify = await spotifyRes.json();
         const twitch = await twitchRes.json();
         const youtube = await youtubeRes.json();
         const settings = await settingsRes.json();
+        const me = meRes.ok ? await meRes.json() : null;
         setData({
           spotify,
           twitch,
           youtube,
           overlayToken: settings.system?.overlayToken,
+          user: me,
         });
       } catch (e) {
         console.error("Dashboard fetch error", e);
@@ -457,39 +462,79 @@ export default function DashboardPage() {
         </SimpleGrid>
 
         {/* ── Quick settings shortcut ── */}
-        <Box
+        <SimpleGrid
+          columns={{ base: 1, md: data?.user?.role === "admin" ? 2 : 1 }}
+          gap={6}
           mt={8}
-          p={5}
-          bg="white"
-          _dark={{ bg: "gray.800" }}
-          borderRadius="xl"
-          shadow="sm"
         >
-          <HStack justify="space-between" flexWrap="wrap" gap={3}>
-            <HStack gap={3}>
-              <Box
-                p={2}
-                bg="gray.100"
-                _dark={{ bg: "gray.700" }}
-                borderRadius="lg"
-                color="gray.500"
-              >
-                <FiSettings size={18} />
-              </Box>
-              <Box>
-                <Heading size="sm">Paramètres globaux</Heading>
-                <Text fontSize="sm" color="gray.400" mt={0.5}>
-                  Connexions Twitch, Spotify, YouTube, clé API…
-                </Text>
-              </Box>
+          <Box
+            p={5}
+            bg="white"
+            _dark={{ bg: "gray.800" }}
+            borderRadius="xl"
+            shadow="sm"
+          >
+            <HStack justify="space-between" flexWrap="wrap" gap={3}>
+              <HStack gap={3}>
+                <Box
+                  p={2}
+                  bg="gray.100"
+                  _dark={{ bg: "gray.700" }}
+                  borderRadius="lg"
+                  color="gray.500"
+                >
+                  <FiSettings size={18} />
+                </Box>
+                <Box>
+                  <Heading size="sm">Paramètres globaux</Heading>
+                  <Text fontSize="sm" color="gray.400" mt={0.5}>
+                    Connexions Twitch, Spotify, YouTube…
+                  </Text>
+                </Box>
+              </HStack>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/settings">
+                  <FiSettings /> Ouvrir les paramètres
+                </Link>
+              </Button>
             </HStack>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/settings">
-                <FiSettings /> Ouvrir les paramètres
-              </Link>
-            </Button>
-          </HStack>
-        </Box>
+          </Box>
+
+          {data?.user?.role === "admin" && (
+            <Box
+              p={5}
+              bg="white"
+              _dark={{ bg: "gray.800" }}
+              borderRadius="xl"
+              shadow="sm"
+            >
+              <HStack justify="space-between" flexWrap="wrap" gap={3}>
+                <HStack gap={3}>
+                  <Box
+                    p={2}
+                    bg="blue.50"
+                    _dark={{ bg: "blue.900" }}
+                    borderRadius="lg"
+                    color="blue.500"
+                  >
+                    <FiShield size={18} />
+                  </Box>
+                  <Box>
+                    <Heading size="sm">Administration</Heading>
+                    <Text fontSize="sm" color="gray.400" mt={0.5}>
+                      Gérer les utilisateurs et les accès.
+                    </Text>
+                  </Box>
+                </HStack>
+                <Button asChild variant="outline" size="sm" colorPalette="blue">
+                  <Link href="/admin">
+                    <FiShield /> Panneau Admin
+                  </Link>
+                </Button>
+              </HStack>
+            </Box>
+          )}
+        </SimpleGrid>
       </Container>
     </Box>
   );

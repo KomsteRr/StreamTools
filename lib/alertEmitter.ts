@@ -2,19 +2,34 @@
 // Stored on globalThis to survive HMR in development
 declare global {
   // eslint-disable-next-line no-var
-  var alertListeners: Set<(data: string) => void>;
+  var alertListenersMap: Map<string, Set<(data: string) => void>>;
 }
 
-if (!global.alertListeners) {
-  global.alertListeners = new Set();
+if (!global.alertListenersMap) {
+  global.alertListenersMap = new Map();
 }
 
-export function subscribeToAlerts(cb: (data: string) => void) {
-  global.alertListeners.add(cb);
-  return () => global.alertListeners.delete(cb);
+export function subscribeToAlerts(userId: string | null, cb: (data: string) => void) {
+  const key = userId || "global";
+  if (!global.alertListenersMap.has(key)) {
+    global.alertListenersMap.set(key, new Set());
+  }
+  const listeners = global.alertListenersMap.get(key)!;
+  listeners.add(cb);
+
+  return () => {
+    listeners.delete(cb);
+    if (listeners.size === 0) {
+      global.alertListenersMap.delete(key);
+    }
+  };
 }
 
-export function publishAlert(alert: object) {
-  const data = JSON.stringify(alert);
-  global.alertListeners.forEach((cb) => cb(data));
+export function publishAlert(userId: string | null, alert: object) {
+  const key = userId || "global";
+  const listeners = global.alertListenersMap.get(key);
+  if (listeners) {
+    const data = JSON.stringify(alert);
+    listeners.forEach((cb) => cb(data));
+  }
 }

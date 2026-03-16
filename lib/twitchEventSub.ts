@@ -16,30 +16,35 @@ interface TwitchCredentials {
 
 declare global {
   // eslint-disable-next-line no-var
-  var _twitchEventSubWs: WebSocket | null;
+  var _twitchEventSubWsMap: Map<string, WebSocket>;
   // eslint-disable-next-line no-var
-  var _twitchEventSubActive: boolean;
+  var _twitchEventSubActiveMap: Map<string, boolean>;
 }
 
-if (!global._twitchEventSubWs) global._twitchEventSubWs = null;
-if (!global._twitchEventSubActive) global._twitchEventSubActive = false;
+if (!global._twitchEventSubWsMap) global._twitchEventSubWsMap = new Map();
+if (!global._twitchEventSubActiveMap) global._twitchEventSubActiveMap = new Map();
 
-export function isTwitchConnected() {
+export function isTwitchConnected(userId: string | null) {
+  const key = userId || "global";
+  const ws = global._twitchEventSubWsMap.get(key);
+  const active = global._twitchEventSubActiveMap.get(key);
   return (
-    global._twitchEventSubActive &&
-    global._twitchEventSubWs !== null &&
-    global._twitchEventSubWs.readyState === 1 // OPEN
+    active &&
+    ws !== undefined &&
+    ws.readyState === 1 // OPEN
   );
 }
 
-export function disconnectTwitch() {
-  if (global._twitchEventSubWs) {
+export function disconnectTwitch(userId: string | null) {
+  const key = userId || "global";
+  const ws = global._twitchEventSubWsMap.get(key);
+  if (ws) {
     try {
-      global._twitchEventSubWs.close();
+      ws.close();
     } catch {}
-    global._twitchEventSubWs = null;
+    global._twitchEventSubWsMap.delete(key);
   }
-  global._twitchEventSubActive = false;
+  global._twitchEventSubActiveMap.set(key, false);
 }
 
 async function subscribeToEvent(
@@ -92,15 +97,17 @@ function mapEventToAlert(type: string, event: Record<string, unknown>) {
   };
 }
 
-export async function connectTwitch(): Promise<{
+export async function connectTwitch(userId: string | null): Promise<{
   ok: boolean;
   error?: string;
 }> {
-  if (isTwitchConnected()) return { ok: true };
+  if (isTwitchConnected(userId)) return { ok: true };
 
-  // Load credentials from PlatformConfig
+  const key = userId || "global";
+
+  // Load credentials from PlatformConfig scoped to userId
   const rows = await prisma.platformConfig.findMany({
-    where: { platform: "twitch" },
+    where: { platform: "twitch", userId },
   });
   const cfg: Record<string, string> = {};
   rows.forEach((r) => (cfg[r.key] = r.value));
@@ -130,7 +137,7 @@ export async function connectTwitch(): Promise<{
     };
 
     const ws = new WebSocket("wss://eventsub.wss.twitch.tv/ws");
-    global._twitchEventSubWs = ws as unknown as WebSocket;
+    global._twitchEventSubWsMap.set(key, ws as unknown as WebSocket);
 
     const timeout = setTimeout(() => {
       ws.close();
@@ -138,7 +145,7 @@ export async function connectTwitch(): Promise<{
     }, 10000);
 
     ws.onopen = () => {
-      console.log("[TwitchEventSub] WebSocket connected");
+      console.log(`[TwitchEventSub] WebSocket connected for user ${key}`);
     };
 
     ws.onmessage = async (event) => {
@@ -157,7 +164,7 @@ export async function connectTwitch(): Promise<{
         clearTimeout(timeout);
         const session = payload?.session as Record<string, unknown>;
         const sessionId = session?.id as string;
-        global._twitchEventSubActive = true;
+        global._twitchEventSubActiveMap.set(key, true);
 
         // Subscribe to all events
         await subscribeToEvent(sessionId, credentials, "channel.follow", "2", {
@@ -200,7 +207,7 @@ export async function connectTwitch(): Promise<{
           { broadcaster_user_id: broadcasterId },
         );
 
-        console.log("[TwitchEventSub] Subscribed to all events");
+        console.log(`[TwitchEventSub] Subscribed to all events for user ${key}`);
         done({ ok: true });
       }
 
@@ -223,9 +230,9 @@ export async function connectTwitch(): Promise<{
 
         const info = mapEventToAlert(alertType, eventData);
 
-        // Fetch the alert config
+        // Fetch the alert config scoped by userId
         const config = await prisma.alertConfig.findFirst({
-          where: { type: alertType, platform: "twitch" },
+          where: { type: alertType, platform: "twitch", userId },
         });
         if (!config || !config.enabled) return;
 
@@ -233,7 +240,7 @@ export async function connectTwitch(): Promise<{
           .replace(/\{user\}/g, info.username)
           .replace(/\{amount\}/g, String(info.amount));
 
-        publishAlert({
+        publishAlert(userId, {
           id: crypto.randomUUID(),
           type: alertType,
           platform: "twitch",
@@ -265,23 +272,23 @@ export async function connectTwitch(): Promise<{
       if (msgType === "reconnect") {
         const reqPayload = payload?.session as Record<string, unknown>;
         const newUrl = reqPayload?.reconnect_url as string;
-        console.log("[TwitchEventSub] Reconnect requested:", newUrl);
+        console.log(`[TwitchEventSub] Reconnect requested for user ${key}:`, newUrl);
         ws.close();
         // Could reconnect automatically here
       }
     };
 
     ws.onerror = (err) => {
-      console.error("[TwitchEventSub] WebSocket error", err);
-      global._twitchEventSubActive = false;
-      global._twitchEventSubWs = null;
+      console.error(`[TwitchEventSub] WebSocket error for user ${key}`, err);
+      global._twitchEventSubActiveMap.set(key, false);
+      global._twitchEventSubWsMap.delete(key);
       done({ ok: false, error: "Erreur WebSocket Twitch. Vérifiez vos credentials et votre connexion." });
     };
 
     ws.onclose = (event) => {
-      console.log("[TwitchEventSub] WebSocket closed, code:", event.code);
-      global._twitchEventSubActive = false;
-      global._twitchEventSubWs = null;
+      console.log(`[TwitchEventSub] WebSocket closed for user ${key}, code:`, event.code);
+      global._twitchEventSubActiveMap.set(key, false);
+      global._twitchEventSubWsMap.delete(key);
       done({ ok: false, error: `Connexion fermée (code ${event.code}). Vérifiez vos credentials Twitch.` });
     };
   });

@@ -6,9 +6,12 @@ export interface SpotifyTokens {
   expires_at: number;
 }
 
-export async function getTokens(): Promise<SpotifyTokens | null> {
+export async function getTokens(userId?: string | null): Promise<SpotifyTokens | null> {
   try {
-    const token = await prisma.spotifyToken.findFirst();
+    const safeUserId = userId ?? null;
+    const token = await prisma.spotifyToken.findFirst({
+      where: { userId: safeUserId },
+    });
     if (!token) return null;
 
     return {
@@ -22,9 +25,12 @@ export async function getTokens(): Promise<SpotifyTokens | null> {
   }
 }
 
-export async function saveTokens(tokens: SpotifyTokens) {
+export async function saveTokens(tokens: SpotifyTokens, userId?: string | null) {
   try {
-    const existing = await prisma.spotifyToken.findFirst();
+    const safeUserId = userId ?? null;
+    const existing = await prisma.spotifyToken.findFirst({
+      where: { userId: safeUserId },
+    });
 
     if (existing) {
       await prisma.spotifyToken.update({
@@ -41,6 +47,7 @@ export async function saveTokens(tokens: SpotifyTokens) {
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
           expiresAt: new Date(tokens.expires_at),
+          userId: safeUserId,
         },
       });
     }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 // GET /api/alerts/config/[type]?platform=twitch
 export async function GET(
@@ -9,10 +10,12 @@ export async function GET(
   const { type } = await params;
   const url = new URL(req.url);
   const platform = url.searchParams.get("platform") ?? "twitch";
+  const session = await getSession();
+  const userId = getSafeUserId(session);
 
   try {
     const config = await prisma.alertConfig.findFirst({
-      where: { type, platform },
+      where: { type, platform, userId },
     });
     if (!config) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(config);
@@ -30,14 +33,17 @@ export async function PUT(
   const { type } = await params;
   const url = new URL(req.url);
   const platform = url.searchParams.get("platform") ?? "twitch";
+  const session = await getSession();
+  const userId = getSafeUserId(session);
 
   try {
     const data = await req.json();
-    // Remove type/platform from data payload to avoid conflicts
     const { type: _t, platform: _p, id: _id, ...fields } = data;
     void _t; void _p; void _id;
 
-    const existing = await prisma.alertConfig.findFirst({ where: { type, platform } });
+    const existing = await prisma.alertConfig.findFirst({
+      where: { type, platform, userId },
+    });
 
     let config;
     if (existing) {
@@ -47,7 +53,7 @@ export async function PUT(
       });
     } else {
       config = await prisma.alertConfig.create({
-        data: { type, platform, ...fields },
+        data: { type, platform, ...fields, userId },
       });
     }
 

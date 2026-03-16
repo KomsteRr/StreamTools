@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { use } from "react";
 import {
   Box,
@@ -11,6 +11,7 @@ import {
   HStack,
   Button,
   Input,
+  Textarea,
   Slider,
   Spinner,
   Flex,
@@ -29,6 +30,9 @@ import {
   FiCopy,
   FiTwitch,
   FiYoutube,
+  FiAlignLeft,
+  FiAlignCenter,
+  FiAlignRight,
 } from "react-icons/fi";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -37,6 +41,10 @@ import {
   AlertPreview,
   AlertConfig,
 } from "@/app/alerts/components/AlertPreview";
+import {
+  AlertOverlayDisplay,
+  AlertEvent,
+} from "@/app/alerts/components/AlertOverlayDisplay";
 import { FileUploader } from "@/app/alerts/components/FileUploader";
 
 const ALERT_LABELS: Record<string, string> = {
@@ -69,8 +77,40 @@ const PLATFORMS = [
   // { id: "kick", label: "Kick", icon: <span>🎮</span> },
 ];
 
+const GOOGLE_FONTS = [
+  "Inter",
+  "Roboto",
+  "Outfit",
+  "Poppins",
+  "Montserrat",
+  "Oswald",
+  "Raleway",
+  "Lato",
+  "Nunito",
+  "Bangers",
+  "Bebas Neue",
+  "Fredoka One",
+  "Permanent Marker",
+  "Press Start 2P",
+  "Righteous",
+  "Russo One",
+  "Bungee",
+  "Orbitron",
+];
+
+const LAYOUT_OPTIONS = [
+  { value: "column", label: "Image en haut", icon: "⬆" },
+  { value: "column-reverse", label: "Image en bas", icon: "⬇" },
+  { value: "row", label: "Image à gauche", icon: "⬅" },
+  { value: "row-reverse", label: "Image à droite", icon: "➡" },
+];
+
 const platformCollection = createListCollection({
   items: PLATFORMS.map((p) => ({ label: p.label, value: p.id })),
+});
+
+const fontCollection = createListCollection({
+  items: GOOGLE_FONTS.map((f) => ({ label: f, value: f })),
 });
 
 export default function CustomizePage({
@@ -91,6 +131,8 @@ export default function CustomizePage({
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
   const [copyTarget, setCopyTarget] = useState("");
+  const [animTestEvent, setAnimTestEvent] = useState<AlertEvent | null>(null);
+  const animTestTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadConfig = useCallback(
     async (p: string) => {
@@ -153,6 +195,43 @@ export default function CustomizePage({
     } finally {
       setTesting(false);
     }
+  }
+
+  function testAnimLocal() {
+    if (!config) return;
+    if (animTestTimerRef.current) {
+      clearTimeout(animTestTimerRef.current);
+    }
+    const previewText = config.text
+      .replace(/\{user\}/g, "TestUser")
+      .replace(/\{amount\}/g, "100");
+    const event: AlertEvent = {
+      id: `anim-test-${Date.now()}`,
+      type,
+      text: previewText,
+      duration: Math.min(config.duration, 4),
+      volume: 0,
+      bgColor: config.bgColor,
+      bgOverlayOpacity: config.bgOverlayOpacity,
+      textColor: config.textColor,
+      fontSize: config.fontSize,
+      animation: config.animation,
+      exitAnimation: config.exitAnimation ?? "fade",
+      position: config.position,
+      glowColor: config.glowColor,
+      glowSize: config.glowSize,
+      borderColor: config.borderColor,
+      borderWidth: config.borderWidth,
+      imageUrl: config.imageUrl,
+      containerImageUrl: config.containerImageUrl,
+      containerWidth: config.containerWidth,
+      containerHeight: config.containerHeight,
+      containerLayout: config.containerLayout,
+      textAlign: config.textAlign,
+      imageSize: config.imageSize,
+      fontFamily: config.fontFamily,
+    };
+    setAnimTestEvent(event);
   }
 
   async function copyFrom() {
@@ -358,7 +437,15 @@ export default function CustomizePage({
                 >
                   OBS PREVIEW
                 </Text>
-                <AlertPreview config={config} />
+                {animTestEvent ? (
+                  <AlertOverlayDisplay
+                    key={animTestEvent.id}
+                    alert={animTestEvent}
+                    onDone={() => setAnimTestEvent(null)}
+                  />
+                ) : (
+                  <AlertPreview config={config} />
+                )}
               </Box>
               <Text fontSize="xs" color="gray.400" textAlign="center" mt={2}>
                 Mis à jour en temps réel
@@ -380,11 +467,13 @@ export default function CustomizePage({
                 <Heading size="sm" mb={3}>
                   💬 Texte de l&apos;alerte
                 </Heading>
-                <Input
+                <Textarea
                   value={config.text}
                   onChange={(e) => update("text", e.target.value)}
                   placeholder="{user} vient de follow !"
                   mb={2}
+                  rows={3}
+                  resize="vertical"
                 />
                 <HStack gap={2} flexWrap="wrap">
                   {["{user}", "{amount}"].map((ph) => (
@@ -444,7 +533,7 @@ export default function CustomizePage({
                 </Box>
               </Box>
 
-              {/* ── Alert image ── */}
+              {/* ── Alert image / icon ── */}
               <Box
                 p={5}
                 bg="white"
@@ -469,6 +558,166 @@ export default function CustomizePage({
                   onUploaded={(url) => update("imageUrl", url)}
                   onRemove={() => update("imageUrl", null)}
                 />
+                <Box mt={3}>
+                  <Text fontSize="sm" mb={1}>
+                    Taille de l&apos;icône : {config.imageSize ?? 80}px
+                  </Text>
+                  <Slider.Root
+                    min={24}
+                    max={200}
+                    step={4}
+                    value={[config.imageSize ?? 80]}
+                    onValueChange={(e) => update("imageSize", e.value[0])}
+                  >
+                    <Slider.Control>
+                      <Slider.Track>
+                        <Slider.Range />
+                      </Slider.Track>
+                      <Slider.Thumb index={0} />
+                    </Slider.Control>
+                  </Slider.Root>
+                </Box>
+              </Box>
+
+              {/* ── Container Image ── */}
+              <Box
+                p={5}
+                bg="white"
+                _dark={{ bg: "gray.800", borderColor: "purple.700" }}
+                borderRadius="xl"
+                shadow="sm"
+                border="1px solid"
+                borderColor="purple.200"
+              >
+                <Heading size="sm" mb={1}>
+                  📦 Image conteneur
+                </Heading>
+                <Text fontSize="xs" color="gray.500" mb={3}>
+                  Une image qui sert de cadre/fond à l&apos;alerte. Remplace le
+                  fond blur et la couleur de fond quand définie.
+                </Text>
+                <FileUploader
+                  label="Image conteneur (.png, .jpg, .gif, .webp)"
+                  accept=".png,.jpg,.jpeg,.gif,.webp"
+                  currentUrl={config.containerImageUrl}
+                  mediaType={
+                    config.containerImageUrl?.endsWith(".gif")
+                      ? "gif"
+                      : config.containerImageUrl
+                        ? "image"
+                        : null
+                  }
+                  onUploaded={(url) => update("containerImageUrl", url)}
+                  onRemove={() => update("containerImageUrl", null)}
+                />
+                {config.containerImageUrl && (
+                  <VStack align="stretch" gap={3} mt={4}>
+                    <Box>
+                      <HStack gap={2} mb={1}>
+                        <Text fontSize="sm">Largeur :</Text>
+                        <Input
+                          type="number"
+                          size="sm"
+                          maxW="90px"
+                          fontFamily="mono"
+                          value={config.containerWidth ?? 400}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value, 10);
+                            if (!isNaN(v) && v > 0) update("containerWidth", v);
+                          }}
+                        />
+                        <Text fontSize="sm" color="gray.500">px</Text>
+                      </HStack>
+                      <Slider.Root
+                        min={200}
+                        max={800}
+                        step={10}
+                        value={[config.containerWidth ?? 400]}
+                        onValueChange={(e) =>
+                          update("containerWidth", e.value[0])
+                        }
+                      >
+                        <Slider.Control>
+                          <Slider.Track>
+                            <Slider.Range />
+                          </Slider.Track>
+                          <Slider.Thumb index={0} />
+                        </Slider.Control>
+                      </Slider.Root>
+                    </Box>
+                    <Box>
+                      <HStack gap={2} mb={1}>
+                        <Text fontSize="sm">Hauteur :</Text>
+                        <Input
+                          type="number"
+                          size="sm"
+                          maxW="90px"
+                          fontFamily="mono"
+                          value={config.containerHeight ?? 200}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value, 10);
+                            if (!isNaN(v) && v > 0) update("containerHeight", v);
+                          }}
+                        />
+                        <Text fontSize="sm" color="gray.500">px</Text>
+                      </HStack>
+                      <Slider.Root
+                        min={100}
+                        max={600}
+                        step={10}
+                        value={[config.containerHeight ?? 200]}
+                        onValueChange={(e) =>
+                          update("containerHeight", e.value[0])
+                        }
+                      >
+                        <Slider.Control>
+                          <Slider.Track>
+                            <Slider.Range />
+                          </Slider.Track>
+                          <Slider.Thumb index={0} />
+                        </Slider.Control>
+                      </Slider.Root>
+                    </Box>
+                  </VStack>
+                )}
+              </Box>
+
+              {/* ── Container Layout ── */}
+              <Box
+                p={5}
+                bg="white"
+                _dark={{ bg: "gray.800" }}
+                borderRadius="xl"
+                shadow="sm"
+              >
+                <Heading size="sm" mb={3}>
+                  🔀 Layout conteneur
+                </Heading>
+                <Text fontSize="xs" color="gray.500" mb={3}>
+                  Position de l&apos;image/icône par rapport au texte dans le
+                  conteneur.
+                </Text>
+                <HStack gap={2} flexWrap="wrap">
+                  {LAYOUT_OPTIONS.map((opt) => (
+                    <Button
+                      key={opt.value}
+                      size="sm"
+                      variant={
+                        (config.containerLayout ?? "column") === opt.value
+                          ? "solid"
+                          : "outline"
+                      }
+                      colorPalette={
+                        (config.containerLayout ?? "column") === opt.value
+                          ? "purple"
+                          : "gray"
+                      }
+                      onClick={() => update("containerLayout", opt.value)}
+                    >
+                      {opt.icon} {opt.label}
+                    </Button>
+                  ))}
+                </HStack>
               </Box>
 
               {/* ── Full-screen background ── */}
@@ -503,30 +752,40 @@ export default function CustomizePage({
                   }}
                 />
                 <Separator my={3} />
-                <Text fontSize="sm" mb={1}>
-                  Couleur de fond (fallback)
-                </Text>
-                <HStack gap={2}>
-                  <input
-                    type="color"
-                    value={config.bgColor}
-                    onChange={(e) => update("bgColor", e.target.value)}
-                    style={{
-                      width: 44,
-                      height: 36,
-                      borderRadius: 8,
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  />
-                  <Input
-                    value={config.bgColor}
-                    onChange={(e) => update("bgColor", e.target.value)}
-                    fontFamily="mono"
-                    size="sm"
-                    maxW="120px"
-                  />
-                </HStack>
+                {!config.containerImageUrl && (
+                  <>
+                    <Text fontSize="sm" mb={1}>
+                      Couleur de fond (fallback)
+                    </Text>
+                    <HStack gap={2}>
+                      <input
+                        type="color"
+                        value={config.bgColor}
+                        onChange={(e) => update("bgColor", e.target.value)}
+                        style={{
+                          width: 44,
+                          height: 36,
+                          borderRadius: 8,
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <Input
+                        value={config.bgColor}
+                        onChange={(e) => update("bgColor", e.target.value)}
+                        fontFamily="mono"
+                        size="sm"
+                        maxW="120px"
+                      />
+                    </HStack>
+                  </>
+                )}
+                {config.containerImageUrl && (
+                  <Text fontSize="xs" color="orange.500" fontStyle="italic">
+                    ⚠ La couleur de fond est ignorée car une image conteneur est
+                    définie.
+                  </Text>
+                )}
                 <Box mt={3}>
                   <Text fontSize="sm" mb={1}>
                     Opacité fondation sombre :{" "}
@@ -618,6 +877,41 @@ export default function CustomizePage({
                   ✏️ Typographie
                 </Heading>
                 <VStack align="stretch" gap={4}>
+                  {/* Font Family */}
+                  <Box>
+                    <Text fontSize="sm" mb={1}>
+                      Police
+                    </Text>
+                    <Select.Root
+                      collection={fontCollection}
+                      value={[config.fontFamily ?? "Inter"]}
+                      onValueChange={(e) => update("fontFamily", e.value[0])}
+                      size="sm"
+                      maxW="240px"
+                    >
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger>
+                          <Select.ValueText placeholder="Choisir une police..." />
+                        </Select.Trigger>
+                      </Select.Control>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {GOOGLE_FONTS.map((f) => (
+                            <Select.Item
+                              key={f}
+                              item={{ label: f, value: f }}
+                            >
+                              {f}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
+                  </Box>
+
+                  {/* Text Color */}
                   <Box>
                     <Text fontSize="sm" mb={1}>
                       Couleur du texte
@@ -644,6 +938,8 @@ export default function CustomizePage({
                       />
                     </HStack>
                   </Box>
+
+                  {/* Font Size */}
                   <Box>
                     <Text fontSize="sm" mb={1}>
                       Taille : {config.fontSize}px
@@ -662,6 +958,38 @@ export default function CustomizePage({
                         <Slider.Thumb index={0} />
                       </Slider.Control>
                     </Slider.Root>
+                  </Box>
+
+                  {/* Text Alignment */}
+                  <Box>
+                    <Text fontSize="sm" mb={2}>
+                      Alignement du texte
+                    </Text>
+                    <HStack gap={2}>
+                      {[
+                        { value: "left", icon: <FiAlignLeft />, label: "Gauche" },
+                        { value: "center", icon: <FiAlignCenter />, label: "Centre" },
+                        { value: "right", icon: <FiAlignRight />, label: "Droite" },
+                      ].map((opt) => (
+                        <Button
+                          key={opt.value}
+                          size="sm"
+                          variant={
+                            (config.textAlign ?? "center") === opt.value
+                              ? "solid"
+                              : "outline"
+                          }
+                          colorPalette={
+                            (config.textAlign ?? "center") === opt.value
+                              ? "purple"
+                              : "gray"
+                          }
+                          onClick={() => update("textAlign", opt.value)}
+                        >
+                          {opt.icon} {opt.label}
+                        </Button>
+                      ))}
+                    </HStack>
                   </Box>
                 </VStack>
               </Box>
@@ -728,65 +1056,73 @@ export default function CustomizePage({
               </Box>
 
               {/* ── Alert Box Border ── */}
-              <Box
-                p={5}
-                bg="white"
-                _dark={{ bg: "gray.800" }}
-                borderRadius="xl"
-                shadow="sm"
-              >
-                <Heading size="sm" mb={3}>
-                  🔲 Bordure de la boîte
-                </Heading>
-                <VStack align="stretch" gap={4}>
-                  <Box>
-                    <Text fontSize="sm" mb={1}>
-                      Couleur
-                    </Text>
-                    <HStack gap={2}>
-                      <input
-                        type="color"
-                        value={config.borderColor ?? "#ffffff"}
-                        onChange={(e) => update("borderColor", e.target.value)}
-                        style={{
-                          width: 44,
-                          height: 36,
-                          borderRadius: 8,
-                          border: "none",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <Input
-                        value={config.borderColor ?? "#ffffff"}
-                        onChange={(e) => update("borderColor", e.target.value)}
-                        fontFamily="mono"
-                        size="sm"
-                        maxW="120px"
-                      />
-                    </HStack>
-                  </Box>
-                  <Box>
-                    <Text fontSize="sm" mb={1}>
-                      Épaisseur : {config.borderWidth}px{" "}
-                      {config.borderWidth === 0 && "(désactivé)"}
-                    </Text>
-                    <Slider.Root
-                      min={0}
-                      max={8}
-                      step={1}
-                      value={[config.borderWidth ?? 0]}
-                      onValueChange={(e) => update("borderWidth", e.value[0])}
-                    >
-                      <Slider.Control>
-                        <Slider.Track>
-                          <Slider.Range />
-                        </Slider.Track>
-                        <Slider.Thumb index={0} />
-                      </Slider.Control>
-                    </Slider.Root>
-                  </Box>
-                </VStack>
-              </Box>
+              {!config.containerImageUrl && (
+                <Box
+                  p={5}
+                  bg="white"
+                  _dark={{ bg: "gray.800" }}
+                  borderRadius="xl"
+                  shadow="sm"
+                >
+                  <Heading size="sm" mb={3}>
+                    🔲 Bordure de la boîte
+                  </Heading>
+                  <VStack align="stretch" gap={4}>
+                    <Box>
+                      <Text fontSize="sm" mb={1}>
+                        Couleur
+                      </Text>
+                      <HStack gap={2}>
+                        <input
+                          type="color"
+                          value={config.borderColor ?? "#ffffff"}
+                          onChange={(e) =>
+                            update("borderColor", e.target.value)
+                          }
+                          style={{
+                            width: 44,
+                            height: 36,
+                            borderRadius: 8,
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                        />
+                        <Input
+                          value={config.borderColor ?? "#ffffff"}
+                          onChange={(e) =>
+                            update("borderColor", e.target.value)
+                          }
+                          fontFamily="mono"
+                          size="sm"
+                          maxW="120px"
+                        />
+                      </HStack>
+                    </Box>
+                    <Box>
+                      <Text fontSize="sm" mb={1}>
+                        Épaisseur : {config.borderWidth}px{" "}
+                        {config.borderWidth === 0 && "(désactivé)"}
+                      </Text>
+                      <Slider.Root
+                        min={0}
+                        max={8}
+                        step={1}
+                        value={[config.borderWidth ?? 0]}
+                        onValueChange={(e) =>
+                          update("borderWidth", e.value[0])
+                        }
+                      >
+                        <Slider.Control>
+                          <Slider.Track>
+                            <Slider.Range />
+                          </Slider.Track>
+                          <Slider.Thumb index={0} />
+                        </Slider.Control>
+                      </Slider.Root>
+                    </Box>
+                  </VStack>
+                </Box>
+              )}
 
               {/* ── Timing & Animation ── */}
               <Box
@@ -865,6 +1201,21 @@ export default function CustomizePage({
                       </HStack>
                     </RadioGroup.Root>
                   </Box>
+                  <Separator />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    colorPalette="purple"
+                    onClick={testAnimLocal}
+                    disabled={!!animTestEvent}
+                  >
+                    🎬 Tester l&apos;animation (entrée + sortie)
+                  </Button>
+                  <Text fontSize="xs" color="gray.400">
+                    Joue l&apos;animation d&apos;entrée puis de sortie dans
+                    l&apos;aperçu ci-contre, sans envoyer d&apos;alerte via
+                    OBS.
+                  </Text>
                 </VStack>
               </Box>
             </VStack>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 // POST /api/alerts/config/[type]/copy
 // Body: { fromPlatform: "twitch", toPlatform: "youtube" }
@@ -8,6 +9,8 @@ export async function POST(
   { params }: { params: Promise<{ type: string }> },
 ) {
   const { type } = await params;
+  const session = await getSession();
+  const userId = getSafeUserId(session);
 
   try {
     const { fromPlatform, toPlatform } = await req.json();
@@ -19,7 +22,7 @@ export async function POST(
     }
 
     const source = await prisma.alertConfig.findFirst({
-      where: { type, platform: fromPlatform },
+      where: { type, platform: fromPlatform, userId },
     });
     if (!source) {
       return NextResponse.json(
@@ -29,12 +32,12 @@ export async function POST(
     }
 
     // Strip primary key + identity fields
-    const { id: _id, platform: _p, type: _t, ...copyData } = source;
-    void _id; void _p; void _t;
+    const { id: _id, platform: _p, type: _t, userId: _uid, ...copyData } = source;
+    void _id; void _p; void _t; void _uid;
 
     // Check if target already exists
     const existing = await prisma.alertConfig.findFirst({
-      where: { type, platform: toPlatform },
+      where: { type, platform: toPlatform, userId },
     });
 
     let result;
@@ -45,7 +48,12 @@ export async function POST(
       });
     } else {
       result = await prisma.alertConfig.create({
-        data: { type, platform: toPlatform, ...copyData },
+        data: { 
+          type, 
+          platform: toPlatform, 
+          ...copyData, 
+          userId: userId 
+        } as any, // Type assertion since Prisma type inference struggles with the spread here
       });
     }
 

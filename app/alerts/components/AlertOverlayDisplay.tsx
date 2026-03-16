@@ -25,6 +25,16 @@ export interface AlertEvent {
   animation: string;
   exitAnimation?: string;
   position?: string;
+  // Container image
+  containerImageUrl?: string | null;
+  containerWidth?: number;
+  containerHeight?: number;
+  // Container layout
+  containerLayout?: string;
+  textAlign?: string;
+  imageSize?: number;
+  // Font
+  fontFamily?: string;
 }
 
 interface AlertOverlayDisplayProps {
@@ -75,6 +85,17 @@ function getExitTransform(exitAnimation: string): string {
   );
 }
 
+/** Inject a Google Font <link> once */
+function loadGoogleFont(fontFamily: string) {
+  const id = `gfont-${fontFamily.replace(/\s+/g, "-")}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement("link");
+  link.id = id;
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;700;800&display=swap`;
+  document.head.appendChild(link);
+}
+
 export function AlertOverlayDisplay({
   alert,
   onDone,
@@ -82,6 +103,10 @@ export function AlertOverlayDisplay({
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (alert.fontFamily) loadGoogleFont(alert.fontFamily);
+  }, [alert.fontFamily]);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -109,7 +134,7 @@ export function AlertOverlayDisplay({
       : "0 2px 8px rgba(0,0,0,0.5)";
 
   const boxBorderStyle =
-    alert.borderWidth && alert.borderWidth > 0
+    alert.borderWidth && alert.borderWidth > 0 && !alert.containerImageUrl
       ? {
           border: `${alert.borderWidth}px solid ${alert.borderColor ?? "#ffffff"}`,
         }
@@ -119,18 +144,14 @@ export function AlertOverlayDisplay({
     ? getExitTransform(alert.exitAnimation ?? "fade")
     : getEnterTransform(alert.animation);
 
-  const currentOpacity = visible && !leaving ? 1 : 0;
-  const currentScale = visible && !leaving ? "scale(1)" : currentTransform;
-
   const boxStyle: React.CSSProperties = {
     transform:
       visible && !leaving ? "translateY(0) scale(1)" : currentTransform,
-    opacity: currentOpacity,
+    opacity: visible && !leaving ? 1 : 0,
     transition: leaving
       ? "transform 0.5s ease-in, opacity 0.4s ease-in"
       : "transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease-out",
   };
-  void currentScale;
 
   const { justifyContent, alignItems } = getPositionStyles(
     alert.position ?? "center",
@@ -140,6 +161,16 @@ export function AlertOverlayDisplay({
     opacity: visible && !leaving ? 1 : 0,
     transition: "opacity 0.5s ease",
   };
+
+  const layout = alert.containerLayout ?? "column";
+  const txtAlign = (alert.textAlign ?? "center") as "left" | "center" | "right";
+  const imgSize = alert.imageSize ?? 80;
+  const font = alert.fontFamily ?? "Inter";
+  const hasContainerImage = !!alert.containerImageUrl;
+
+  // Container sizing
+  const cWidth = alert.containerWidth ?? 400;
+  const cHeight = alert.containerHeight ?? 200;
 
   return (
     <Box position="fixed" inset={0} zIndex={9999} pointerEvents="none">
@@ -197,36 +228,57 @@ export function AlertOverlayDisplay({
           gap={3}
         >
           <Box
+            w={hasContainerImage ? `${cWidth}px` : undefined}
+            h={hasContainerImage ? `${cHeight}px` : undefined}
             bg={
-              alert.bgMediaUrl
-                ? `rgba(0,0,0,${overlayOpacity + 0.1})`
-                : alert.bgColor
+              hasContainerImage
+                ? "transparent"
+                : alert.bgMediaUrl
+                  ? `rgba(0,0,0,${overlayOpacity + 0.1})`
+                  : alert.bgColor
             }
-            backdropFilter={alert.bgMediaUrl ? "blur(10px)" : undefined}
-            borderRadius="2xl"
-            px={10}
-            py={6}
+            backgroundImage={
+              hasContainerImage
+                ? `url(${alert.containerImageUrl})`
+                : undefined
+            }
+            backgroundSize={hasContainerImage ? "100% 100%" : undefined}
+            backgroundRepeat={hasContainerImage ? "no-repeat" : undefined}
+            backdropFilter={
+              !hasContainerImage && alert.bgMediaUrl
+                ? "blur(10px)"
+                : undefined
+            }
+            borderRadius={hasContainerImage ? undefined : "2xl"}
+            px={hasContainerImage ? 6 : 10}
+            py={hasContainerImage ? 4 : 6}
             display="flex"
-            flexDir="column"
+            flexDir={layout as any}
             alignItems="center"
+            justifyContent="center"
             gap={3}
-            boxShadow="0 8px 40px rgba(0,0,0,0.5)"
-            maxW="80vw"
-            textAlign="center"
+            boxShadow={hasContainerImage ? undefined : "0 8px 40px rgba(0,0,0,0.5)"}
+            maxW={hasContainerImage ? undefined : "80vw"}
+            textAlign={txtAlign}
             style={boxBorderStyle}
           >
             {alert.imageUrl && (
               <Image
                 src={alert.imageUrl}
                 alt="alert"
-                boxSize="80px"
+                boxSize={`${imgSize}px`}
                 objectFit="contain"
                 borderRadius="xl"
+                flexShrink={0}
               />
             )}
             <Text
               color={alert.textColor}
               fontWeight="extrabold"
+              fontFamily={`'${font}', sans-serif`}
+              textAlign={txtAlign}
+              w="100%"
+              whiteSpace="pre-wrap"
               style={{ fontSize: `${alert.fontSize}px`, textShadow: glowStyle }}
             >
               {alert.text}

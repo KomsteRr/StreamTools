@@ -653,7 +653,6 @@ export default function SettingsPage() {
                 </Badge>
               )}
             </Tabs.Trigger>
-            {/* <Tabs.Trigger value="kick">🎮 Kick</Tabs.Trigger> */}
           </Tabs.List>
 
           <Tabs.Content value="twitch">
@@ -752,40 +751,6 @@ export default function SettingsPage() {
               />
             </VStack>
           </Tabs.Content>
-
-          {/* <Tabs.Content value="kick">
-            <PlatformCard
-              platform="kick"
-              label="Kick"
-              icon={<span>🎮</span>}
-              color="green"
-              fields={KICK_FIELDS}
-              initialValues={settings.kick ?? {}}
-              onSave={savePlatform}
-              connectStatus={null}
-              onConnect={async () => {}}
-              onDisconnect={async () => {}}
-            />
-            <Box
-              mt={4}
-              p={4}
-              bg="orange.50"
-              _dark={{ bg: "orange.950", borderColor: "orange.700" }}
-              borderRadius="lg"
-              border="1px dashed"
-              borderColor="orange.300"
-            >
-              <Text
-                fontSize="xs"
-                color="orange.700"
-                _dark={{ color: "orange.300" }}
-              >
-                ⚠️ Kick n'a pas encore d'API officielle publique. La connexion
-                automatique n'est pas disponible pour l'instant. Vous pouvez
-                utiliser le bouton test manuel sur la page Alertes.
-              </Text>
-            </Box>
-          </Tabs.Content> */}
         </Tabs.Root>
       </Container>
     </Box>

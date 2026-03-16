@@ -9,34 +9,37 @@ import { prisma } from "./prisma";
 
 declare global {
   // eslint-disable-next-line no-var
-  var _youtubePollingActive: boolean;
+  var _youtubePollingActiveMap: Map<string, boolean>;
   // eslint-disable-next-line no-var
-  var _youtubePollingInterval: ReturnType<typeof setInterval> | null;
+  var _youtubePollingIntervalMap: Map<string, ReturnType<typeof setInterval>>;
   // eslint-disable-next-line no-var
-  var _youtubeNextPageToken: string | null;
+  var _youtubeNextPageTokenMap: Map<string, string | null>;
   // eslint-disable-next-line no-var
-  var _youtubeLiveChatId: string | null;
+  var _youtubeLiveChatIdMap: Map<string, string | null>;
 }
 
-if (!global._youtubePollingActive) global._youtubePollingActive = false;
-if (!global._youtubePollingInterval) global._youtubePollingInterval = null;
-if (!global._youtubeNextPageToken) global._youtubeNextPageToken = null;
-if (!global._youtubeLiveChatId) global._youtubeLiveChatId = null;
+if (!global._youtubePollingActiveMap) global._youtubePollingActiveMap = new Map();
+if (!global._youtubePollingIntervalMap) global._youtubePollingIntervalMap = new Map();
+if (!global._youtubeNextPageTokenMap) global._youtubeNextPageTokenMap = new Map();
+if (!global._youtubeLiveChatIdMap) global._youtubeLiveChatIdMap = new Map();
 
 const YT_API = "https://www.googleapis.com/youtube/v3";
 
-export function isYouTubeConnected() {
-  return global._youtubePollingActive;
+export function isYouTubeConnected(userId: string | null) {
+  const key = userId || "global";
+  return global._youtubePollingActiveMap.get(key) || false;
 }
 
-export function disconnectYouTube() {
-  if (global._youtubePollingInterval) {
-    clearInterval(global._youtubePollingInterval);
-    global._youtubePollingInterval = null;
+export function disconnectYouTube(userId: string | null) {
+  const key = userId || "global";
+  const interval = global._youtubePollingIntervalMap.get(key);
+  if (interval) {
+    clearInterval(interval);
+    global._youtubePollingIntervalMap.delete(key);
   }
-  global._youtubePollingActive = false;
-  global._youtubeLiveChatId = null;
-  global._youtubeNextPageToken = null;
+  global._youtubePollingActiveMap.set(key, false);
+  global._youtubeLiveChatIdMap.set(key, null);
+  global._youtubeNextPageTokenMap.set(key, null);
 }
 
 async function getActiveLiveChatId(
@@ -70,24 +73,28 @@ async function getActiveLiveChatId(
   return data.items?.[0]?.snippet?.liveChatId ?? null;
 }
 
-async function pollMessages(apiKey: string) {
-  if (!global._youtubeLiveChatId) return;
+async function pollMessages(userId: string | null, apiKey: string) {
+  const key = userId || "global";
+  const liveChatId = global._youtubeLiveChatIdMap.get(key);
+  if (!liveChatId) return;
 
   const params = new URLSearchParams({
     part: "snippet,authorDetails",
-    liveChatId: global._youtubeLiveChatId,
+    liveChatId,
     key: apiKey,
     maxResults: "50",
   });
-  if (global._youtubeNextPageToken) {
-    params.set("pageToken", global._youtubeNextPageToken);
+  
+  const pageToken = global._youtubeNextPageTokenMap.get(key);
+  if (pageToken) {
+    params.set("pageToken", pageToken);
   }
 
   const res = await fetch(`${YT_API}/liveChat/messages?${params}`);
   if (!res.ok) return;
   const data = await res.json();
 
-  global._youtubeNextPageToken = data.nextPageToken ?? null;
+  global._youtubeNextPageTokenMap.set(key, data.nextPageToken ?? null);
 
   const items: unknown[] = data.items ?? [];
   for (const item of items) {
@@ -116,7 +123,7 @@ async function pollMessages(apiKey: string) {
     if (!alertType) continue;
 
     const config = await prisma.alertConfig.findFirst({
-      where: { type: alertType, platform: "youtube" },
+      where: { type: alertType, platform: "youtube", userId },
     });
     if (!config || !config.enabled) continue;
 
@@ -124,7 +131,7 @@ async function pollMessages(apiKey: string) {
       .replace(/\{user\}/g, author ?? "Unknown")
       .replace(/\{amount\}/g, String(amount));
 
-    publishAlert({
+    publishAlert(userId, {
       id: crypto.randomUUID(),
       type: alertType,
       platform: "youtube",
@@ -150,14 +157,16 @@ async function pollMessages(apiKey: string) {
   }
 }
 
-export async function connectYouTube(): Promise<{
+export async function connectYouTube(userId: string | null): Promise<{
   ok: boolean;
   error?: string;
 }> {
-  if (isYouTubeConnected()) return { ok: true };
+  if (isYouTubeConnected(userId)) return { ok: true };
+
+  const key = userId || "global";
 
   const rows = await prisma.platformConfig.findMany({
-    where: { platform: "youtube" },
+    where: { platform: "youtube", userId },
   });
   const cfg: Record<string, string> = {};
   rows.forEach((r) => (cfg[r.key] = r.value));
@@ -179,16 +188,18 @@ export async function connectYouTube(): Promise<{
     };
   }
 
-  global._youtubeLiveChatId = chatId;
-  global._youtubePollingActive = true;
-  console.log("[YouTubeAlerts] Polling live chat:", chatId);
+  global._youtubeLiveChatIdMap.set(key, chatId);
+  global._youtubePollingActiveMap.set(key, true);
+  console.log(`[YouTubeAlerts] Polling live chat for user ${key}:`, chatId);
 
   // Initial poll to set page token (skip existing messages)
-  await pollMessages(apiKey);
+  await pollMessages(userId, apiKey);
 
-  global._youtubePollingInterval = setInterval(() => {
-    pollMessages(apiKey).catch(console.error);
+  const intervalId = setInterval(() => {
+    pollMessages(userId, apiKey).catch(console.error);
   }, 8000); // poll every 8 seconds (YouTube rate limits to ~1 req/sec for free tier)
+  
+  global._youtubePollingIntervalMap.set(key, intervalId);
 
   return { ok: true };
 }

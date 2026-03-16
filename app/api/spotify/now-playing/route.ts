@@ -2,24 +2,26 @@ import { NextResponse } from "next/server";
 import { getTokens, saveTokens } from "@/lib/spotify-tokens";
 import { getConfig } from "@/lib/spotify-config";
 import { isOverlayAuthorized } from "@/lib/overlay-token";
-import { cookies } from "next/headers";
+import { getSession } from "@/lib/session";
 
 export async function GET(request: Request) {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("session");
-  const isOverlayAuth = await isOverlayAuthorized(request);
+  const session = await getSession();
+  const overlayAuth = await isOverlayAuthorized(request);
 
-  if (!session && !isOverlayAuth) {
+  if (!session && !overlayAuth.authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let tokens = await getTokens();
+  // Determine which user's data to fetch
+  const userId = session?.userId ?? overlayAuth.userId ?? null;
+
+  let tokens = await getTokens(userId);
 
   if (!tokens) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const config = await getConfig();
+  const config = await getConfig(userId);
   const client_id = config.clientId || process.env.SPOTIFY_CLIENT_ID;
   const client_secret = config.clientSecret || process.env.SPOTIFY_CLIENT_SECRET;
 
@@ -52,11 +54,11 @@ export async function GET(request: Request) {
 
       tokens = {
         access_token: data.access_token,
-        refresh_token: data.refresh_token || tokens.refresh_token, // Spotify might not return a new refresh token
+        refresh_token: data.refresh_token || tokens.refresh_token,
         expires_at: Date.now() + data.expires_in * 1000,
       };
 
-      await saveTokens(tokens);
+      await saveTokens(tokens, userId);
     } catch (e) {
       return NextResponse.json({ error: "Token refresh error" }, { status: 500 });
     }
@@ -83,4 +85,4 @@ export async function GET(request: Request) {
   }
 }
 
-export const dynamic = "force-dynamic"; // Ensure this route is not cached
+export const dynamic = "force-dynamic";

@@ -1,23 +1,24 @@
 import { NextResponse } from "next/server";
 import { getTwitchConfig, saveTwitchConfig } from "@/lib/twitch-config";
-import { cookies } from "next/headers";
 import { isOverlayAuthorized } from "@/lib/overlay-token";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get("session");
-    const isOverlayAuth = await isOverlayAuthorized(request);
+    const session = await getSession();
+    const overlayAuth = await isOverlayAuthorized(request);
 
-    if (!session && !isOverlayAuth) {
+    if (!session && !overlayAuth.authorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const config = await getTwitchConfig();
+    // Overlay tokens for admin will already resolve to `null`, but session needs getSafeUserId
+    const userId = session ? getSafeUserId(session) : (overlayAuth.userId ?? null);
+    const config = await getTwitchConfig(userId);
 
-    // If accessed via overlay token (no session), never leak the bot password or tokens
-    if (!session && isOverlayAuth) {
-      config.botPassword = ""; // Keep access token if overlay needs it (for badges), but drop bot password
+    // If accessed via overlay token (no session), never leak the bot password
+    if (!session && overlayAuth.authorized) {
+      config.botPassword = "";
     }
 
     return NextResponse.json(config);
@@ -31,8 +32,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    const userId = getSafeUserId(session);
     const body = await request.json();
-    await saveTwitchConfig(body);
+    await saveTwitchConfig(body, userId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Twitch Config Save Error:", error);

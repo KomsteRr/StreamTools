@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOverlayToken } from "@/lib/overlay-token";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 // GET /api/settings — returns all PlatformConfig entries grouped by platform
 export async function GET() {
   try {
+    const session = await getSession();
+    const userId = getSafeUserId(session);
+
     // Ensure the system token is created if it doesn't exist
-    await getOverlayToken();
+    await getOverlayToken(userId);
     
-    const rows = await prisma.platformConfig.findMany();
+    const rows = await prisma.platformConfig.findMany({
+      where: { userId },
+    });
     const grouped: Record<string, Record<string, string>> = {};
     for (const r of rows) {
       if (!grouped[r.platform]) grouped[r.platform] = {};
@@ -25,6 +31,9 @@ export async function GET() {
 // Body: { platform: "twitch", settings: { channelName: "...", clientId: "...", ... } }
 export async function PUT(req: Request) {
   try {
+    const session = await getSession();
+    const userId = getSafeUserId(session);
+
     const body = await req.json();
     const { platform, settings } = body as {
       platform: string;
@@ -34,15 +43,22 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Missing platform or settings" }, { status: 400 });
     }
 
-    await Promise.all(
-      Object.entries(settings).map(([key, value]) =>
-        prisma.platformConfig.upsert({
-          where: { platform_key: { platform, key } },
-          create: { platform, key, value },
-          update: { value },
-        }),
-      ),
-    );
+    for (const [key, value] of Object.entries(settings)) {
+      const existing = await prisma.platformConfig.findFirst({
+        where: { platform, key, userId },
+      });
+
+      if (existing) {
+        await prisma.platformConfig.update({
+          where: { id: existing.id },
+          data: { value },
+        });
+      } else {
+        await prisma.platformConfig.create({
+          data: { platform, key, value, userId },
+        });
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

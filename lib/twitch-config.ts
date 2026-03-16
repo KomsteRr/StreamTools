@@ -16,9 +16,10 @@ const DEFAULT_CONFIG: TwitchConfig = {
   twitchAccessToken: "",
 };
 
-export async function getTwitchConfig(): Promise<TwitchConfig> {
+export async function getTwitchConfig(userId?: string | null): Promise<TwitchConfig> {
+  const safeUserId = userId ?? null;
   const configItems = await prisma.platformConfig.findMany({
-    where: { platform: "twitch" },
+    where: { platform: "twitch", userId: safeUserId },
   });
   const config = { ...DEFAULT_CONFIG };
 
@@ -33,7 +34,8 @@ export async function getTwitchConfig(): Promise<TwitchConfig> {
   return config;
 }
 
-export async function saveTwitchConfig(newConfig: Partial<TwitchConfig>) {
+export async function saveTwitchConfig(newConfig: Partial<TwitchConfig>, userId?: string | null) {
+  const safeUserId = userId ?? null;
   const toSave: Record<string, string> = {};
   if (newConfig.channelName !== undefined) toSave.channelName = newConfig.channelName;
   if (newConfig.botName !== undefined) toSave.botName = newConfig.botName;
@@ -41,13 +43,20 @@ export async function saveTwitchConfig(newConfig: Partial<TwitchConfig>) {
   if (newConfig.twitchClientId !== undefined) toSave.clientId = newConfig.twitchClientId;
   if (newConfig.twitchAccessToken !== undefined) toSave.accessToken = newConfig.twitchAccessToken;
 
-  const updates = Object.entries(toSave).map(([key, value]) =>
-    prisma.platformConfig.upsert({
-      where: { platform_key: { platform: "twitch", key } },
-      update: { value: String(value || "") },
-      create: { platform: "twitch", key, value: String(value || "") },
-    })
-  );
+  for (const [key, value] of Object.entries(toSave)) {
+    const existing = await prisma.platformConfig.findFirst({
+      where: { platform: "twitch", key, userId: safeUserId },
+    });
 
-  await prisma.$transaction(updates);
+    if (existing) {
+      await prisma.platformConfig.update({
+        where: { id: existing.id },
+        data: { value: String(value || "") },
+      });
+    } else {
+      await prisma.platformConfig.create({
+        data: { platform: "twitch", key, value: String(value || ""), userId: safeUserId },
+      });
+    }
+  }
 }

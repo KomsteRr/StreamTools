@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-
 import { getConfig } from "@/lib/spotify-config";
+import { getSession } from "@/lib/session";
 
 export async function GET() {
-  const config = await getConfig();
+  const session = await getSession();
+  const config = await getConfig(session?.userId);
   const client_id = config.clientId || process.env.SPOTIFY_CLIENT_ID;
   const redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
   const state = Math.random().toString(36).substring(7); // Simple state
