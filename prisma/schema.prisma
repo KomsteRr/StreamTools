@@ -34,6 +34,8 @@ model InviteToken {
   usedAt    DateTime?
   expiresAt DateTime
   createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 // ─── Spotify ─────────────────────────────────────────────────────────────────
@@ -46,6 +48,8 @@ model SpotifyToken {
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model SpotifyConfig {
@@ -57,6 +61,7 @@ model SpotifyConfig {
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([key, userId])
+  @@index([userId])
 }
 
 // ─── Platform Configs ────────────────────────────────────────────────────────
@@ -71,6 +76,7 @@ model PlatformConfig {
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([platform, key, userId])
+  @@index([platform, userId])
 }
 
 // ─── Alert Configs ───────────────────────────────────────────────────────────
@@ -133,4 +139,5 @@ model AlertConfig {
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([type, platform, userId])
+  @@index([platform, userId])
 }
