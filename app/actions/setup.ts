@@ -32,19 +32,13 @@ export async function submitSetup(prevState: any, formData: FormData) {
     ]
 
     for (const c of configsToSave) {
-      const existing = await prisma.platformConfig.findFirst({
-        where: { platform: c.platform, key: c.key, userId: null },
+      await prisma.platformConfig.upsert({
+        where: {
+          platform_key_userId: { platform: c.platform, key: c.key, userId: null },
+        },
+        update: { value: c.value },
+        create: { platform: c.platform, key: c.key, value: c.value, userId: null },
       })
-      if (existing) {
-        await prisma.platformConfig.update({
-          where: { id: existing.id },
-          data: { value: c.value },
-        })
-      } else {
-        await prisma.platformConfig.create({
-          data: { platform: c.platform, key: c.key, value: c.value, userId: null },
-        })
-      }
     }
 
     // Handle PostgreSQL migration request
