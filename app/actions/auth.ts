@@ -1,10 +1,11 @@
 'use server'
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { createSessionValue } from '@/lib/session'
+import { checkLoginRateLimit, resetLoginRateLimit } from '@/lib/rate-limit'
 
 const ONE_HOUR = 60 * 60 * 1000
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
@@ -16,6 +17,17 @@ export async function login(prevState: { error: string } | null, formData: FormD
 
   if (!username || !password) {
     return { error: 'Veuillez remplir tous les champs.' }
+  }
+
+  // ── Rate limiting check ──────────────────────────────────────────────────
+  const headersList = await headers()
+  const forwardedFor = headersList.get('x-forwarded-for')
+  const ip = (forwardedFor ? forwardedFor.split(',')[0].trim() : null) || headersList.get('x-real-ip') || 'unknown'
+
+  const rateCheck = checkLoginRateLimit(ip)
+  if (!rateCheck.allowed) {
+    const minutes = Math.ceil(rateCheck.blockedFor! / 60)
+    return { error: `Trop de tentatives. Réessayez dans ${minutes} minute${minutes > 1 ? 's' : ''}.` }
   }
 
   const expires = new Date(Date.now() + (rememberMe ? THIRTY_DAYS : ONE_HOUR))
@@ -62,6 +74,9 @@ export async function login(prevState: { error: string } | null, formData: FormD
       path: '/',
     })
 
+    // Reset rate limiter on successful login
+    resetLoginRateLimit(ip)
+
     redirect('/dashboard')
   }
 
@@ -92,6 +107,9 @@ export async function login(prevState: { error: string } | null, formData: FormD
     sameSite: 'lax',
     path: '/',
   })
+
+  // Reset rate limiter on successful login
+  resetLoginRateLimit(ip)
 
   redirect('/dashboard')
 }
