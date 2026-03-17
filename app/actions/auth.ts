@@ -1,7 +1,6 @@
 'use server'
 
-import { cookies } from 'next/headers'
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
@@ -22,7 +21,8 @@ export async function login(prevState: { error: string } | null, formData: FormD
 
   // ── Rate limiting check ──────────────────────────────────────────────────
   const headersList = await headers()
-  const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown'
+  const forwardedFor = headersList.get('x-forwarded-for')
+  const ip = (forwardedFor ? forwardedFor.split(',')[0].trim() : null) || headersList.get('x-real-ip') || 'unknown'
 
   const rateCheck = checkLoginRateLimit(ip)
   if (!rateCheck.allowed) {
