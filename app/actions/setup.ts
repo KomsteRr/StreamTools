@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
+import fs from 'fs'
+import path from 'path'
 
 export async function submitSetup(prevState: any, formData: FormData) {
   const session = await getSession()
@@ -18,6 +20,7 @@ export async function submitSetup(prevState: any, formData: FormData) {
     const twitchBotActive = formData.get('twitch_bot_active') === 'true' ? 'true' : 'false'
     const twitchBotUsername = (formData.get('twitch_bot_username') as string) || ''
     const twitchBotToken = (formData.get('twitch_bot_token') as string) || ''
+    const databaseUrl = (formData.get('database_url') as string) || ''
 
     const configsToSave = [
       { platform: 'system', key: 'twitch_active', value: twitchActive },
@@ -43,6 +46,20 @@ export async function submitSetup(prevState: any, formData: FormData) {
         await prisma.platformConfig.create({
           data: { platform: c.platform, key: c.key, value: c.value, userId: null },
         })
+      }
+    }
+
+    // Handle PostgreSQL migration request
+    if (databaseUrl && (databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://'))) {
+      const pendingMigration = {
+        databaseUrl,
+        timestamp: new Date().toISOString(),
+        requestedBy: session.userId || 'admin',
+      }
+      const migrationPath = path.join(process.cwd(), 'pending-migration.json')
+      fs.writeFileSync(migrationPath, JSON.stringify(pendingMigration, null, 2))
+      return {
+        message: 'Configuration sauvegardée. Redémarrez le serveur avec `npm run migrate` pour finaliser la migration vers PostgreSQL.',
       }
     }
   } catch (error) {
