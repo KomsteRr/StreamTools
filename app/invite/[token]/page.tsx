@@ -33,8 +33,8 @@ export default function InvitePage() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 4) {
-      setError('Le mot de passe doit contenir au moins 4 caractères.')
+    if (password.length < 12) {
+      setError('Le mot de passe doit contenir au moins 12 caractères.')
       return
     }
 
