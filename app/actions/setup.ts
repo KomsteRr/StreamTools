@@ -3,8 +3,6 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
-import fs from 'fs'
-import path from 'path'
 
 export async function submitSetup(prevState: any, formData: FormData) {
   const session = await getSession()
@@ -51,15 +49,13 @@ export async function submitSetup(prevState: any, formData: FormData) {
 
     // Handle PostgreSQL migration request
     if (databaseUrl && (databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://'))) {
-      const pendingMigration = {
-        databaseUrl,
-        timestamp: new Date().toISOString(),
-        requestedBy: session.userId || 'admin',
-      }
-      const migrationPath = path.join(process.cwd(), 'pending-migration.json')
-      fs.writeFileSync(migrationPath, JSON.stringify(pendingMigration, null, 2))
+      await prisma.platformConfig.upsert({
+        where: { platform_key_userId: { platform: 'system', key: 'pending_migration', userId: null } },
+        update: { value: databaseUrl },
+        create: { platform: 'system', key: 'pending_migration', value: databaseUrl, userId: null },
+      })
       return {
-        message: 'Configuration sauvegardée. Redémarrez le serveur avec `npm run migrate` pour finaliser la migration vers PostgreSQL.',
+        success: 'Configuration sauvegardée. Redémarrez le serveur avec `npm run migrate` pour finaliser la migration vers PostgreSQL.',
       }
     }
   } catch (error) {
