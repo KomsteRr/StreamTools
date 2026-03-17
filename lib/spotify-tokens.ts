@@ -28,9 +28,8 @@ export async function getTokens(userId?: string | null): Promise<SpotifyTokens |
 export async function saveTokens(tokens: SpotifyTokens, userId?: string | null) {
   try {
     const safeUserId = userId ?? null;
-    // Note: SpotifyToken doesn't have a compound unique that would make upsert
-    // straightforward with a known key, so we keep findFirst for identification
-    // but use update/create within a transaction for atomicity.
+    // Note: SpotifyToken doesn't have a compound unique constraint,
+    // so we use findFirst + update/create instead of upsert.
     const existing = await prisma.spotifyToken.findFirst({
       where: { userId: safeUserId },
     });
