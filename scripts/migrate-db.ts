@@ -12,6 +12,24 @@ async function main() {
     process.exit(1);
   }
 
+  // Check for pending migration stored in PlatformConfig
+  const { PrismaClient: PrismaClientCheck } = require('@prisma/client');
+  const checkClient = new PrismaClientCheck();
+  try {
+    const pending = await checkClient.platformConfig.findFirst({
+      where: { platform: 'system', key: 'pending_migration', userId: null }
+    });
+    if (pending) {
+      databaseUrl = pending.value;
+      console.log('ℹ️  Migration URL trouvée dans PlatformConfig.');
+      await checkClient.platformConfig.delete({ where: { id: pending.id } });
+      console.log('   ✅ Entrée pending_migration supprimée.');
+    }
+  } catch (e) {
+    // PlatformConfig table might not exist yet, that's ok
+  }
+  await checkClient.$disconnect();
+
   const isPostgres = databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://');
   const rootDir = path.resolve(__dirname, '..');
   const envPath = path.join(rootDir, '.env.local');
@@ -39,7 +57,9 @@ async function main() {
   // Step 1: Export data from current (SQLite) database
   console.log('📦 Exportation des données depuis SQLite...');
   const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+  // Read the CURRENT database URL from .env.local before modifying it
+  const currentDbUrl = envContent.split('\n').find(l => l.startsWith('DATABASE_URL='))?.split('=').slice(1).join('=') || process.env.DATABASE_URL;
+  const prisma = new PrismaClient({ datasources: { db: { url: currentDbUrl } } });
 
   const data = {
     users: await prisma.user.findMany(),
@@ -73,8 +93,8 @@ async function main() {
 
   // Step 4: Regenerate Prisma client and push schema
   console.log('⚙️  Génération du client Prisma et push du schéma...');
-  execSync('npx prisma generate', { cwd: rootDir, stdio: 'inherit' });
-  execSync('npx prisma db push', { cwd: rootDir, stdio: 'inherit' });
+  execSync('npx prisma generate', { cwd: rootDir, stdio: 'inherit', env: { ...process.env, DATABASE_URL: databaseUrl } });
+  execSync('npx prisma db push --accept-data-loss', { cwd: rootDir, stdio: 'inherit', env: { ...process.env, DATABASE_URL: databaseUrl } });
   console.log('   ✅ Schéma PostgreSQL appliqué\n');
 
   // Step 5: Import data using the existing script
