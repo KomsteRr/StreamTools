@@ -56,7 +56,9 @@ export function resetLoginRateLimit(ip: string): void {
 setInterval(() => {
   const now = Date.now();
   for (const [ip, entry] of loginAttempts) {
-    if (!entry.blockedUntil || now > entry.blockedUntil + WINDOW_MS) {
+    const windowExpired = now - entry.firstAttempt > WINDOW_MS;
+    const blockExpired = !entry.blockedUntil || now > entry.blockedUntil;
+    if (windowExpired && blockExpired) {
       loginAttempts.delete(ip);
     }
   }
