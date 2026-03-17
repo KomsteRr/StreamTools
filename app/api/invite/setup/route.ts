@@ -15,9 +15,9 @@ export async function POST(req: Request) {
       );
     }
 
-    if (password.length < 4) {
+    if (password.length < 12) {
       return NextResponse.json(
-        { error: "Le mot de passe doit contenir au moins 4 caractères." },
+        { error: "Le mot de passe doit contenir au moins 12 caractères." },
         { status: 400 }
       );
     }
