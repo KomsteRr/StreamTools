@@ -47,7 +47,6 @@ export async function saveTwitchConfig(newConfig: Partial<TwitchConfig>, userId?
     const existing = await prisma.platformConfig.findFirst({
       where: { platform: "twitch", key, userId: safeUserId },
     });
-
     if (existing) {
       await prisma.platformConfig.update({
         where: { id: existing.id },

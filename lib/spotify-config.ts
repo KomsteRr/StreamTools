@@ -53,12 +53,12 @@ export async function saveConfig(newConfig: Partial<VisualConfig>, userId?: stri
     
     for (const [key, value] of Object.entries(newConfig)) {
       if (visualKeys.includes(key)) {
-        const existing = await prisma.spotifyConfig.findFirst({
+        const existingVisual = await prisma.spotifyConfig.findFirst({
           where: { key, userId: safeUserId },
         });
-        if (existing) {
+        if (existingVisual) {
           await prisma.spotifyConfig.update({
-            where: { id: existing.id },
+            where: { id: existingVisual.id },
             data: { value: String(value) },
           });
         } else {
@@ -67,12 +67,12 @@ export async function saveConfig(newConfig: Partial<VisualConfig>, userId?: stri
           });
         }
       } else if (techKeys.includes(key)) {
-        const existing = await prisma.platformConfig.findFirst({
+        const existingTech = await prisma.platformConfig.findFirst({
           where: { platform: "spotify", key, userId: safeUserId },
         });
-        if (existing) {
+        if (existingTech) {
           await prisma.platformConfig.update({
-            where: { id: existing.id },
+            where: { id: existingTech.id },
             data: { value: String(value) },
           });
         } else {

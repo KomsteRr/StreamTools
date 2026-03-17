@@ -47,7 +47,6 @@ export async function PUT(req: Request) {
       const existing = await prisma.platformConfig.findFirst({
         where: { platform, key, userId },
       });
-
       if (existing) {
         await prisma.platformConfig.update({
           where: { id: existing.id },

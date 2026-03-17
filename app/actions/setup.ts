@@ -34,26 +34,34 @@ export async function submitSetup(prevState: any, formData: FormData) {
     for (const c of configsToSave) {
       const existing = await prisma.platformConfig.findFirst({
         where: { platform: c.platform, key: c.key, userId: null },
-      })
+      });
       if (existing) {
         await prisma.platformConfig.update({
           where: { id: existing.id },
           data: { value: c.value },
-        })
+        });
       } else {
         await prisma.platformConfig.create({
           data: { platform: c.platform, key: c.key, value: c.value, userId: null },
-        })
+        });
       }
     }
 
     // Handle PostgreSQL migration request
     if (databaseUrl && (databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://'))) {
-      await prisma.platformConfig.upsert({
-        where: { platform_key_userId: { platform: 'system', key: 'pending_migration', userId: null } },
-        update: { value: databaseUrl },
-        create: { platform: 'system', key: 'pending_migration', value: databaseUrl, userId: null },
-      })
+      const existingMigration = await prisma.platformConfig.findFirst({
+        where: { platform: 'system', key: 'pending_migration', userId: null },
+      });
+      if (existingMigration) {
+        await prisma.platformConfig.update({
+          where: { id: existingMigration.id },
+          data: { value: databaseUrl },
+        });
+      } else {
+        await prisma.platformConfig.create({
+          data: { platform: 'system', key: 'pending_migration', value: databaseUrl, userId: null },
+        });
+      }
       return {
         success: 'Configuration sauvegardée. Redémarrez le serveur avec `npm run migrate` pour finaliser la migration vers PostgreSQL.',
       }
