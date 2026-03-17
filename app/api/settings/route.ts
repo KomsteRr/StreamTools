@@ -44,20 +44,11 @@ export async function PUT(req: Request) {
     }
 
     for (const [key, value] of Object.entries(settings)) {
-      const existing = await prisma.platformConfig.findFirst({
-        where: { platform, key, userId },
+      await prisma.platformConfig.upsert({
+        where: { platform_key_userId: { platform, key, userId } },
+        update: { value },
+        create: { platform, key, value, userId },
       });
-
-      if (existing) {
-        await prisma.platformConfig.update({
-          where: { id: existing.id },
-          data: { value },
-        });
-      } else {
-        await prisma.platformConfig.create({
-          data: { platform, key, value, userId },
-        });
-      }
     }
 
     return NextResponse.json({ ok: true });
