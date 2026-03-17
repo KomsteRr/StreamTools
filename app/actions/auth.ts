@@ -89,7 +89,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     expires,
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
   })
 
