@@ -53,33 +53,17 @@ export async function saveConfig(newConfig: Partial<VisualConfig>, userId?: stri
     
     for (const [key, value] of Object.entries(newConfig)) {
       if (visualKeys.includes(key)) {
-        const existing = await prisma.spotifyConfig.findFirst({
-          where: { key, userId: safeUserId },
+        await prisma.spotifyConfig.upsert({
+          where: { key_userId: { key, userId: safeUserId } },
+          update: { value: String(value) },
+          create: { key, value: String(value), userId: safeUserId },
         });
-        if (existing) {
-          await prisma.spotifyConfig.update({
-            where: { id: existing.id },
-            data: { value: String(value) },
-          });
-        } else {
-          await prisma.spotifyConfig.create({
-            data: { key, value: String(value), userId: safeUserId },
-          });
-        }
       } else if (techKeys.includes(key)) {
-        const existing = await prisma.platformConfig.findFirst({
-          where: { platform: "spotify", key, userId: safeUserId },
+        await prisma.platformConfig.upsert({
+          where: { platform_key_userId: { platform: "spotify", key, userId: safeUserId } },
+          update: { value: String(value) },
+          create: { platform: "spotify", key, value: String(value), userId: safeUserId },
         });
-        if (existing) {
-          await prisma.platformConfig.update({
-            where: { id: existing.id },
-            data: { value: String(value) },
-          });
-        } else {
-          await prisma.platformConfig.create({
-            data: { platform: "spotify", key, value: String(value), userId: safeUserId },
-          });
-        }
       }
     }
   } catch (e) {
