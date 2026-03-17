@@ -44,10 +44,18 @@ export async function saveTwitchConfig(newConfig: Partial<TwitchConfig>, userId?
   if (newConfig.twitchAccessToken !== undefined) toSave.accessToken = newConfig.twitchAccessToken;
 
   for (const [key, value] of Object.entries(toSave)) {
-    await prisma.platformConfig.upsert({
-      where: { platform_key_userId: { platform: "twitch", key, userId: safeUserId } },
-      update: { value: String(value || "") },
-      create: { platform: "twitch", key, value: String(value || ""), userId: safeUserId },
+    const existing = await prisma.platformConfig.findFirst({
+      where: { platform: "twitch", key, userId: safeUserId },
     });
+    if (existing) {
+      await prisma.platformConfig.update({
+        where: { id: existing.id },
+        data: { value: String(value || "") },
+      });
+    } else {
+      await prisma.platformConfig.create({
+        data: { platform: "twitch", key, value: String(value || ""), userId: safeUserId },
+      });
+    }
   }
 }
