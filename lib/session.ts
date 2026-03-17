@@ -9,13 +9,14 @@ const SECRET = process.env.SESSION_SECRET;
 if (!SECRET && typeof window === "undefined") {
   throw new Error("SESSION_SECRET environment variable is required");
 }
+const SESSION_SECRET: string = SECRET;
 
 // Internal helper to get a CryptoKey for HMAC-SHA256
 async function getSecretKey(): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   return crypto.subtle.importKey(
     "raw",
-    encoder.encode(SECRET),
+    encoder.encode(SESSION_SECRET),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"]
