@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "npx tsx scripts/migrate-db.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.33.0",
@@ -31,6 +32,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "prisma": "^5.22.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsx": "^4.0.0"
   }
 }
