@@ -748,7 +748,7 @@ export default function SpotifyCustomizePage() {
                   </HStack>
                   <HStack justify="space-between">
                     <Box>
-                      <Text fontSize="sm">Contrôles de lecture</Text>
+                      <Text fontSize="sm">{t('spotify.playbackControls')}</Text>
                       <Text fontSize="xs" color="gray.400">
                         ⏮ ⏸ ⏭
                       </Text>
