@@ -1,0 +1,85 @@
+{
+  "common": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "settings": "Paramètres",
+    "dashboard": "Tableau de bord",
+    "admin": "Administration",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "back": "Retour",
+    "loading": "Chargement...",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "rememberMe": "Se souvenir de moi",
+    "customize": "Personnaliser",
+    "overlayOBS": "Overlay OBS",
+    "connected": "Connecté",
+    "notConnected": "Non connecté",
+    "notConfigured": "Non configuré"
+  },
+  "login": {
+    "title": "Streaming All In One Tools",
+    "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "incorrectPassword": "Mot de passe incorrect.",
+    "userNotFound": "Utilisateur introuvable ou compte non activé.",
+    "systemNotConfigured": "Le système n'a pas encore été configuré. Veuillez vous connecter en tant qu'administrateur en premier.",
+    "submit": "Connexion"
+  },
+  "dashboard": {
+    "title": "Stream Dashboard",
+    "spotifyWidget": "Widget Spotify",
+    "twitchChat": "Chat Twitch",
+    "youtubeChat": "Chat YouTube",
+    "streamAlerts": "Alertes Stream",
+    "globalSettings": "Paramètres globaux",
+    "overlayUrl": "URL Overlay",
+    "openPanel": "Ouvrir"
+  },
+  "admin": {
+    "title": "Administration",
+    "subtitle": "Gérez les utilisateurs et leurs accès.",
+    "createUser": "Créer un utilisateur",
+    "users": "Utilisateurs",
+    "status": "Statut",
+    "role": "Rôle",
+    "createdAt": "Créé le",
+    "actions": "Actions",
+    "active": "Actif",
+    "pending": "En attente",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "deleteUser": "Supprimer l'utilisateur",
+    "inviteLink": "Lien d'invitation",
+    "inviteLinkExpires": "Ce lien expire dans 7 jours.",
+    "confirmDelete": "Supprimer cet utilisateur et toutes ses données ?"
+  },
+  "settings": {
+    "title": "Paramètres globaux",
+    "twitchConfig": "Configuration Twitch",
+    "spotifyConfig": "Configuration Spotify",
+    "youtubeConfig": "Configuration YouTube",
+    "channelName": "Nom de la chaîne",
+    "clientId": "Client ID",
+    "clientSecret": "Client Secret",
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "saved": "Paramètres enregistrés !"
+  },
+  "alerts": {
+    "title": "Alertes Stream",
+    "test": "Tester l'alerte"
+  },
+  "invite": {
+    "title": "Définir votre mot de passe",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 12 caractères.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "submit": "Définir le mot de passe",
+    "success": "Mot de passe défini ! Vous pouvez maintenant vous connecter."
+  },
+  "language": {
+    "label": "Langue"
+  }
+}
