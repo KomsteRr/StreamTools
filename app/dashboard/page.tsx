@@ -40,7 +40,6 @@ import {
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useTranslation } from '@/lib/i18n'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
