@@ -669,7 +669,7 @@ export default function TwitchChatCustomizePage() {
                   </Field>
                   <HStack justify="space-between">
                     <Box>
-                      <Text fontSize="sm">Afficher les badges</Text>
+                      <Text fontSize="sm">{t('twitch.showBadges')}</Text>
                       <Text fontSize="xs" color="gray.400">
                         Badges Twitch
                       </Text>
