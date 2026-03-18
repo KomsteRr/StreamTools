@@ -733,7 +733,7 @@ export default function CustomizePage({
                   boîte.
                 </Text>
                 <FileUploader
-                  label={t('alerts.fullscreenBg')
+                  label={t('alerts.fullscreenBg')}
                   accept=".jpg,.jpeg,.png,.gif,.mp4,.webm"
                   currentUrl={config.bgMediaUrl}
                   mediaType={
@@ -889,7 +889,7 @@ export default function CustomizePage({
                       <Select.HiddenSelect />
                       <Select.Control>
                         <Select.Trigger>
-                          <Select.ValueText placeholder={t('alerts.chooseFont') />
+                          <Select.ValueText placeholder={t('alerts.chooseFont')} />
                         </Select.Trigger>
                       </Select.Control>
                       <Select.Positioner>
