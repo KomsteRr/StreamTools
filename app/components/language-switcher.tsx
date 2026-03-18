@@ -3,7 +3,7 @@
 import { useTranslation } from '@/lib/i18n'
 
 export function LanguageSwitcher() {
-  const { locale, setLocale, locales } = useTranslation()
+  const { locale, setLocale, locales, t } = useTranslation()
 
   return (
     <select
