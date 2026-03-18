@@ -262,7 +262,7 @@ export default function AdminPage() {
           <Card.Body p={0}>
             {users.length === 0 ? (
               <Box p={8} textAlign="center">
-                <Text color="gray.400">Aucun utilisateur créé.</Text>
+                <Text color="gray.400">{t('admin.noUsers')}</Text>
               </Box>
             ) : (
               <Table.Root size="sm">
