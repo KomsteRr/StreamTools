@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
         fontSize: '14px',
         cursor: 'pointer',
       }}
-      aria-label="Select language"
+      aria-label={t('language.label')}
     >
       {locales.map((l) => (
         <option key={l.value} value={l.value}>
