@@ -1,0 +1,85 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "admin": "Administration",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "create": "Create",
+    "back": "Back",
+    "loading": "Loading...",
+    "username": "Username",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "customize": "Customize",
+    "overlayOBS": "OBS Overlay",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "notConfigured": "Not configured"
+  },
+  "login": {
+    "title": "Streaming All In One Tools",
+    "usernamePlaceholder": "Enter your username",
+    "passwordPlaceholder": "Enter your password",
+    "incorrectPassword": "Incorrect password.",
+    "userNotFound": "User not found or account not activated.",
+    "systemNotConfigured": "The system is not configured yet. Please login as administrator first.",
+    "submit": "Login"
+  },
+  "dashboard": {
+    "title": "Stream Dashboard",
+    "spotifyWidget": "Spotify Widget",
+    "twitchChat": "Twitch Chat",
+    "youtubeChat": "YouTube Chat",
+    "streamAlerts": "Stream Alerts",
+    "globalSettings": "Global Settings",
+    "overlayUrl": "Overlay URL",
+    "openPanel": "Open"
+  },
+  "admin": {
+    "title": "Administration",
+    "subtitle": "Manage users and their access.",
+    "createUser": "Create a user",
+    "users": "Users",
+    "status": "Status",
+    "role": "Role",
+    "createdAt": "Created at",
+    "actions": "Actions",
+    "active": "Active",
+    "pending": "Pending",
+    "resetPassword": "Reset password",
+    "deleteUser": "Delete user",
+    "inviteLink": "Invite link",
+    "inviteLinkExpires": "This link expires in 7 days.",
+    "confirmDelete": "Delete this user and all their data?"
+  },
+  "settings": {
+    "title": "Global Settings",
+    "twitchConfig": "Twitch Configuration",
+    "spotifyConfig": "Spotify Configuration",
+    "youtubeConfig": "YouTube Configuration",
+    "channelName": "Channel name",
+    "clientId": "Client ID",
+    "clientSecret": "Client secret",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "saved": "Settings saved!"
+  },
+  "alerts": {
+    "title": "Stream Alerts",
+    "test": "Test Alert"
+  },
+  "invite": {
+    "title": "Set your password",
+    "passwordTooShort": "Password must be at least 12 characters.",
+    "passwordMismatch": "Passwords do not match.",
+    "submit": "Set password",
+    "success": "Password set! You can now login."
+  },
+  "language": {
+    "label": "Language"
+  }
+}
