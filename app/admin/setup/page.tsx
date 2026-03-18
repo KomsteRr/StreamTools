@@ -29,8 +29,10 @@ import {
   FaArrowLeft 
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from '@/lib/i18n'
 
 export default function AdminSetupPage() {
+  const { t } = useTranslation()
   const [state, formAction, isPending] = useActionState(submitSetup, null);
   const [step, setStep] = useState(1);
   const [dbType, setDbType] = useState("sqlite");
@@ -177,7 +179,7 @@ export default function AdminSetupPage() {
                     >
                       <Box mt={6} p={5} bg="blue.50" _dark={{ bg: "blue.900/10", borderWidth: "1px", borderColor: "blue.900/30" }} borderRadius="xl">
                         <Heading size="sm" mb={4}>Configuration PostgreSQL</Heading>
-                        <Field label="URL de connexion à la base de données" helperText="Si vous avez une variable d'environnement DATABASE_URL, elle sera utilisée par défaut.">
+                        <Field label=t('admin.setup.dbUrl') helperText="Si vous avez une variable d'environnement DATABASE_URL, elle sera utilisée par défaut.">
                           <Input 
                             name="database_url" 
                             defaultValue={envDbUrl}
@@ -271,7 +273,7 @@ export default function AdminSetupPage() {
                       <Heading size="md">Application Spotify</Heading>
                     </HStack>
                     <Stack gap={4} p={5} bg="gray.50" _dark={{ bg: "gray.800", borderWidth: "1px", borderColor: "gray.700" }} borderRadius="xl">
-                      <Field label="Redirect URI (Optionnel)" helperText="Utile uniquement si l'URI calculé par défaut pose un problème avec l'API Spotify.">
+                      <Field label=t('admin.setup.redirectUri') helperText="Utile uniquement si l'URI calculé par défaut pose un problème avec l'API Spotify.">
                         <Input name="spotify_redirect_uri" defaultValue={origin ? `${origin}/api/spotify/callback` : ""} placeholder="https://votre-domaine.com/api/spotify/callback" bg="white" _dark={{ bg: "gray.900" }} />
                       </Field>
                     </Stack>
