@@ -303,7 +303,7 @@ export default function AdminPage() {
                         <HStack justify="flex-end" gap={2}>
                           {user.role !== 'admin' && (
                             <IconButton
-                              aria-label="Réinitialiser mdp"
+                              aria-label=t('admin.resetPassword')
                               size="sm"
                               variant="ghost"
                               colorPalette="orange"
@@ -315,7 +315,7 @@ export default function AdminPage() {
                             </IconButton>
                           )}
                           <IconButton
-                            aria-label="Supprimer"
+                            aria-label=t('admin.delete')
                             size="sm"
                             variant="ghost"
                             colorPalette="red"
