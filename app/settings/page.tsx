@@ -48,7 +48,8 @@ interface AllSettings {
 
 // ─── Field definitions per platform ─────────────────────────────────────────
 
-const TWITCH_FIELDS = [
+function getTwitchFields(t) {
+  return [
   {
     key: "channelName",
     label: "Channel Name",
@@ -86,7 +87,9 @@ const TWITCH_FIELDS = [
     hint: "Token OAuth avec scopes: channel:read:subscriptions, bits:read, moderator:read:followers",
     type: "password",
   },
-];
+]
+}
+
 
 const SPOTIFY_FIELDS = [
   {
