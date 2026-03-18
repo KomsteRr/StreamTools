@@ -157,6 +157,7 @@ function PlatformCard({
   onDisconnect: () => Promise<void>;
   onValuesChange?: (values: PlatformSettings) => void;
 }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState<PlatformSettings>(initialValues);
   const [saving, setSaving] = useState(false);
   const [connecting, setConnecting] = useState(false);
