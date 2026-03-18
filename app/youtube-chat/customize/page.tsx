@@ -397,7 +397,7 @@ export default function YouTubeChatCustomize() {
                   ✍️ Typographie
                 </Heading>
                 <VStack align="stretch" gap={4}>
-                  <Field label={t('settings.fontFamily')>
+                  <Field label={t('settings.fontFamily')}>
                     <Select.Root
                       collection={fontCollection}
                       value={[config.chat_font]}
@@ -543,7 +543,7 @@ export default function YouTubeChatCustomize() {
                   </Box>
 
                   <HStack gap={4}>
-                    <Field label={t('settings.borderColor')>
+                    <Field label={t('settings.borderColor')}>
                       <HStack>
                         <Input
                           type="color"
