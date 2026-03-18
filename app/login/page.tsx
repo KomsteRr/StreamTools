@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n";
+
 import { useActionState } from "react";
 import { login } from "../actions/auth";
 import { Box, Container, Heading, Stack, Text, Input } from "@chakra-ui/react";
@@ -13,6 +15,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { LoginBackground } from "../components/login-background";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(login, null);
 
   return (
@@ -37,24 +40,24 @@ export default function LoginPage() {
         >
           <Stack gap={6} align="center">
             <Heading as="h1" size="xl">
-              Streaming All In One Tools
+              {t("login.title")}
             </Heading>
             <form action={formAction} style={{ width: "100%" }}>
               <Stack gap={4}>
-                <Field label="Nom d'utilisateur">
+                <Field label={t("common.username")}>
                   <Input
                     name="username"
                     required
-                    placeholder="Entrez votre nom d'utilisateur"
+                    placeholder={t("login.usernamePlaceholder")}
                     autoComplete="username"
                   />
                 </Field>
 
-                <Field label="Mot de passe">
+                <Field label={t("common.password")}>
                   <PasswordInput
                     name="password"
                     required
-                    placeholder="Entrez votre mot de passe"
+                    placeholder={t("login.passwordPlaceholder")}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.currentTarget.form?.requestSubmit();
@@ -64,7 +67,7 @@ export default function LoginPage() {
                 </Field>
 
                 <Checkbox name="rememberMe" size="sm">
-                  Se souvenir de moi
+                  {t("common.rememberMe")}
                 </Checkbox>
 
                 {state?.error && (
@@ -73,8 +76,8 @@ export default function LoginPage() {
                   </Text>
                 )}
 
-                <Button type="submit" colorPalette="blue" width="full" loading={isPending} loadingText="Initialisation du système...">
-                  Connexion
+                <Button type="submit" colorPalette="blue" width="full" loading={isPending} loadingText={t("common.loading")}>
+                  {t("login.submit")}
                 </Button>
               </Stack>
             </form>
