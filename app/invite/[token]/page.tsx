@@ -34,12 +34,12 @@ export default function InvitePage() {
     setError('')
 
     if (password.length < 12) {
-      setError('Le mot de passe doit contenir au moins 12 caractères.')
+      setError('{t("invite.passwordTooShort")}')
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.')
+      setError('{t("invite.passwordMismatch")}')
       return
     }
 
@@ -123,7 +123,7 @@ export default function InvitePage() {
 
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
               <Stack gap={4}>
-                <Field label="Mot de passe">
+                <Field label="{t("common.password")}">
                   <PasswordInput
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
