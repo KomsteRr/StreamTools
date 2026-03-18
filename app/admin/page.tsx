@@ -20,6 +20,7 @@ import {
   Stack,
 } from '@chakra-ui/react'
 import { FiUserPlus, FiTrash2, FiArrowLeft, FiCopy, FiCheck, FiRefreshCw } from 'react-icons/fi'
+import { useTranslation } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import Link from 'next/link'
@@ -120,7 +121,7 @@ export default function AdminPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('{t("admin.confirmDelete")}')) return
+    if (!confirm(t('admin.confirmDelete'))) return
     setDeletingId(id)
     try {
       await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
@@ -133,7 +134,7 @@ export default function AdminPage() {
   }
 
   const handleReset = async (id: string, username: string) => {
-    if (!confirm(`{t("admin.resetPassword")} de ${username} ? Il devra en définir un nouveau.`)) return
+    if (!confirm(`${t('admin.resetPassword')} de ${username} ? Il devra en définir un nouveau.`)) return
     setResettingId(id)
     setError('')
     setLastInviteUrl('')
@@ -308,7 +309,7 @@ export default function AdminPage() {
                               colorPalette="orange"
                               onClick={() => handleReset(user.id, user.username)}
                               loading={resettingId === user.id}
-                              title="{t("admin.resetPassword")}"
+                              title={t("admin.resetPassword")}
                             >
                               <FiRefreshCw />
                             </IconButton>
