@@ -20,6 +20,7 @@ import {
   Stack,
 } from '@chakra-ui/react'
 import { FiUserPlus, FiTrash2, FiArrowLeft, FiCopy, FiCheck, FiRefreshCw } from 'react-icons/fi'
+import { useTranslation } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import Link from 'next/link'
@@ -57,6 +58,7 @@ function CopyButton({ value }: { value: string }) {
 }
 
 export default function AdminPage() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<UserItem[]>([])
   const [loading, setLoading] = useState(true)
   const [newUsername, setNewUsername] = useState('')
@@ -119,7 +121,7 @@ export default function AdminPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cet utilisateur et toutes ses données ?')) return
+    if (!confirm(t('admin.confirmDelete'))) return
     setDeletingId(id)
     try {
       await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
@@ -132,7 +134,7 @@ export default function AdminPage() {
   }
 
   const handleReset = async (id: string, username: string) => {
-    if (!confirm(`Réinitialiser le mot de passe de ${username} ? Il devra en définir un nouveau.`)) return
+    if (!confirm(`${t('admin.resetPassword')} de ${username} ? Il devra en définir un nouveau.`)) return
     setResettingId(id)
     setError('')
     setLastInviteUrl('')
@@ -181,7 +183,7 @@ export default function AdminPage() {
               <Heading size="2xl">👥 Administration</Heading>
             </HStack>
             <Text color="gray.400" fontSize="sm">
-              Gérez les utilisateurs et leurs accès.
+              {t("admin.subtitle")}
             </Text>
           </VStack>
         </HStack>
@@ -189,7 +191,7 @@ export default function AdminPage() {
         {/* Create user form */}
         <Card.Root mb={6} bg="white" _dark={{ bg: 'gray.800' }} shadow="sm" borderRadius="xl">
           <Card.Header>
-            <Heading size="md">Créer un utilisateur</Heading>
+            <Heading size="md">{t("admin.createUser")}</Heading>
           </Card.Header>
           <Card.Body>
             <form onSubmit={handleCreate}>
@@ -243,7 +245,7 @@ export default function AdminPage() {
                   <CopyButton value={lastInviteUrl} />
                 </HStack>
                 <Text fontSize="xs" color="gray.500" mt={2}>
-                  Ce lien expire dans 7 jours.
+                  {t("admin.inviteLinkExpires")}
                 </Text>
               </Box>
             )}
@@ -260,17 +262,17 @@ export default function AdminPage() {
           <Card.Body p={0}>
             {users.length === 0 ? (
               <Box p={8} textAlign="center">
-                <Text color="gray.400">Aucun utilisateur créé.</Text>
+                <Text color="gray.400">{t('admin.noUsers')}</Text>
               </Box>
             ) : (
               <Table.Root size="sm">
                 <Table.Header>
                   <Table.Row>
                     <Table.ColumnHeader pl={6}>Utilisateur</Table.ColumnHeader>
-                    <Table.ColumnHeader>Statut</Table.ColumnHeader>
-                    <Table.ColumnHeader>Rôle</Table.ColumnHeader>
-                    <Table.ColumnHeader>Créé le</Table.ColumnHeader>
-                    <Table.ColumnHeader textAlign="right" pr={6}>Actions</Table.ColumnHeader>
+                    <Table.ColumnHeader>{t("admin.status")}</Table.ColumnHeader>
+                    <Table.ColumnHeader>{t("admin.role")}</Table.ColumnHeader>
+                    <Table.ColumnHeader>{t("admin.createdAt")}</Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="right" pr={6}>{t("admin.actions")}</Table.ColumnHeader>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -301,19 +303,19 @@ export default function AdminPage() {
                         <HStack justify="flex-end" gap={2}>
                           {user.role !== 'admin' && (
                             <IconButton
-                              aria-label="Réinitialiser mdp"
+                              aria-label={t('admin.resetPassword')}
                               size="sm"
                               variant="ghost"
                               colorPalette="orange"
                               onClick={() => handleReset(user.id, user.username)}
                               loading={resettingId === user.id}
-                              title="Réinitialiser le mot de passe"
+                              title={t("admin.resetPassword")}
                             >
                               <FiRefreshCw />
                             </IconButton>
                           )}
                           <IconButton
-                            aria-label="Supprimer"
+                            aria-label={t('admin.delete')}
                             size="sm"
                             variant="ghost"
                             colorPalette="red"

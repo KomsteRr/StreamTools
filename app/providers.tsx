@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 import { Box } from "@chakra-ui/react";
 import { Provider } from "@/components/ui/provider";
 import { ThemeProvider } from "next-themes";
+import { I18nProvider } from "@/lib/i18n";
 
 interface GlobalContextType {
   config: { streamAsset: boolean };
@@ -73,7 +74,7 @@ export function Providers({ children }: { children: ReactNode }) {
               color: "white",
             }}
           >
-            {children}
+            <I18nProvider>{children}</I18nProvider>
           </Box>
         </ThemeProvider>
       </Provider>

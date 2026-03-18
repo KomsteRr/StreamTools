@@ -7,9 +7,12 @@ import { useGlobal } from "@/app/providers";
 import { usePathname } from "next/navigation";
 import { FiSettings, FiLogOut, FiArrowLeft } from "react-icons/fi";
 import Link from "next/link";
+import { LanguageSwitcher } from "@/app/components/language-switcher";
+import { useTranslation } from "@/lib/i18n";
 
 export function DashboardHeader({ hasSession }: { hasSession: boolean }) {
   const { config } = useGlobal();
+  const { t } = useTranslation();
   const pathname = usePathname();
 
   // Never render on overlay pages or when logged out
@@ -49,12 +52,13 @@ export function DashboardHeader({ hasSession }: { hasSession: boolean }) {
             </Link>
           </HStack>
 
-          {/* ── Right: Settings + Logout ── */}
+          {/* ── Right: Language + Settings + Logout ── */}
           <HStack gap={2}>
+            <LanguageSwitcher />
             <Button asChild variant="ghost" size="sm">
               <Link href="/settings">
                 <FiSettings />
-                Paramètres
+                {t("common.settings")}
               </Link>
             </Button>
             <form action={logout}>
@@ -65,7 +69,7 @@ export function DashboardHeader({ hasSession }: { hasSession: boolean }) {
                 colorPalette="red"
               >
                 <FiLogOut />
-                Logout
+                {t("common.logout")}
               </Button>
             </form>
           </HStack>

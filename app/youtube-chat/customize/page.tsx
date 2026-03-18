@@ -24,6 +24,7 @@ import { Field } from "@/components/ui/field";
 import { FiArrowLeft, FiSave, FiCopy } from "react-icons/fi";
 import Link from "next/link";
 import { toaster, Toaster } from "@/components/ui/toaster";
+import { useTranslation } from '@/lib/i18n'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -262,6 +263,7 @@ function ChatPreview({ config }: { config: ChatVisualConfig }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function YouTubeChatCustomize() {
+  const { t } = useTranslation()
   const [config, setConfig] = useState<ChatVisualConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -297,13 +299,13 @@ export default function YouTubeChatCustomize() {
         body: JSON.stringify({ key: "youtube-chat", value: config }),
       });
       toaster.create({
-        title: "Paramètres sauvegardés",
+        title: t('settings.saved'),
         description: "L'overlay du chat YouTube a été mis à jour.",
         type: "success",
       });
     } catch (err) {
       toaster.create({
-        title: "Erreur",
+        title: t('common.error'),
         description: "Impossible de sauvegarder",
         type: "error",
       });
@@ -342,7 +344,7 @@ export default function YouTubeChatCustomize() {
                 </Link>
               </Button>
               <Separator orientation="vertical" h={6} />
-              <Heading size="md">Personnalisation YouTube Chat</Heading>
+              <Heading size="md">{t('youtube.personalization')}</Heading>
             </HStack>
             <Button
               colorPalette="red"
@@ -395,7 +397,7 @@ export default function YouTubeChatCustomize() {
                   ✍️ Typographie
                 </Heading>
                 <VStack align="stretch" gap={4}>
-                  <Field label="Police de caractères">
+                  <Field label={t('settings.fontFamily')}>
                     <Select.Root
                       collection={fontCollection}
                       value={[config.chat_font]}
@@ -541,7 +543,7 @@ export default function YouTubeChatCustomize() {
                   </Box>
 
                   <HStack gap={4}>
-                    <Field label="Couleur bordure">
+                    <Field label={t('settings.borderColor')}>
                       <HStack>
                         <Input
                           type="color"
@@ -690,7 +692,7 @@ export default function YouTubeChatCustomize() {
                     onClick={() => {
                       navigator.clipboard.writeText(generateYoutubeCSS(config));
                       toaster.create({
-                        title: "Copié !",
+                        title: t('common.copied'),
                         description:
                           "Le CSS a été copié dans le presse-papier.",
                         type: "success",

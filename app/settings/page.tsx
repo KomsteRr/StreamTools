@@ -31,6 +31,7 @@ import {
   FiExternalLink,
 } from "react-icons/fi";
 import { toaster, Toaster } from "@/components/ui/toaster";
+import { useTranslation } from '@/lib/i18n'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,8 @@ interface AllSettings {
 
 // ─── Field definitions per platform ─────────────────────────────────────────
 
-const TWITCH_FIELDS = [
+function getTwitchFields(t) {
+  return [
   {
     key: "channelName",
     label: "Channel Name",
@@ -56,13 +58,13 @@ const TWITCH_FIELDS = [
   },
   {
     key: "botName",
-    label: "Bot Name (Optionnel)",
+    label: t('settings.botName'),
     hint: "Nom d'utilisateur du compte Bot Twitch",
     type: "text",
   },
   {
     key: "botPassword",
-    label: "Bot Password (Optionnel)",
+    label: t('settings.botPassword'),
     hint: "Token OAuth du bot (oauth:...)",
     type: "password",
   },
@@ -85,7 +87,9 @@ const TWITCH_FIELDS = [
     hint: "Token OAuth avec scopes: channel:read:subscriptions, bits:read, moderator:read:followers",
     type: "password",
   },
-];
+]
+}
+
 
 const SPOTIFY_FIELDS = [
   {
@@ -153,6 +157,7 @@ function PlatformCard({
   onDisconnect: () => Promise<void>;
   onValuesChange?: (values: PlatformSettings) => void;
 }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState<PlatformSettings>(initialValues);
   const [saving, setSaving] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -173,7 +178,7 @@ function PlatformCard({
       await onSave(platform, values);
       toaster.create({ title: `${label} sauvegardé !`, type: "success" });
     } catch {
-      toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
+      toaster.create({ title: t('common.saveError'), type: "error" });
     } finally {
       setSaving(false);
     }
@@ -416,7 +421,7 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
             <Text mt={1}>
               C'est <strong>normal</strong> — Twitch vous avertit que vous allez
               être redirigé vers <code>localhost</code>. Cliquez{" "}
-              <strong>Continue</strong>. Après redirection, copiez le paramètre{" "}
+              <strong>{t('common.continue')}</strong>. Après redirection, copiez le paramètre{" "}
               <code>access_token=...</code>
               depuis l'URL de votre navigateur.
             </Text>
@@ -510,6 +515,7 @@ function TwitchBroadcasterIdHelper() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
   const [settings, setSettings] = useState<AllSettings>({});
   const [loading, setLoading] = useState(true);
   const [twitchConnected, setTwitchConnected] = useState<boolean | null>(null);
@@ -558,7 +564,7 @@ export default function SettingsPage() {
     if (!res.ok) {
       toaster.create({ title: data.error ?? "Erreur", type: "error" });
     } else {
-      toaster.create({ title: "Twitch connecté ! 🎉", type: "success" });
+      toaster.create({ title: t('settings.twitchConnected'), type: "success" });
       setTwitchConnected(true);
     }
   }
@@ -566,7 +572,7 @@ export default function SettingsPage() {
   async function disconnectTwitch() {
     await fetch("/api/twitch/connect", { method: "DELETE" });
     setTwitchConnected(false);
-    toaster.create({ title: "Twitch déconnecté", type: "info" });
+    toaster.create({ title: t('settings.twitchDisconnected'), type: "info" });
   }
 
   async function connectYouTube() {
@@ -575,7 +581,7 @@ export default function SettingsPage() {
     if (!res.ok) {
       toaster.create({ title: data.error ?? "Erreur", type: "error" });
     } else {
-      toaster.create({ title: "YouTube connecté ! 🎉", type: "success" });
+      toaster.create({ title: t('settings.youtubeConnected'), type: "success" });
       setYoutubeConnected(true);
     }
   }
@@ -583,7 +589,7 @@ export default function SettingsPage() {
   async function disconnectYouTube() {
     await fetch("/api/youtube/connect", { method: "DELETE" });
     setYoutubeConnected(false);
-    toaster.create({ title: "YouTube déconnecté", type: "info" });
+    toaster.create({ title: t('settings.youtubeDisconnected'), type: "info" });
   }
 
   if (loading) {
@@ -662,7 +668,7 @@ export default function SettingsPage() {
                 label="Twitch"
                 icon={<FiTwitch />}
                 color="purple"
-                fields={TWITCH_FIELDS}
+                fields={getTwitchFields(t)}
                 initialValues={settings.twitch ?? {}}
                 onSave={savePlatform}
                 connectStatus={twitchConnected}

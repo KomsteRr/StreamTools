@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from '@/lib/i18n'
 import { useParams, useRouter } from 'next/navigation'
 import {
   Box,
@@ -21,6 +22,7 @@ type PageStatus = 'loading' | 'ready' | 'submitting' | 'success' | 'error'
 export default function InvitePage() {
   const params = useParams()
   const router = useRouter()
+  const { t } = useTranslation()
   const token = params.token as string
 
   const [status, setStatus] = useState<PageStatus>('ready')
@@ -34,12 +36,12 @@ export default function InvitePage() {
     setError('')
 
     if (password.length < 12) {
-      setError('Le mot de passe doit contenir au moins 12 caractères.')
+      setError(t('invite.passwordTooShort'))
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.')
+      setError(t('invite.passwordMismatch'))
       return
     }
 
@@ -123,7 +125,7 @@ export default function InvitePage() {
 
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
               <Stack gap={4}>
-                <Field label="Mot de passe">
+                <Field label={t('common.password')}>
                   <PasswordInput
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -132,12 +134,12 @@ export default function InvitePage() {
                   />
                 </Field>
 
-                <Field label="Confirmer le mot de passe">
+                <Field label={t('common.confirmPassword')}>
                   <PasswordInput
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    placeholder="Confirmez votre mot de passe"
+                    placeholder={t('common.confirmPasswordPlaceholder')}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.currentTarget.form?.requestSubmit()

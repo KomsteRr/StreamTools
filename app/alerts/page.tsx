@@ -37,6 +37,7 @@ import {
 } from "react-icons/fi";
 import Link from "next/link";
 import { toaster, Toaster } from "@/components/ui/toaster";
+import { useTranslation } from '@/lib/i18n'
 
 interface AlertConfig {
   id: string;
@@ -115,6 +116,7 @@ const ALERT_META: Record<
 };
 
 export default function AlertsConfigPage() {
+  const { t } = useTranslation()
   const [platform, setPlatform] = useState("twitch");
   const [configs, setConfigs] = useState<AlertConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -167,7 +169,7 @@ export default function AlertsConfigPage() {
         });
       }
     } catch {
-      toaster.create({ title: "Erreur lors du test", type: "error" });
+      toaster.create({ title: t('alerts.testError'), type: "error" });
     } finally {
       setTesting(null);
     }
@@ -394,7 +396,7 @@ export default function AlertsConfigPage() {
                           disabled={!config.enabled}
                           onClick={() => testAlert(config.type)}
                           aria-label={`Tester ${meta.label}`}
-                          title="Envoyer une fausse alerte"
+                          title={t('alerts.sendFakeAlert')}
                         >
                           <FiPlay />
                         </IconButton>
