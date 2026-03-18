@@ -344,7 +344,7 @@ export default function YouTubeChatCustomize() {
                 </Link>
               </Button>
               <Separator orientation="vertical" h={6} />
-              <Heading size="md">Personnalisation YouTube Chat</Heading>
+              <Heading size="md">{t('youtube.personalization')}</Heading>
             </HStack>
             <Button
               colorPalette="red"
