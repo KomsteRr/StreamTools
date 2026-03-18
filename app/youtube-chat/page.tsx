@@ -13,8 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FiSettings, FiYoutube, FiLayout, FiCheckCircle } from "react-icons/fi";
+import { useTranslation } from '@/lib/i18n'
 
 export default function YouTubeChatPage() {
+  const { t } = useTranslation()
   return (
     <Container maxW="full" centerContent py={10}>
       <VStack gap={8} width="full" maxW="3xl" align="stretch">
