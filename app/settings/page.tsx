@@ -31,6 +31,7 @@ import {
   FiExternalLink,
 } from "react-icons/fi";
 import { toaster, Toaster } from "@/components/ui/toaster";
+import { useTranslation } from '@/lib/i18n'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -56,13 +57,13 @@ const TWITCH_FIELDS = [
   },
   {
     key: "botName",
-    label: "Bot Name (Optionnel)",
+    label: t('settings.botName'),
     hint: "Nom d'utilisateur du compte Bot Twitch",
     type: "text",
   },
   {
     key: "botPassword",
-    label: "Bot Password (Optionnel)",
+    label: t('settings.botPassword'),
     hint: "Token OAuth du bot (oauth:...)",
     type: "password",
   },
@@ -173,7 +174,7 @@ function PlatformCard({
       await onSave(platform, values);
       toaster.create({ title: `${label} sauvegardé !`, type: "success" });
     } catch {
-      toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
+      toaster.create({ title: t('common.saveError'), type: "error" });
     } finally {
       setSaving(false);
     }
@@ -510,6 +511,7 @@ function TwitchBroadcasterIdHelper() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
   const [settings, setSettings] = useState<AllSettings>({});
   const [loading, setLoading] = useState(true);
   const [twitchConnected, setTwitchConnected] = useState<boolean | null>(null);
@@ -558,7 +560,7 @@ export default function SettingsPage() {
     if (!res.ok) {
       toaster.create({ title: data.error ?? "Erreur", type: "error" });
     } else {
-      toaster.create({ title: "Twitch connecté ! 🎉", type: "success" });
+      toaster.create({ title: t('settings.twitchConnected'), type: "success" });
       setTwitchConnected(true);
     }
   }
@@ -566,7 +568,7 @@ export default function SettingsPage() {
   async function disconnectTwitch() {
     await fetch("/api/twitch/connect", { method: "DELETE" });
     setTwitchConnected(false);
-    toaster.create({ title: "Twitch déconnecté", type: "info" });
+    toaster.create({ title: t('settings.twitchDisconnected'), type: "info" });
   }
 
   async function connectYouTube() {
@@ -575,7 +577,7 @@ export default function SettingsPage() {
     if (!res.ok) {
       toaster.create({ title: data.error ?? "Erreur", type: "error" });
     } else {
-      toaster.create({ title: "YouTube connecté ! 🎉", type: "success" });
+      toaster.create({ title: t('settings.youtubeConnected'), type: "success" });
       setYoutubeConnected(true);
     }
   }
@@ -583,7 +585,7 @@ export default function SettingsPage() {
   async function disconnectYouTube() {
     await fetch("/api/youtube/connect", { method: "DELETE" });
     setYoutubeConnected(false);
-    toaster.create({ title: "YouTube déconnecté", type: "info" });
+    toaster.create({ title: t('settings.youtubeDisconnected'), type: "info" });
   }
 
   if (loading) {
