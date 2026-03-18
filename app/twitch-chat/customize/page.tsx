@@ -24,6 +24,7 @@ import { Field } from "@/components/ui/field";
 import { FiArrowLeft, FiSave } from "react-icons/fi";
 import Link from "next/link";
 import { toaster, Toaster } from "@/components/ui/toaster";
+import { useTranslation } from '@/lib/i18n'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -223,6 +224,7 @@ function ChatPreview({ config }: { config: ChatVisualConfig }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function TwitchChatCustomizePage() {
+  const { t } = useTranslation()
   const [config, setConfig] = useState<ChatVisualConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -248,9 +250,9 @@ export default function TwitchChatCustomizePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ platform: "twitch-chat", settings: config }),
       });
-      toaster.create({ title: "Sauvegardé !", type: "success" });
+      toaster.create({ title: t('common.saved'), type: "success" });
     } catch {
-      toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
+      toaster.create({ title: t('common.saveError'), type: "error" });
     } finally {
       setSaving(false);
     }
