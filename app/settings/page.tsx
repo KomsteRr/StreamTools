@@ -417,7 +417,7 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
             <Text mt={1}>
               C'est <strong>normal</strong> — Twitch vous avertit que vous allez
               être redirigé vers <code>localhost</code>. Cliquez{" "}
-              <strong>Continue</strong>. Après redirection, copiez le paramètre{" "}
+              <strong>{t('common.continue')}</strong>. Après redirection, copiez le paramètre{" "}
               <code>access_token=...</code>
               depuis l'URL de votre navigateur.
             </Text>
