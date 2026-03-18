@@ -396,7 +396,7 @@ export default function AlertsConfigPage() {
                           disabled={!config.enabled}
                           onClick={() => testAlert(config.type)}
                           aria-label={`Tester ${meta.label}`}
-                          title={t('alerts.sendFakeAlert')
+                          title={t('alerts.sendFakeAlert')}
                         >
                           <FiPlay />
                         </IconButton>
