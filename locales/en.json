@@ -18,7 +18,15 @@
     "overlayOBS": "OBS Overlay",
     "connected": "Connected",
     "notConnected": "Not connected",
-    "notConfigured": "Not configured"
+    "notConfigured": "Not configured",
+    "saved": "Saved!",
+    "saveError": "Error while saving",
+    "copyError": "Error while copying",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "continue": "Continue",
+    "copied": "Copied!",
+    "error": "Error"
   },
   "login": {
     "title": "Streaming All In One Tools",
@@ -35,7 +43,7 @@
     "twitchChat": "Twitch Chat",
     "youtubeChat": "YouTube Chat",
     "streamAlerts": "Stream Alerts",
-    "globalSettings": "Global Settings",
+    "globalSettings": "Global settings",
     "overlayUrl": "Overlay URL",
     "openPanel": "Open"
   },
@@ -46,7 +54,7 @@
     "users": "Users",
     "status": "Status",
     "role": "Role",
-    "createdAt": "Created at",
+    "createdAt": "Created on",
     "actions": "Actions",
     "active": "Active",
     "pending": "Pending",
@@ -54,7 +62,18 @@
     "deleteUser": "Delete user",
     "inviteLink": "Invite link",
     "inviteLinkExpires": "This link expires in 7 days.",
-    "confirmDelete": "Delete this user and all their data?"
+    "confirmDelete": "Delete this user and all their data?",
+    "deleteUserConfirm": "Delete this user and all their data?",
+    "noUsers": "No users created.",
+    "resetPasswordFull": "Reset the password",
+    "delete": "Delete",
+    "setup": {
+      "dbUrl": "Database connection URL",
+      "twitchDesc": "Enable overlays and bot for your Twitch channel",
+      "youtubeDesc": "Enable features linked to YouTube streams",
+      "redirectUri": "Redirect URI (Optional)",
+      "botToken": "Generate a bot token via"
+    }
   },
   "settings": {
     "title": "Global Settings",
@@ -66,11 +85,26 @@
     "clientSecret": "Client secret",
     "connect": "Connect",
     "disconnect": "Disconnect",
-    "saved": "Settings saved!"
+    "saved": "Settings saved",
+    "botName": "Bot Name (Optional)",
+    "botPassword": "Bot Password (Optional)",
+    "twitchConnected": "Twitch connected! 🎉",
+    "twitchDisconnected": "Twitch disconnected",
+    "youtubeConnected": "YouTube connected! 🎉",
+    "youtubeDisconnected": "YouTube disconnected",
+    "fontFamily": "Font family",
+    "borderColor": "Border color"
   },
   "alerts": {
     "title": "Stream Alerts",
-    "test": "Test Alert"
+    "test": "Test Alert",
+    "imageLeft": "Image on the left",
+    "imageRight": "Image on the right",
+    "testSent": "Test alert sent!",
+    "fullscreenBg": "Fullscreen background (.jpg, .png, .gif, .mp4, .webm)",
+    "chooseFont": "Choose a font...",
+    "testError": "Error during test",
+    "sendFakeAlert": "Send a fake alert"
   },
   "invite": {
     "title": "Set your password",
@@ -81,5 +115,15 @@
   },
   "language": {
     "label": "Language"
+  },
+  "spotify": {
+    "playbackControls": "Playback controls"
+  },
+  "twitch": {
+    "showBadges": "Show badges"
+  },
+  "youtube": {
+    "personalization": "YouTube Chat Personalization",
+    "obsInstall": "How to install the chat on OBS?"
   }
 }
