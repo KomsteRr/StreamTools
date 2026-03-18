@@ -667,7 +667,7 @@ export default function SettingsPage() {
                 label="Twitch"
                 icon={<FiTwitch />}
                 color="purple"
-                fields={TWITCH_FIELDS}
+                fields={getTwitchFields(t)}
                 initialValues={settings.twitch ?? {}}
                 onSave={savePlatform}
                 connectStatus={twitchConnected}
