@@ -129,6 +129,7 @@ function ServiceCard({
   overlayUrl?: string;
   basicHref?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <Card.Root
       bg="white"
@@ -390,7 +391,7 @@ export default function DashboardPage() {
             icon={<FiMusic size={20} />}
             iconBg="green.50"
             iconColor="green.500"
-            title="{t("dashboard.spotifyWidget")}"
+            title={t("dashboard.spotifyWidget")}
             status={
               <StatusBadge
                 ok={spotifyOk}
@@ -446,7 +447,7 @@ export default function DashboardPage() {
             icon={<FiBell size={20} />}
             iconBg="orange.50"
             iconColor="orange.500"
-            title="{t("dashboard.streamAlerts")}"
+            title={t("dashboard.streamAlerts")}
             status={
               <Badge
                 colorPalette="blue"
