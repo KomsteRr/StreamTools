@@ -26,7 +26,9 @@ const LOCALE_OPTIONS = [
 ]
 
 function getNestedValue(obj: Record<string, any>, path: string): string {
-  return path.split('.').reduce((acc: any, part: string) => acc?.[part], obj) ?? path
+  const value = path.split('.').reduce((acc: any, part: string) => acc?.[part], obj)
+  if (typeof value === 'string') return value
+  return path
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -38,6 +40,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setLocaleState(saved)
     }
   }, [])
+
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale)
