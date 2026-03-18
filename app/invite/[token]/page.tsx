@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from '@/lib/i18n'
 import { useParams, useRouter } from 'next/navigation'
 import {
   Box,
@@ -21,6 +22,7 @@ type PageStatus = 'loading' | 'ready' | 'submitting' | 'success' | 'error'
 export default function InvitePage() {
   const params = useParams()
   const router = useRouter()
+  const { t } = useTranslation()
   const token = params.token as string
 
   const [status, setStatus] = useState<PageStatus>('ready')
@@ -34,12 +36,12 @@ export default function InvitePage() {
     setError('')
 
     if (password.length < 12) {
-      setError('{t("invite.passwordTooShort")}')
+      setError(t('invite.passwordTooShort'))
       return
     }
 
     if (password !== confirmPassword) {
-      setError('{t("invite.passwordMismatch")}')
+      setError(t('invite.passwordMismatch'))
       return
     }
 
@@ -123,7 +125,7 @@ export default function InvitePage() {
 
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
               <Stack gap={4}>
-                <Field label="{t("common.password")}">
+                <Field label={t('common.password')}>
                   <PasswordInput
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
