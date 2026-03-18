@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n";
+
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -176,7 +178,7 @@ function ServiceCard({
               {overlayHref && (
                 <Button asChild variant="ghost" size="sm">
                   <Link href={overlayHref} target="_blank">
-                    <FiExternalLink /> Overlay OBS
+                    <FiExternalLink /> {t("common.overlayOBS")}
                   </Link>
                 </Button>
               )}
@@ -200,7 +202,7 @@ function ServiceCard({
                 textTransform="uppercase"
                 letterSpacing="wider"
               >
-                URL Overlay
+                {t("dashboard.overlayUrl")}
               </Text>
               <OverlayUrl value={overlayUrl} />
             </Box>
@@ -214,6 +216,7 @@ function ServiceCard({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [origin, setOrigin] = useState("");
@@ -387,7 +390,7 @@ export default function DashboardPage() {
             icon={<FiMusic size={20} />}
             iconBg="green.50"
             iconColor="green.500"
-            title="Spotify Widget"
+            title="{t("dashboard.spotifyWidget")}"
             status={
               <StatusBadge
                 ok={spotifyOk}
@@ -443,7 +446,7 @@ export default function DashboardPage() {
             icon={<FiBell size={20} />}
             iconBg="orange.50"
             iconColor="orange.500"
-            title="Alertes Stream"
+            title="{t("dashboard.streamAlerts")}"
             status={
               <Badge
                 colorPalette="blue"
@@ -486,7 +489,7 @@ export default function DashboardPage() {
                   <FiSettings size={18} />
                 </Box>
                 <Box>
-                  <Heading size="sm">Paramètres globaux</Heading>
+                  <Heading size="sm">{t("dashboard.globalSettings")}</Heading>
                   <Text fontSize="sm" color="gray.400" mt={0.5}>
                     Connexions Twitch, Spotify, YouTube…
                   </Text>
