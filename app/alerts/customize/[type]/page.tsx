@@ -99,12 +99,7 @@ const GOOGLE_FONTS = [
   "Orbitron",
 ];
 
-const LAYOUT_OPTIONS = [
-  { value: "column", label: "Image en haut", icon: "⬆" },
-  { value: "column-reverse", label: "Image en bas", icon: "⬇" },
-  { value: "row", label: t('alerts.imageLeft'), icon: "⬅" },
-  { value: "row-reverse", label: t('alerts.imageRight'), icon: "➡" },
-];
+
 
 const platformCollection = createListCollection({
   items: PLATFORMS.map((p) => ({ label: p.label, value: p.id })),
@@ -738,7 +733,7 @@ export default function CustomizePage({
                   boîte.
                 </Text>
                 <FileUploader
-                  label=t('alerts.fullscreenBg')
+                  label={t('alerts.fullscreenBg')
                   accept=".jpg,.jpeg,.png,.gif,.mp4,.webm"
                   currentUrl={config.bgMediaUrl}
                   mediaType={
@@ -894,7 +889,7 @@ export default function CustomizePage({
                       <Select.HiddenSelect />
                       <Select.Control>
                         <Select.Trigger>
-                          <Select.ValueText placeholder=t('alerts.chooseFont') />
+                          <Select.ValueText placeholder={t('alerts.chooseFont') />
                         </Select.Trigger>
                       </Select.Control>
                       <Select.Positioner>
