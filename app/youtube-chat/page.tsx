@@ -33,7 +33,7 @@ export default function YouTubeChatPage() {
           <Card.Header>
             <HStack>
               <Icon as={FiYoutube} color="red.500" boxSize={6} />
-              <Heading size="md">Comment installer le chat sur OBS ?</Heading>
+              <Heading size="md">{t('youtube.obsInstall')}</Heading>
             </HStack>
           </Card.Header>
           <Card.Body>
