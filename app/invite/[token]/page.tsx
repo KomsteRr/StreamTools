@@ -134,12 +134,12 @@ export default function InvitePage() {
                   />
                 </Field>
 
-                <Field label="Confirmer le mot de passe">
+                <Field label=t('common.confirmPassword')>
                   <PasswordInput
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    placeholder="Confirmez votre mot de passe"
+                    placeholder=t('common.confirmPasswordPlaceholder')
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.currentTarget.form?.requestSubmit()
