@@ -46,6 +46,7 @@ import {
   AlertEvent,
 } from "@/app/alerts/components/AlertOverlayDisplay";
 import { FileUploader } from "@/app/alerts/components/FileUploader";
+import { useTranslation } from '@/lib/i18n'
 
 const ALERT_LABELS: Record<string, string> = {
   follow: "Follow",
@@ -101,8 +102,8 @@ const GOOGLE_FONTS = [
 const LAYOUT_OPTIONS = [
   { value: "column", label: "Image en haut", icon: "⬆" },
   { value: "column-reverse", label: "Image en bas", icon: "⬇" },
-  { value: "row", label: "Image à gauche", icon: "⬅" },
-  { value: "row-reverse", label: "Image à droite", icon: "➡" },
+  { value: "row", label: t('alerts.imageLeft'), icon: "⬅" },
+  { value: "row-reverse", label: t('alerts.imageRight'), icon: "➡" },
 ];
 
 const platformCollection = createListCollection({
@@ -118,6 +119,7 @@ export default function CustomizePage({
 }: {
   params: Promise<{ type: string }>;
 }) {
+  const { t } = useTranslation()
   const { type } = use(params);
   const searchParams = useSearchParams();
   const initialPlatform = searchParams.get("platform") ?? "twitch";
@@ -172,10 +174,10 @@ export default function CustomizePage({
           body: JSON.stringify(config),
         },
       );
-      if (res.ok) toaster.create({ title: "Sauvegardé !", type: "success" });
+      if (res.ok) toaster.create({ title: t('common.saved'), type: "success" });
       else
         toaster.create({
-          title: "Erreur lors de la sauvegarde",
+          title: t('common.saveError'),
           type: "error",
         });
     } finally {
@@ -191,7 +193,7 @@ export default function CustomizePage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type, platform }),
       });
-      toaster.create({ title: "Alerte test envoyée !", type: "success" });
+      toaster.create({ title: t('alerts.testSent'), type: "success" });
     } finally {
       setTesting(false);
     }
@@ -254,7 +256,7 @@ export default function CustomizePage({
           type: "success",
         });
       } else {
-        toaster.create({ title: "Erreur lors de la copie", type: "error" });
+        toaster.create({ title: t('common.copyError'), type: "error" });
       }
     } finally {
       setCopying(false);
@@ -736,7 +738,7 @@ export default function CustomizePage({
                   boîte.
                 </Text>
                 <FileUploader
-                  label="Fond plein écran (.jpg, .png, .gif, .mp4, .webm)"
+                  label=t('alerts.fullscreenBg')
                   accept=".jpg,.jpeg,.png,.gif,.mp4,.webm"
                   currentUrl={config.bgMediaUrl}
                   mediaType={
@@ -892,7 +894,7 @@ export default function CustomizePage({
                       <Select.HiddenSelect />
                       <Select.Control>
                         <Select.Trigger>
-                          <Select.ValueText placeholder="Choisir une police..." />
+                          <Select.ValueText placeholder=t('alerts.chooseFont') />
                         </Select.Trigger>
                       </Select.Control>
                       <Select.Positioner>
