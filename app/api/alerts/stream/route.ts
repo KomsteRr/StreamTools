@@ -1,6 +1,6 @@
 import { subscribeToAlerts } from "@/lib/alertEmitter";
 import { isOverlayAuthorized } from "@/lib/overlay-token";
-import { getSession } from "@/lib/session";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const userId = session?.userId ?? isOverlayAuth.userId ?? null;
+  const userId = getSafeUserId(session) ?? isOverlayAuth.userId ?? null;
 
   const encoder = new TextEncoder();
 

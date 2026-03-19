@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { saveTokens } from "@/lib/spotify-tokens";
 import { getConfig } from "@/lib/spotify-config";
-import { getSession } from "@/lib/session";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,8 +18,9 @@ export async function GET(request: Request) {
 
   // Get the current user from session (if logged in)
   const session = await getSession();
+  const userId = getSafeUserId(session);
 
-  const config = await getConfig(session?.userId);
+  const config = await getConfig(userId);
   const client_id = config.clientId || process.env.SPOTIFY_CLIENT_ID;
   const client_secret = config.clientSecret || process.env.SPOTIFY_CLIENT_SECRET;
   const redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
       access_token: data.access_token,
       refresh_token: data.refresh_token,
       expires_at: Date.now() + data.expires_in * 1000,
-    }, session?.userId);
+    }, userId);
 
     // Redirect to the widget page
     return NextResponse.redirect(new URL("/spotify-stream", request.url));

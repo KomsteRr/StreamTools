@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getTokens, saveTokens } from "@/lib/spotify-tokens";
 import { getConfig } from "@/lib/spotify-config";
 import { isOverlayAuthorized } from "@/lib/overlay-token";
-import { getSession } from "@/lib/session";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 export async function GET(request: Request) {
   const session = await getSession();
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   // Determine which user's data to fetch
-  const userId = session?.userId ?? overlayAuth.userId ?? null;
+  const userId = getSafeUserId(session) ?? overlayAuth.userId ?? null;
 
   let tokens = await getTokens(userId);
 

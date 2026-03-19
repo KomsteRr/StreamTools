@@ -21,10 +21,10 @@ export default function YouTubeChatPage() {
     <Container maxW="full" centerContent py={10}>
       <VStack gap={8} width="full" maxW="3xl" align="stretch">
         <HStack justify="space-between">
-          <Heading size="xl">YouTube Chat Overlay</Heading>
+          <Heading size="xl">{t("youtube.title")}</Heading>
           <Link href="/youtube-chat/customize">
             <Button colorPalette="red">
-              <FiSettings /> Personnaliser l'apparence
+              <FiSettings /> {t("youtube.customizeBtn")}
             </Button>
           </Link>
         </HStack>
@@ -39,9 +39,7 @@ export default function YouTubeChatPage() {
           <Card.Body>
             <VStack align="stretch" gap={6}>
               <Text>
-                Pour YouTube, l'intégration se fait directement via l'URL
-                officielle du chat en direct. Vos quotas d'API sont ainsi
-                préservés et le chat reste parfaitement synchronisé.
+                {t("youtube.instructionDesc")}
               </Text>
 
               <VStack
@@ -67,20 +65,15 @@ export default function YouTubeChatPage() {
                   </Box>
                   <Box>
                     <Text fontWeight="bold" mb={1}>
-                      Créer une Source Navigateur sur OBS
+                      {t("youtube.step1Title")}
                     </Text>
                     <Text
                       fontSize="sm"
                       color="gray.600"
                       _dark={{ color: "gray.400" }}
+                      style={{ whiteSpace: "pre-wrap" }}
                     >
-                      Dans le champ "URL", collez l'URL standard du chat pop-out
-                      de votre live YouTube.
-                      <br />
-                      Exemple :{" "}
-                      <Text as="strong">
-                        https://www.youtube.com/live_chat?is_popout=1&v=VOTRE_ID_VIDEO
-                      </Text>
+                      {t("youtube.step1Desc")}
                     </Text>
                   </Box>
                 </HStack>
@@ -99,7 +92,7 @@ export default function YouTubeChatPage() {
                   </Box>
                   <Box>
                     <Text fontWeight="bold" mb={1}>
-                      Injecter le Custom CSS
+                      {t("youtube.step2Title")}
                     </Text>
                     <Text
                       fontSize="sm"
@@ -107,14 +100,11 @@ export default function YouTubeChatPage() {
                       _dark={{ color: "gray.400" }}
                       mb={3}
                     >
-                      Rendez-vous dans la section "Personnaliser" pour ajuster
-                      les couleurs, polices et bordures. Copiez ensuite le code
-                      "CSS OBS" généré et collez-le dans le champ "CSS
-                      personnalisé" de votre source navigateur.
+                      {t("youtube.step2Desc")}
                     </Text>
                     <Link href="/youtube-chat/customize">
                       <Button size="sm" variant="outline" colorPalette="red">
-                        <FiLayout /> Ouvrir le générateur de CSS
+                        <FiLayout /> {t("youtube.openGeneratorBtn")}
                       </Button>
                     </Link>
                   </Box>
@@ -132,15 +122,14 @@ export default function YouTubeChatPage() {
                   </Box>
                   <Box>
                     <Text fontWeight="bold" mb={1}>
-                      C'est prêt !
+                      {t("youtube.step3Title")}
                     </Text>
                     <Text
                       fontSize="sm"
                       color="gray.600"
                       _dark={{ color: "gray.400" }}
                     >
-                      Le chat deviendra instantanément transparent et prendra
-                      vos couleurs personnalisées.
+                      {t("youtube.step3Desc")}
                     </Text>
                   </Box>
                 </HStack>

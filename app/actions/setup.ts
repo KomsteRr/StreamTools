@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 
 export async function submitSetup(prevState: any, formData: FormData) {
   const session = await getSession()
@@ -62,10 +63,21 @@ export async function submitSetup(prevState: any, formData: FormData) {
           data: { platform: 'system', key: 'pending_migration', value: databaseUrl, userId: null },
         });
       }
+      // Ne pas poser le cookie ni rediriger — l'user doit d'abord migrer puis redémarrer
       return {
-        success: 'Configuration sauvegardée. Redémarrez le serveur avec `npm run migrate` pour finaliser la migration vers PostgreSQL.',
+        success: '✅ Configuration sauvegardée. Pour finaliser la migration vers PostgreSQL, arrêtez le serveur et lancez la commande : npm run migrate — puis relancez le serveur.',
       }
     }
+
+    // Poser le cookie setup_complete (httpOnly=false pour que le middleware Edge le lise)
+    const cookieStore = await cookies()
+    cookieStore.set('setup_complete', '1', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365, // 1 an
+    })
   } catch (error) {
     console.error('Setup error:', error)
     return { error: 'Une erreur est survenue lors de l\'enregistrement.' }

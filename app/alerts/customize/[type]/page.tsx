@@ -48,14 +48,25 @@ import {
 import { FileUploader } from "@/app/alerts/components/FileUploader";
 import { useTranslation } from '@/lib/i18n'
 
-const ALERT_LABELS: Record<string, string> = {
-  follow: "Follow",
-  sub: "Abonnement",
-  bits: "Bits",
-  raid: "Raid",
-  cheer: "Cheer",
-  gift_sub: "Gift Sub",
-};
+function getAlertLabels(t: any): Record<string, string> {
+  return {
+    follow: t("alerts.followLabel"),
+    sub: t("alerts.subLabel"),
+    bits: t("alerts.bitsLabel"),
+    raid: t("alerts.raidLabel"),
+    cheer: t("alerts.cheerLabel"),
+    gift_sub: t("alerts.giftSubLabel"),
+  };
+}
+
+function getLayoutOptions(t: any) {
+  return [
+    { value: "column", label: t("alerts.layoutCol"), icon: <FiAlignLeft /> },
+    { value: "column-reverse", label: t("alerts.layoutColRev"), icon: <FiAlignLeft /> },
+    { value: "row", label: t("alerts.layoutRow"), icon: <FiAlignLeft /> },
+    { value: "row-reverse", label: t("alerts.layoutRowRev"), icon: <FiAlignLeft /> },
+  ];
+}
 
 const ANIMATIONS = ["slide-in", "bounce", "fade", "zoom"];
 const EXIT_ANIMATIONS = ["fade", "slide-out", "zoom-out", "bounce-out"];
@@ -75,7 +86,6 @@ const POSITIONS = [
 const PLATFORMS = [
   { id: "twitch", label: "Twitch", icon: <FiTwitch size={14} /> },
   { id: "youtube", label: "YouTube", icon: <FiYoutube size={14} /> },
-  // { id: "kick", label: "Kick", icon: <span>🎮</span> },
 ];
 
 const GOOGLE_FONTS = [
@@ -119,7 +129,7 @@ export default function CustomizePage({
   const searchParams = useSearchParams();
   const initialPlatform = searchParams.get("platform") ?? "twitch";
 
-  const label = ALERT_LABELS[type] ?? type;
+  const label = getAlertLabels(t)[type] ?? type;
 
   const [platform, setPlatform] = useState(initialPlatform);
   const [config, setConfig] = useState<AlertConfig | null>(null);
@@ -247,7 +257,7 @@ export default function CustomizePage({
         const data = await res.json();
         setConfig(data);
         toaster.create({
-          title: `Copié depuis ${PLATFORMS.find((p) => p.id === copyTarget)?.label} !`,
+          title: t("alerts.copySuccessUrl").replace('{platform}', PLATFORMS.find((p) => p.id === copyTarget)?.label || copyTarget),
           type: "success",
         });
       } else {
@@ -277,10 +287,10 @@ export default function CustomizePage({
           <HStack gap={3}>
             <Button asChild variant="ghost" size="sm">
               <Link href={`/alerts?platform=${platform}`}>
-                <FiArrowLeft /> Retour
+                <FiArrowLeft /> {t("alerts.backBtn")}
               </Link>
             </Button>
-            <Heading size="xl">🎨 {label} — Personnalisation</Heading>
+            <Heading size="xl">{t("alerts.customizeTitle").replace('{label}', label)}</Heading>
             {/* Platform badge */}
             <Badge
               colorPalette={
@@ -305,7 +315,7 @@ export default function CustomizePage({
               loading={testing}
               onClick={testAlert}
             >
-              <FiPlay /> Tester
+              <FiPlay /> {t("alerts.testBtn")}
             </Button>
             <Button
               size="sm"
@@ -313,7 +323,7 @@ export default function CustomizePage({
               loading={saving}
               onClick={save}
             >
-              <FiSave /> Sauvegarder
+              <FiSave /> {t("alerts.saveBtn")}
             </Button>
           </HStack>
         </HStack>
@@ -335,7 +345,7 @@ export default function CustomizePage({
             color="gray.600"
             _dark={{ color: "gray.400" }}
           >
-            Plateforme :
+            {t("alerts.platformLabel")}
           </Text>
           <HStack gap={2}>
             {PLATFORMS.map((p) => (
@@ -371,7 +381,7 @@ export default function CustomizePage({
               <Select.HiddenSelect />
               <Select.Control>
                 <Select.Trigger>
-                  <Select.ValueText placeholder="Copier depuis..." />
+                  <Select.ValueText placeholder={t("alerts.copyFrom")} />
                 </Select.Trigger>
               </Select.Control>
               <Select.Positioner>
@@ -395,7 +405,7 @@ export default function CustomizePage({
               disabled={!copyTarget}
               onClick={copyFrom}
             >
-              <FiCopy /> Copier
+              <FiCopy /> {t("alerts.copyBtn")}
             </Button>
           </HStack>
         </HStack>
@@ -405,7 +415,7 @@ export default function CustomizePage({
           <GridItem>
             <Box position="sticky" top="24px">
               <HStack mb={4} justify="space-between">
-                <Heading size="md">👁 Aperçu en temps réel</Heading>
+                <Heading size="md">{t("alerts.livePreviewTitle")}</Heading>
                 <Text fontSize="xs" color="gray.400">
                   16:9
                 </Text>
@@ -445,7 +455,7 @@ export default function CustomizePage({
                 )}
               </Box>
               <Text fontSize="xs" color="gray.400" textAlign="center" mt={2}>
-                Mis à jour en temps réel
+                {t("alerts.updatedInRealTime")}
               </Text>
             </Box>
           </GridItem>
@@ -462,7 +472,7 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  💬 Texte de l&apos;alerte
+                  {t("alerts.textSectionTitle")}
                 </Heading>
                 <Textarea
                   value={config.text}
@@ -485,8 +495,7 @@ export default function CustomizePage({
                   ))}
                 </HStack>
                 <Text fontSize="xs" color="gray.400" mt={2}>
-                  {"{user}"} = nom · {"{amount}"} = montant (bits, viewers,
-                  etc.)
+                  {t("alerts.textHint")}
                 </Text>
               </Box>
 
@@ -499,7 +508,7 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  🔊 Son
+                  {t("alerts.soundSectionTitle")}
                 </Heading>
                 <FileUploader
                   label="Fichier audio (.mp3, .ogg, .wav)"
@@ -511,7 +520,7 @@ export default function CustomizePage({
                 />
                 <Box mt={3}>
                   <Text fontSize="sm" mb={1}>
-                    Volume : {Math.round(config.volume * 100)}%
+                    {t("alerts.soundVolume")} {Math.round(config.volume * 100)}%
                   </Text>
                   <Slider.Root
                     min={0}
@@ -539,7 +548,7 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  🖼 Image / Icône
+                  {t("alerts.imageSectionTitle")}
                 </Heading>
                 <FileUploader
                   label="Image de l'alerte (.png, .jpg, .gif)"
@@ -557,7 +566,7 @@ export default function CustomizePage({
                 />
                 <Box mt={3}>
                   <Text fontSize="sm" mb={1}>
-                    Taille de l&apos;icône : {config.imageSize ?? 80}px
+                    {t("alerts.imageSize")} {config.imageSize ?? 80}px
                   </Text>
                   <Slider.Root
                     min={24}
@@ -587,11 +596,10 @@ export default function CustomizePage({
                 borderColor="purple.200"
               >
                 <Heading size="sm" mb={1}>
-                  📦 Image conteneur
+                  {t("alerts.containerSectionTitle")}
                 </Heading>
                 <Text fontSize="xs" color="gray.500" mb={3}>
-                  Une image qui sert de cadre/fond à l&apos;alerte. Remplace le
-                  fond blur et la couleur de fond quand définie.
+                  {t("alerts.containerHelp")}
                 </Text>
                 <FileUploader
                   label="Image conteneur (.png, .jpg, .gif, .webp)"
@@ -611,7 +619,7 @@ export default function CustomizePage({
                   <VStack align="stretch" gap={3} mt={4}>
                     <Box>
                       <HStack gap={2} mb={1}>
-                        <Text fontSize="sm">Largeur :</Text>
+                        <Text fontSize="sm">{t("alerts.containerWidth")}</Text>
                         <Input
                           type="number"
                           size="sm"
@@ -644,7 +652,7 @@ export default function CustomizePage({
                     </Box>
                     <Box>
                       <HStack gap={2} mb={1}>
-                        <Text fontSize="sm">Hauteur :</Text>
+                        <Text fontSize="sm">{t("alerts.containerHeight")}</Text>
                         <Input
                           type="number"
                           size="sm"
@@ -688,14 +696,13 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  🔀 Layout conteneur
+                  {t("alerts.layoutSectionTitle")}
                 </Heading>
                 <Text fontSize="xs" color="gray.500" mb={3}>
-                  Position de l&apos;image/icône par rapport au texte dans le
-                  conteneur.
+                  {t("alerts.layoutHelp")}
                 </Text>
                 <HStack gap={2} flexWrap="wrap">
-                  {LAYOUT_OPTIONS.map((opt) => (
+                  {getLayoutOptions(t).map((opt) => (
                     <Button
                       key={opt.value}
                       size="sm"
@@ -726,11 +733,10 @@ export default function CustomizePage({
                 _dark={{ bg: "gray.800" }}
               >
                 <HStack mb={1}>
-                  <Heading size="sm">🎬 Fond plein écran (1920×1080)</Heading>
+                  <Heading size="sm">{t("alerts.bgSectionTitle")}</Heading>
                 </HStack>
                 <Text fontSize="xs" color="gray.500" mb={3}>
-                  Image, GIF animé ou vidéo affiché en plein écran derrière la
-                  boîte.
+                  {t("alerts.bgDesc")}
                 </Text>
                 <FileUploader
                   label={t('alerts.fullscreenBg')}
@@ -752,7 +758,7 @@ export default function CustomizePage({
                 {!config.containerImageUrl && (
                   <>
                     <Text fontSize="sm" mb={1}>
-                      Couleur de fond (fallback)
+                      {t("alerts.bgFallback")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -779,17 +785,16 @@ export default function CustomizePage({
                 )}
                 {config.containerImageUrl && (
                   <Text fontSize="xs" color="orange.500" fontStyle="italic">
-                    ⚠ La couleur de fond est ignorée car une image conteneur est
-                    définie.
+                    {t("alerts.bgIgnoredWarn")}
                   </Text>
                 )}
                 <Box mt={3}>
                   <Text fontSize="sm" mb={1}>
-                    Opacité fondation sombre :{" "}
+                    {t("alerts.bgOpacityTitle")}{" "}
                     {Math.round(config.bgOverlayOpacity * 100)}%
                   </Text>
                   <Text fontSize="xs" color="gray.400" mb={1}>
-                    Assombrit le fond media pour rendre le texte lisible
+                    {t("alerts.bgOpacityDesc")}
                   </Text>
                   <Slider.Root
                     min={0}
@@ -819,7 +824,7 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  📍 Position sur l&apos;écran
+                  📍 {t("alerts.positionTitle")}
                 </Heading>
                 <Box
                   display="grid"
@@ -858,7 +863,7 @@ export default function CustomizePage({
                   ))}
                 </Box>
                 <Text fontSize="xs" color="gray.400" mt={2}>
-                  Position actuelle : {config.position}
+                  {t("alerts.currentPosition")} {config.position}
                 </Text>
               </Box>
 
@@ -871,13 +876,13 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  ✏️ Typographie
+                  {t("alerts.typographyTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   {/* Font Family */}
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Police
+                      {t("alerts.fontTitle")}
                     </Text>
                     <Select.Root
                       collection={fontCollection}
@@ -911,7 +916,7 @@ export default function CustomizePage({
                   {/* Text Color */}
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Couleur du texte
+                      {t("alerts.textColorTitle")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -939,7 +944,7 @@ export default function CustomizePage({
                   {/* Font Size */}
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Taille : {config.fontSize}px
+                      {t("alerts.sizeLabel")} {config.fontSize}px
                     </Text>
                     <Slider.Root
                       min={16}
@@ -960,13 +965,13 @@ export default function CustomizePage({
                   {/* Text Alignment */}
                   <Box>
                     <Text fontSize="sm" mb={2}>
-                      Alignement du texte
+                      {t("alerts.textAlignTitle")}
                     </Text>
                     <HStack gap={2}>
                       {[
-                        { value: "left", icon: <FiAlignLeft />, label: "Gauche" },
-                        { value: "center", icon: <FiAlignCenter />, label: "Centre" },
-                        { value: "right", icon: <FiAlignRight />, label: "Droite" },
+                        { value: "left", icon: <FiAlignLeft />, label: t("alerts.leftAlign") },
+                        { value: "center", icon: <FiAlignCenter />, label: t("alerts.centerAlign") },
+                        { value: "right", icon: <FiAlignRight />, label: t("alerts.rightAlign") },
                       ].map((opt) => (
                         <Button
                           key={opt.value}
@@ -1000,12 +1005,12 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  ✨ Effet Glow / Ombre
+                  {t("alerts.shadowSectionTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Couleur du glow
+                      {t("alerts.shadowColorTitle")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -1031,8 +1036,8 @@ export default function CustomizePage({
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Intensité : {config.glowSize}px{" "}
-                      {config.glowSize === 0 && "(désactivé)"}
+                      {t("alerts.shadowSizeTitle")} {config.glowSize}px{" "}
+                      {config.glowSize === 0 && t("alerts.disabledText")}
                     </Text>
                     <Slider.Root
                       min={0}
@@ -1062,12 +1067,12 @@ export default function CustomizePage({
                   shadow="sm"
                 >
                   <Heading size="sm" mb={3}>
-                    🔲 Bordure de la boîte
+                    {t("alerts.borderSectionTitle")}
                   </Heading>
                   <VStack align="stretch" gap={4}>
                     <Box>
                       <Text fontSize="sm" mb={1}>
-                        Couleur
+                        {t("alerts.colorLabel")}
                       </Text>
                       <HStack gap={2}>
                         <input
@@ -1097,8 +1102,8 @@ export default function CustomizePage({
                     </Box>
                     <Box>
                       <Text fontSize="sm" mb={1}>
-                        Épaisseur : {config.borderWidth}px{" "}
-                        {config.borderWidth === 0 && "(désactivé)"}
+                        {t("alerts.borderWidthTitle")} {config.borderWidth}px{" "}
+                        {config.borderWidth === 0 && t("alerts.disabledText")}
                       </Text>
                       <Slider.Root
                         min={0}
@@ -1130,12 +1135,12 @@ export default function CustomizePage({
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  ⏱️ Durée & Animations
+                  {t("alerts.animDurationTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Durée : {config.duration}s
+                      {t("alerts.durationTitle")} {config.duration}s
                     </Text>
                     <Slider.Root
                       min={2}
@@ -1154,7 +1159,7 @@ export default function CustomizePage({
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={2}>
-                      Animation d&apos;entrée
+                      {t("alerts.animationTitle")}
                     </Text>
                     <RadioGroup.Root
                       value={config.animation}
@@ -1177,7 +1182,7 @@ export default function CustomizePage({
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={2}>
-                      Animation de sortie
+                      {t("alerts.exitAnimationTitle")}
                     </Text>
                     <RadioGroup.Root
                       value={config.exitAnimation ?? "fade"}
@@ -1206,12 +1211,10 @@ export default function CustomizePage({
                     onClick={testAnimLocal}
                     disabled={!!animTestEvent}
                   >
-                    🎬 Tester l&apos;animation (entrée + sortie)
+                    {t("alerts.testAnimBtn")}
                   </Button>
                   <Text fontSize="xs" color="gray.400">
-                    Joue l&apos;animation d&apos;entrée puis de sortie dans
-                    l&apos;aperçu ci-contre, sans envoyer d&apos;alerte via
-                    OBS.
+                    {t("alerts.testAnimHint")}
                   </Text>
                 </VStack>
               </Box>

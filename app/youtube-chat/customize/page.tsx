@@ -81,29 +81,31 @@ const animCollection = createListCollection({ items: ANIMATIONS });
 
 // ─── Fake messages ────────────────────────────────────────────────────────────
 
-const FAKE_MESSAGES = [
-  {
-    id: "1",
-    username: "YouTubeFan",
-    color: "#ff0000",
-    message: "Le stream est super ! 🔥",
-    badges: [],
-  },
-  {
-    id: "2",
-    username: "KomsterrYT",
-    color: "#ffd93d",
-    message: "Bienvenue sur le chat YouTube !",
-    badges: [],
-  },
-  {
-    id: "3",
-    username: "Viewer123",
-    color: "#4ecdc4",
-    message: "Trop bien l'overlay !",
-    badges: [],
-  },
-];
+function getFakeMessages(t: any) {
+  return [
+    {
+      id: "1",
+      username: "YouTubeFan",
+      color: "#ff0000",
+      message: t("youtube.previewMsg1"),
+      badges: [],
+    },
+    {
+      id: "2",
+      username: "KomsterrYT",
+      color: "#ffd93d",
+      message: t("youtube.previewMsg2"),
+      badges: [],
+    },
+    {
+      id: "3",
+      username: "Viewer123",
+      color: "#4ecdc4",
+      message: t("youtube.previewMsg3"),
+      badges: [],
+    },
+  ];
+}
 
 // ─── OBS CSS Generator ────────────────────────────────────────────────────────
 
@@ -192,7 +194,7 @@ yt-live-chat-author-chip {
 
 // ─── Inline Chat Preview ──────────────────────────────────────────────────────
 
-function ChatPreview({ config }: { config: ChatVisualConfig }) {
+function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
   const generatedCSS = generateYoutubeCSS(config);
 
   return (
@@ -238,7 +240,7 @@ function ChatPreview({ config }: { config: ChatVisualConfig }) {
         OBS PREVIEW
       </Text>
 
-      {FAKE_MESSAGES.map((msg) => (
+      {getFakeMessages(t).map((msg) => (
         // Mocking YouTube's DOM structure so the CSS applies accurately
         <Box
           key={msg.id}
@@ -300,13 +302,13 @@ export default function YouTubeChatCustomize() {
       });
       toaster.create({
         title: t('settings.saved'),
-        description: "L'overlay du chat YouTube a été mis à jour.",
+        description: t('youtube.chatUpdated'),
         type: "success",
       });
     } catch (err) {
       toaster.create({
         title: t('common.error'),
-        description: "Impossible de sauvegarder",
+        description: t('common.saveError'),
         type: "error",
       });
     } finally {
@@ -340,7 +342,7 @@ export default function YouTubeChatCustomize() {
             <HStack gap={4}>
               <Button asChild variant="ghost" size="sm">
                 <Link href="/dashboard">
-                  <FiArrowLeft /> Dashboard
+                  <FiArrowLeft /> {t("youtube.dashboardBtn")}
                 </Link>
               </Button>
               <Separator orientation="vertical" h={6} />
@@ -352,7 +354,7 @@ export default function YouTubeChatCustomize() {
               onClick={saveSettings}
               loading={saving}
             >
-              <FiSave /> Sauvegarder
+              <FiSave /> {t("spotify.saveBtn")}
             </Button>
           </Flex>
         </Container>
@@ -364,7 +366,7 @@ export default function YouTubeChatCustomize() {
           <GridItem>
             <Box position="sticky" top="120px">
               <HStack mb={4} justify="space-between">
-                <Heading size="md">👁 Aperçu en temps réel</Heading>
+                <Heading size="md">{t("spotify.previewTitle")}</Heading>
               </HStack>
               <Box
                 w="full"
@@ -377,7 +379,7 @@ export default function YouTubeChatCustomize() {
                 borderColor="whiteAlpha.100"
                 bg="black"
               >
-                <ChatPreview config={config} />
+                <ChatPreview config={config} t={t} />
               </Box>
             </Box>
           </GridItem>
@@ -394,7 +396,7 @@ export default function YouTubeChatCustomize() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  ✍️ Typographie
+                  {t("twitchChat.typographyTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Field label={t('settings.fontFamily')}>
@@ -424,7 +426,7 @@ export default function YouTubeChatCustomize() {
 
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Taille du texte ({config.chat_fontSize}px)
+                      {t("youtube.textSize")} ({config.chat_fontSize}px)
                     </Text>
                     <Slider.Root
                       min={10}
@@ -444,7 +446,7 @@ export default function YouTubeChatCustomize() {
                     </Slider.Root>
                   </Box>
 
-                  <Field label="Couleur du texte">
+                  <Field label={t("twitchChat.textColor")}>
                     <HStack>
                       <Input
                         type="color"
@@ -477,10 +479,10 @@ export default function YouTubeChatCustomize() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  🎨 Apparence des messages
+                  {t("youtube.msgAppearance")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
-                  <Field label="Couleur de fond">
+                  <Field label={t("twitchChat.bgColor")}>
                     <HStack>
                       <Input
                         type="color"
@@ -500,7 +502,7 @@ export default function YouTubeChatCustomize() {
 
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Flou d'arrière-plan (Blur) : {config.chat_bgBlur}px
+                      {t("twitchChat.blurStrength")} {config.chat_bgBlur}px
                     </Text>
                     <Slider.Root
                       min={0}
@@ -522,7 +524,7 @@ export default function YouTubeChatCustomize() {
 
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Arrondi (Border Radius) : {config.chat_borderRadius}px
+                      {t("twitchChat.borderRadius")} {config.chat_borderRadius}px
                     </Text>
                     <Slider.Root
                       min={0}
@@ -566,7 +568,7 @@ export default function YouTubeChatCustomize() {
                     </Field>
                     <Box w="full">
                       <Text fontSize="sm" mb={1}>
-                        Largeur (px)
+                        {t("twitchChat.borderWidth")} {config.chat_borderWidth}px
                       </Text>
                       <Slider.Root
                         min={0}
@@ -598,12 +600,12 @@ export default function YouTubeChatCustomize() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  ⚙️ Comportement
+                  {t("twitchChat.behaviorTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Nombre max de messages : {config.chat_maxMessages}
+                      {t("twitchChat.maxMessages")} {config.chat_maxMessages}
                     </Text>
                     <Slider.Root
                       min={3}
@@ -622,7 +624,7 @@ export default function YouTubeChatCustomize() {
                       </Slider.Control>
                     </Slider.Root>
                   </Box>
-                  <Field label="Animation d'entrée">
+                  <Field label={t("twitchChat.enterAnimation")}>
                     <Select.Root
                       collection={animCollection}
                       value={[config.chat_enterAnimation]}
@@ -660,11 +662,10 @@ export default function YouTubeChatCustomize() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  💻 Code CSS OBS
+                  {t("youtube.cssObsTitle")}
                 </Heading>
                 <Text fontSize="sm" color="gray.500" mb={4}>
-                  Copiez ce code et collez-le dans le champ "CSS personnalisé"
-                  de votre source navigateur YouTube Chat sur OBS.
+                  {t("youtube.cssObsDesc")}
                 </Text>
 
                 <Box position="relative">
@@ -693,13 +694,12 @@ export default function YouTubeChatCustomize() {
                       navigator.clipboard.writeText(generateYoutubeCSS(config));
                       toaster.create({
                         title: t('common.copied'),
-                        description:
-                          "Le CSS a été copié dans le presse-papier.",
+                        description: t('youtube.cssCopied'),
                         type: "success",
                       });
                     }}
                   >
-                    <FiCopy /> Copier
+                    <FiCopy /> {t("common.copyBtn")}
                   </Button>
                 </Box>
               </Box>

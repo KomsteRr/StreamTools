@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "prisma db push --skip-generate && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "prisma db push --skip-generate && next start",
     "lint": "eslint",
     "migrate": "npx tsx scripts/migrate-db.ts"
   },

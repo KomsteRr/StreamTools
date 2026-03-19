@@ -73,47 +73,49 @@ const PLATFORMS = [
   },
 ];
 
-const ALERT_META: Record<
+function getAlertMeta(t: any): Record<
   string,
   { label: string; icon: React.ReactNode; color: string; desc: string }
-> = {
+> {
+  return {
   follow: {
-    label: "Follow",
+    label: t("alerts.followLabel"),
     icon: <FiHeart size={20} />,
     color: "pink",
-    desc: "Quelqu'un suit votre chaîne",
+    desc: t("alerts.followDesc"),
   },
   sub: {
-    label: "Abonnement",
+    label: t("alerts.subLabel"),
     icon: <FiStar size={20} />,
     color: "purple",
-    desc: "Nouvel abonné",
+    desc: t("alerts.subDesc"),
   },
   bits: {
-    label: "Bits",
+    label: t("alerts.bitsLabel"),
     icon: <FiZap size={20} />,
     color: "yellow",
-    desc: "Don de bits",
+    desc: t("alerts.bitsDesc"),
   },
   raid: {
-    label: "Raid",
+    label: t("alerts.raidLabel"),
     icon: <FiShield size={20} />,
     color: "red",
-    desc: "Raid entrant",
+    desc: t("alerts.raidDesc"),
   },
   cheer: {
-    label: "Cheer",
+    label: t("alerts.cheerLabel"),
     icon: <FiAward size={20} />,
     color: "violet",
-    desc: "Encouragement",
+    desc: t("alerts.cheerDesc"),
   },
   gift_sub: {
-    label: "Gift Sub",
+    label: t("alerts.giftSubLabel"),
     icon: <FiGift size={20} />,
     color: "cyan",
-    desc: "Abonnements offerts",
+    desc: t("alerts.giftSubDesc"),
   },
 };
+}
 
 export default function AlertsConfigPage() {
   const { t } = useTranslation()
@@ -164,7 +166,7 @@ export default function AlertsConfigPage() {
       });
       if (res.ok) {
         toaster.create({
-          title: `Test "${ALERT_META[type]?.label}" envoyé !`,
+          title: t("alerts.testSuccessEvent").replace('{label}', getAlertMeta(t)[type]?.label || type),
           type: "success",
         });
       }
@@ -187,20 +189,20 @@ export default function AlertsConfigPage() {
         {/* Header */}
         <HStack justify="space-between" mb={6} flexWrap="wrap" gap={3}>
           <Box>
-            <Heading size="2xl">🔔 Alertes Stream</Heading>
+            <Heading size="2xl">🔔 {t("alerts.title")}</Heading>
             <Text color="gray.500" mt={1}>
-              Activez, configurez et testez vos alertes par plateforme.
+              {t("alerts.subtitle")}
             </Text>
           </Box>
           <HStack gap={2}>
             <Button asChild variant="outline" size="sm">
               <Link href="/settings">
-                <FiSettings /> Config plateformes
+                <FiSettings /> {t("alerts.platformConfigBtn")}
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm">
               <Link href={`/alerts-overlay${tokenQuery}`} target="_blank">
-                Overlay OBS ↗
+                {t("alerts.obsOverlayBtn")}
               </Link>
             </Button>
           </HStack>
@@ -224,7 +226,7 @@ export default function AlertsConfigPage() {
             mb={2}
             textTransform="uppercase"
           >
-            🎮 URL OBS Browser Source
+            {t("alerts.obsUrlTitle")}
           </Text>
           <Clipboard.Root value={overlayUrl}>
             <InputGroup
@@ -274,6 +276,7 @@ export default function AlertsConfigPage() {
         ) : (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
             {configs.map((config) => {
+              const ALERT_META = getAlertMeta(t);
               const meta = ALERT_META[config.type] ?? {
                 label: config.type,
                 icon: <FiHeart size={20} />,
@@ -343,12 +346,12 @@ export default function AlertsConfigPage() {
                             variant="subtle"
                             size="sm"
                           >
-                            🔊 Son
+                            {t("alerts.soundBadge")}
                           </Badge>
                         )}
                         {config.imageUrl && (
                           <Badge colorPalette="blue" variant="subtle" size="sm">
-                            🖼 Image
+                            {t("alerts.imageBadge")}
                           </Badge>
                         )}
                         {config.bgMediaUrl && (
@@ -358,8 +361,8 @@ export default function AlertsConfigPage() {
                             size="sm"
                           >
                             {config.bgMediaType === "video"
-                              ? "🎬 Vidéo"
-                              : "🎨 Fond"}
+                              ? t("alerts.videoBadge")
+                              : t("alerts.bgBadge")}
                           </Badge>
                         )}
                       </HStack>
@@ -373,7 +376,7 @@ export default function AlertsConfigPage() {
                         borderColor={`${meta.color}.400`}
                       >
                         <Text fontSize="xs" color="gray.500" mb={0.5}>
-                          Texte
+                          {t("alerts.textScale")}
                         </Text>
                         <Text fontSize="sm" lineClamp={1}>
                           {config.text}
@@ -385,7 +388,7 @@ export default function AlertsConfigPage() {
                           <Link
                             href={`/alerts/customize/${config.type}?platform=${platform}`}
                           >
-                            <FiSettings /> Personnaliser
+                            <FiSettings /> {t("alerts.customizeBtn")}
                           </Link>
                         </Button>
                         <IconButton

@@ -90,51 +90,63 @@ const POSITIONS = [
 const fontCollection = createListCollection({
   items: FONTS.map((f) => ({ label: f, value: f })),
 });
-const animCollection = createListCollection({ items: ANIMATIONS });
+
+function getAnimCollection(t: any) {
+  return createListCollection({
+    items: [
+      { label: t("twitchChat.animSlideIn"), value: "slideIn" },
+      { label: t("twitchChat.animFadeIn"), value: "fadeIn" },
+      { label: t("twitchChat.animZoomIn"), value: "zoomIn" },
+      { label: t("twitchChat.animBounceIn"), value: "bounceIn" },
+    ],
+  });
+}
 
 // ─── Fake messages ────────────────────────────────────────────────────────────
 
-const FAKE_MESSAGES = [
-  {
-    id: "1",
-    username: "StreamFan42",
-    color: "#a970ff",
-    message: "Giga stream ce soir 🔥",
-    badges: [],
-  },
-  {
-    id: "2",
-    username: "Komsterr",
-    color: "#ff6b6b",
-    message: "Bienvenue tout le monde !",
-    badges: [],
-  },
-  {
-    id: "3",
-    username: "ChatterPro",
-    color: "#4ecdc4",
-    message: "J'adore le contenu !",
-    badges: [],
-  },
-  {
-    id: "4",
-    username: "VipCoolGuy",
-    color: "#ffd93d",
-    message: "PogChamp PogChamp PogChamp",
-    badges: [],
-  },
-  {
-    id: "5",
-    username: "NewViewer99",
-    color: "#c9e4ca",
-    message: "Premier stream ici, la classe !",
-    badges: [],
-  },
-];
+function getFakeMessages(t: any) {
+  return [
+    {
+      id: "1",
+      username: "StreamFan42",
+      color: "#a970ff",
+      message: t("twitchChat.previewMsg1"),
+      badges: [],
+    },
+    {
+      id: "2",
+      username: "Komsterr",
+      color: "#ff6b6b",
+      message: t("twitchChat.previewMsg2"),
+      badges: [],
+    },
+    {
+      id: "3",
+      username: "ChatterPro",
+      color: "#4ecdc4",
+      message: t("twitchChat.previewMsg3"),
+      badges: [],
+    },
+    {
+      id: "4",
+      username: "VipCoolGuy",
+      color: "#ffd93d",
+      message: "PogChamp PogChamp PogChamp",
+      badges: [],
+    },
+    {
+      id: "5",
+      username: "NewViewer99",
+      color: "#c9e4ca",
+      message: t("twitchChat.previewMsg4"),
+      badges: [],
+    },
+  ];
+}
 
 // ─── Inline Chat Preview ──────────────────────────────────────────────────────
 
-function ChatPreview({ config }: { config: ChatVisualConfig }) {
+function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
   const cssVars = {
     "--chat-bgColor": config.chat_bgColor,
     "--chat-bgBlur": `${config.chat_bgBlur}px`,
@@ -190,7 +202,7 @@ function ChatPreview({ config }: { config: ChatVisualConfig }) {
         }
         gap={2}
       >
-        {FAKE_MESSAGES.map((msg) => (
+        {getFakeMessages(t).map((msg) => (
           <Box
             key={msg.id}
             maxW="85%"
@@ -278,10 +290,10 @@ export default function TwitchChatCustomizePage() {
           <HStack gap={3}>
             <Button asChild variant="ghost" size="sm">
               <Link href="/">
-                <FiArrowLeft /> Retour
+                <FiArrowLeft /> {t("alerts.backBtn")}
               </Link>
             </Button>
-            <Heading size="xl">🎨 Chat Twitch — Personnalisation</Heading>
+            <Heading size="xl">{t("twitchChat.title")}</Heading>
           </HStack>
           <HStack gap={2}>
             <Button
@@ -290,7 +302,7 @@ export default function TwitchChatCustomizePage() {
               loading={saving}
               onClick={save}
             >
-              <FiSave /> Sauvegarder
+              <FiSave /> {t("spotify.saveBtn")}
             </Button>
           </HStack>
         </HStack>
@@ -300,7 +312,7 @@ export default function TwitchChatCustomizePage() {
           <GridItem>
             <Box position="sticky" top="24px">
               <HStack mb={4} justify="space-between">
-                <Heading size="md">👁 Aperçu en temps réel</Heading>
+                <Heading size="md">{t("spotify.previewTitle")}</Heading>
               </HStack>
               <Box
                 w="full"
@@ -313,7 +325,7 @@ export default function TwitchChatCustomizePage() {
                 borderColor="whiteAlpha.100"
                 bg="black"
               >
-                <ChatPreview config={config} />
+                <ChatPreview config={config} t={t} />
               </Box>
             </Box>
           </GridItem>
@@ -330,7 +342,7 @@ export default function TwitchChatCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  📍 Position sur l&apos;écran
+                  {t("spotify.positionTitle")}
                 </Heading>
                 <Box
                   display="grid"
@@ -373,7 +385,7 @@ export default function TwitchChatCustomizePage() {
                   ))}
                 </Box>
                 <Text fontSize="xs" color="gray.400" mt={2}>
-                  Position actuelle : {config.chat_position}
+                  {t("spotify.currentPosition")} {config.chat_position}
                 </Text>
               </Box>
 
@@ -386,12 +398,12 @@ export default function TwitchChatCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  ✏️ Typographie
+                  {t("twitchChat.typographyTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Couleur du texte
+                      {t("twitchChat.textColor")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -421,7 +433,7 @@ export default function TwitchChatCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Taille : {config.chat_fontSize}px
+                      {t("twitchChat.fontSize")} {config.chat_fontSize}px
                     </Text>
                     <Slider.Root
                       min={10}
@@ -440,7 +452,7 @@ export default function TwitchChatCustomizePage() {
                       </Slider.Control>
                     </Slider.Root>
                   </Box>
-                  <Field label="Police">
+                  <Field label={t("twitchChat.fontTitle")}>
                     <Select.Root
                       collection={fontCollection}
                       value={[config.chat_font]}
@@ -476,12 +488,12 @@ export default function TwitchChatCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  🎨 Fond & Bordure
+                  {t("twitchChat.bgBorderTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Couleur de fond
+                      {t("twitchChat.bgColor")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -510,7 +522,7 @@ export default function TwitchChatCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Intensité Flou : {config.chat_bgBlur}px
+                      {t("twitchChat.blurStrength")} {config.chat_bgBlur}px
                     </Text>
                     <Slider.Root
                       min={0}
@@ -532,7 +544,7 @@ export default function TwitchChatCustomizePage() {
                   <Separator />
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Couleur bordure
+                      {t("twitchChat.borderColor")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -565,7 +577,7 @@ export default function TwitchChatCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Épaisseur : {config.chat_borderWidth}px
+                      {t("twitchChat.borderWidth")} {config.chat_borderWidth}px
                     </Text>
                     <Slider.Root
                       min={0}
@@ -586,7 +598,7 @@ export default function TwitchChatCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Rayon coins : {config.chat_borderRadius}px
+                      {t("twitchChat.borderRadius")} {config.chat_borderRadius}px
                     </Text>
                     <Slider.Root
                       min={0}
@@ -617,12 +629,12 @@ export default function TwitchChatCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  ⚙️ Comportement
+                  {t("twitchChat.behaviorTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Nombre max de messages : {config.chat_maxMessages}
+                      {t("twitchChat.maxMessages")} {config.chat_maxMessages}
                     </Text>
                     <Slider.Root
                       min={3}
@@ -641,9 +653,9 @@ export default function TwitchChatCustomizePage() {
                       </Slider.Control>
                     </Slider.Root>
                   </Box>
-                  <Field label="Animation d'entrée">
+                  <Field label={t("twitchChat.enterAnimation")}>
                     <Select.Root
-                      collection={animCollection}
+                      collection={getAnimCollection(t)}
                       value={[config.chat_enterAnimation]}
                       onValueChange={(e) =>
                         update("chat_enterAnimation", e.value[0])
@@ -658,7 +670,7 @@ export default function TwitchChatCustomizePage() {
                       </Select.Control>
                       <Select.Positioner>
                         <Select.Content>
-                          {animCollection.items.map((item) => (
+                          {getAnimCollection(t).items.map((item) => (
                             <Select.Item key={item.value} item={item}>
                               {item.label}
                             </Select.Item>
@@ -671,7 +683,7 @@ export default function TwitchChatCustomizePage() {
                     <Box>
                       <Text fontSize="sm">{t('twitch.showBadges')}</Text>
                       <Text fontSize="xs" color="gray.400">
-                        Badges Twitch
+                        {t('twitchChat.twitchBadges')}
                       </Text>
                     </Box>
                     <Switch.Root

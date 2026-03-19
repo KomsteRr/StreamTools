@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./spotify.module.css";
 import { FaStepBackward, FaPause, FaPlay, FaStepForward } from "react-icons/fa";
+import { useTranslation } from "@/lib/i18n";
 
 interface SpotifyState {
   is_playing: boolean;
@@ -67,6 +68,7 @@ const POSITION_MAP: Record<
 };
 
 export default function SpotifyStreamPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<SpotifyState | null>(null);
   const [visual, setVisual] = useState<SpotifyVisualConfig>(DEFAULT_VISUAL);
   const [error, setError] = useState<string | null>(null);
@@ -135,7 +137,7 @@ export default function SpotifyStreamPage() {
     return (
       <div className={styles.body}>
         <div style={{ color: "white", textAlign: "center" }}>
-          <p>Not Authenticated</p>
+          <p>{t("spotify.notAuthenticated")}</p>
           <a
             href="/spotify"
             style={{
@@ -143,7 +145,7 @@ export default function SpotifyStreamPage() {
               textDecoration: "underline",
             }}
           >
-            Go to Dashboard to Login
+            {t("spotify.goToDashboard")}
           </a>
         </div>
       </div>
@@ -153,7 +155,7 @@ export default function SpotifyStreamPage() {
   if (loading) return null;
 
   const isPlaying = data?.is_playing ?? false;
-  const trackName = data?.item?.name ?? "Paused / Idle";
+  const trackName = data?.item?.name ?? t("spotify.pausedIdle");
   const artistName =
     data?.item?.artists.map((a) => a.name).join(", ") ?? "Spotify";
   const albumArt = data?.item?.album.images[0]?.url ?? "/album_art.png";

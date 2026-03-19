@@ -1,29 +1,30 @@
 'use client'
 
 import { useTranslation } from '@/lib/i18n'
+import { NativeSelect } from '@chakra-ui/react'
 
 export function LanguageSwitcher() {
   const { locale, setLocale, locales, t } = useTranslation()
 
   return (
-    <select
-      value={locale}
-      onChange={(e) => setLocale(e.target.value as 'en' | 'fr')}
-      style={{
-        background: 'transparent',
-        border: '1px solid var(--chakra-colors-border)',
-        borderRadius: '6px',
-        padding: '4px 8px',
-        fontSize: '14px',
-        cursor: 'pointer',
-      }}
-      aria-label={t('language.label')}
+    <NativeSelect.Root
+      size="sm"
+      width="auto"
+      variant="outline"
     >
-      {locales.map((l) => (
-        <option key={l.value} value={l.value}>
-          {l.label}
-        </option>
-      ))}
-    </select>
+      <NativeSelect.Field
+        value={locale}
+        onChange={(e) => setLocale(e.target.value as 'en' | 'fr')}
+        aria-label={t('language.label')}
+        style={{ paddingInlineEnd: '1.5rem' }}
+      >
+        {locales.map((l) => (
+          <option key={l.value} value={l.value}>
+            {l.flag}
+          </option>
+        ))}
+      </NativeSelect.Field>
+      <NativeSelect.Indicator />
+    </NativeSelect.Root>
   )
 }

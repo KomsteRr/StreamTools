@@ -22,6 +22,14 @@ const PUBLIC_PAGES = [
   '/invite/', // Invite pages are public
 ]
 
+// Routes exclues du check setup_complete (toujours accessibles si connecté)
+const SETUP_EXEMPT = [
+  '/admin/setup',
+  '/api/admin/setup',
+  '/login',
+  '/logout',
+]
+
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value
   let session = null;
@@ -84,6 +92,17 @@ export async function middleware(request: NextRequest) {
     loginUrl.searchParams.set('from', pathname)
     return NextResponse.redirect(loginUrl)
   }
+
+  // ── Check setup_complete (after auth confirmed) ───────────────────────────
+  // Si setup non complété et que la route n'est pas exemptée du check
+  const setupComplete = request.cookies.get('setup_complete')?.value === '1'
+  const isSetupExempt = SETUP_EXEMPT.some((p) => pathname.startsWith(p))
+
+  if (!setupComplete && !isSetupExempt && session.role === 'admin') {
+    return NextResponse.redirect(new URL('/admin/setup', request.url))
+  }
+
+  // Non-admin sans setup : on laisse passer (l'admin setup en premier, les users suivent)
 
   return NextResponse.next()
 }

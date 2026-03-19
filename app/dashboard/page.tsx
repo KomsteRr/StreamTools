@@ -173,7 +173,7 @@ function ServiceCard({
             <HStack gap={2} flexWrap="wrap" mt={4}>
               <Button asChild variant="outline" size="sm">
                 <Link href={configHref}>
-                  <FiSliders /> Personnaliser
+                  <FiSliders /> {t("common.customize")}
                 </Link>
               </Button>
               {overlayHref && (
@@ -186,7 +186,7 @@ function ServiceCard({
               {basicHref && (
                 <Button asChild variant="ghost" size="sm">
                   <Link href={basicHref}>
-                    <FiEye /> Utilisation
+                    <FiEye /> {t("dashboard.usageBtn")}
                   </Link>
                 </Button>
               )}
@@ -287,7 +287,7 @@ export default function DashboardPage() {
         >
           <GridItem>
             <Heading size="2xl" mb={1}>
-              🎛 Stream Dashboard
+              {t("dashboard.headerTitle")}
             </Heading>
             <Text color="gray.400" fontSize="sm" textTransform="capitalize">
               {dateStr}
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                   borderRadius="full"
                   px={2}
                 >
-                  {twitchOk ? `@${data?.twitch.channelName}` : "Non configuré"}
+                  {twitchOk ? `@${data?.twitch.channelName}` : t("dashboard.statusNotConfigured")}
                 </Badge>
               </HStack>
 
@@ -352,7 +352,7 @@ export default function DashboardPage() {
                   borderRadius="full"
                   px={2}
                 >
-                  {spotifyOk ? "Connecté" : "Non connecté"}
+                  {spotifyOk ? t("dashboard.statusConnected") : t("dashboard.statusNotConnected")}
                 </Badge>
               </HStack>
               <Separator orientation="vertical" h={5} />
@@ -377,7 +377,7 @@ export default function DashboardPage() {
                   borderRadius="full"
                   px={2}
                 >
-                  {youtubeOk ? "Connecté" : "Non connecté"}
+                  {youtubeOk ? t("dashboard.statusConnected") : t("dashboard.statusNotConnected")}
                 </Badge>
               </HStack>
             </Flex>
@@ -395,11 +395,11 @@ export default function DashboardPage() {
             status={
               <StatusBadge
                 ok={spotifyOk}
-                labelOk="Connecté"
-                labelKo="Non connecté"
+                labelOk={t("dashboard.statusConnected")}
+                labelKo={t("dashboard.statusNotConnected")}
               />
             }
-            description="Widget now-playing glassmorphism avec pochette, barre de progression et contrôles de lecture."
+            description={t("dashboard.spotifyDesc")}
             configHref="/spotify/customize"
             overlayHref={`/spotify-stream${tokenQuery}`}
             overlayUrl={`${origin}/spotify-stream${tokenQuery}`}
@@ -410,15 +410,15 @@ export default function DashboardPage() {
             icon={<FiMessageSquare size={20} />}
             iconBg="purple.50"
             iconColor="purple.500"
-            title="Twitch Chat"
+            title={t("dashboard.twitchTitle")}
             status={
               <StatusBadge
                 ok={twitchOk}
                 labelOk={`@${data?.twitch.channelName}`}
-                labelKo="Non configuré"
+                labelKo={t("dashboard.statusNotConfigured")}
               />
             }
-            description="Overlay chat Twitch transparent avec support des badges, animations personnalisables et police libre."
+            description={t("dashboard.twitchDesc")}
             configHref="/twitch-chat/customize"
             overlayHref={`/twitch-chat-overlay${tokenQuery}`}
             overlayUrl={`${origin}/twitch-chat-overlay${tokenQuery}`}
@@ -429,15 +429,15 @@ export default function DashboardPage() {
             icon={<FiYoutube size={20} />}
             iconBg="red.50"
             iconColor="red.500"
-            title="YouTube Chat"
+            title={t("dashboard.youtubeTitle")}
             status={
               <StatusBadge
                 ok={youtubeOk}
-                labelOk="Connecté"
-                labelKo="Non connecté"
+                labelOk={t("dashboard.statusConnected")}
+                labelKo={t("dashboard.statusNotConnected")}
               />
             }
-            description="Utilise l'URL officielle du chat YouTube injectée avec du Custom CSS OBS généré depuis le Dashboard."
+            description={t("dashboard.youtubeDesc")}
             configHref="/youtube-chat/customize"
             basicHref="/youtube-chat"
           />
@@ -458,7 +458,7 @@ export default function DashboardPage() {
                 Twitch · YouTube
               </Badge>
             }
-            description="Follow, sub, bits, raid, cheer, gift_sub — alertes entièrement personnalisables avec fond plein écran 1080p."
+            description={t("dashboard.alertsDesc")}
             configHref="/alerts"
             overlayHref={`/alerts-overlay${tokenQuery}`}
             overlayUrl={`${origin}/alerts-overlay${tokenQuery}`}
@@ -492,13 +492,13 @@ export default function DashboardPage() {
                 <Box>
                   <Heading size="sm">{t("dashboard.globalSettings")}</Heading>
                   <Text fontSize="sm" color="gray.400" mt={0.5}>
-                    Connexions Twitch, Spotify, YouTube…
+                    {t("dashboard.globalSettingsDesc")}
                   </Text>
                 </Box>
               </HStack>
               <Button asChild variant="outline" size="sm">
                 <Link href="/settings">
-                  <FiSettings /> Ouvrir les paramètres
+                  <FiSettings /> {t("dashboard.openSettingsBtn")}
                 </Link>
               </Button>
             </HStack>
@@ -524,15 +524,15 @@ export default function DashboardPage() {
                     <FiShield size={18} />
                   </Box>
                   <Box>
-                    <Heading size="sm">Administration</Heading>
+                    <Heading size="sm">{t("common.admin")}</Heading>
                     <Text fontSize="sm" color="gray.400" mt={0.5}>
-                      Gérer les utilisateurs et les accès.
+                      {t("dashboard.adminDesc")}
                     </Text>
                   </Box>
                 </HStack>
                 <Button asChild variant="outline" size="sm" colorPalette="blue">
                   <Link href="/admin">
-                    <FiShield /> Panneau Admin
+                    <FiShield /> {t("dashboard.adminPanelBtn")}
                   </Link>
                 </Button>
               </HStack>

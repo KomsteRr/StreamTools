@@ -39,11 +39,12 @@ interface UserItem {
 }
 
 function CopyButton({ value }: { value: string }) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
 
   return (
     <IconButton
-      aria-label="Copier"
+      aria-label={t("admin.copy")}
       size="xs"
       variant="ghost"
       onClick={() => {
@@ -104,17 +105,17 @@ export default function AdminPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Erreur lors de la création.')
+        setError(data.error || t("admin.createError"))
         return
       }
 
       const url = `${window.location.origin}/invite/${data.inviteToken}`
       setLastInviteUrl(url)
-      setSuccessInfo('Utilisateur créé ! Envoyez ce lien d\'invitation :')
+      setSuccessInfo(t("admin.userCreatedLink"))
       setNewUsername('')
       fetchUsers()
     } catch {
-      setError('Erreur réseau.')
+      setError(t("admin.networkError"))
     } finally {
       setCreating(false)
     }
@@ -134,7 +135,7 @@ export default function AdminPage() {
   }
 
   const handleReset = async (id: string, username: string) => {
-    if (!confirm(`${t('admin.resetPassword')} de ${username} ? Il devra en définir un nouveau.`)) return
+    if (!confirm(`${t('admin.resetPasswordConfirm')} ${username}${t('admin.resetPasswordConfirmSuffix')}`)) return
     setResettingId(id)
     setError('')
     setLastInviteUrl('')
@@ -145,16 +146,16 @@ export default function AdminPage() {
       const data = await res.json()
       
       if (!res.ok) {
-        setError(data.error || 'Erreur lors de la réinitialisation.')
+        setError(data.error || t("admin.resetError"))
         return
       }
       
       const url = `${window.location.origin}/invite/${data.inviteToken}`
       setLastInviteUrl(url)
-      setSuccessInfo(`Mot de passe réinitialisé pour ${username}. Envoyez ce lien :`)
+      setSuccessInfo(`${t("admin.passwordResetLink")} ${username}${t("admin.passwordResetLinkSuffix")}`)
       fetchUsers()
     } catch {
-      setError('Erreur réseau.')
+      setError(t("admin.networkError"))
     } finally {
       setResettingId(null)
     }
@@ -177,10 +178,10 @@ export default function AdminPage() {
             <HStack gap={3}>
               <Button asChild variant="ghost" size="sm">
                 <Link href="/dashboard">
-                  <FiArrowLeft /> Retour
+                  <FiArrowLeft /> {t("admin.back")}
                 </Link>
               </Button>
-              <Heading size="2xl">👥 Administration</Heading>
+              <Heading size="2xl">{t("admin.adminTitle")}</Heading>
             </HStack>
             <Text color="gray.400" fontSize="sm">
               {t("admin.subtitle")}
@@ -196,11 +197,11 @@ export default function AdminPage() {
           <Card.Body>
             <form onSubmit={handleCreate}>
               <Stack direction={{ base: 'column', sm: 'row' }} gap={3} align="end">
-                <Field label="Nom d'utilisateur" flex={1}>
+                <Field label={t("admin.usernameLabel")} flex={1}>
                   <Input
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="ex: streamer42"
+                    placeholder={t("admin.usernamePlaceholder")}
                     autoComplete="off"
                   />
                 </Field>
@@ -208,9 +209,9 @@ export default function AdminPage() {
                   type="submit"
                   colorPalette="blue"
                   loading={creating}
-                  loadingText="Création..."
+                  loadingText={t("admin.creating")}
                 >
-                  <FiUserPlus /> Créer
+                  <FiUserPlus /> {t("admin.createBtn")}
                 </Button>
               </Stack>
             </form>
@@ -232,7 +233,7 @@ export default function AdminPage() {
                 borderColor="green.200"
               >
                 <Text fontSize="sm" fontWeight="semibold" color="green.700" _dark={{ color: 'green.200' }} mb={2}>
-                  ✅ {successInfo || 'Opération réussie ! Envoyez ce lien :'}
+                  ✅ {successInfo || t("admin.successDefault")}
                 </Text>
                 <HStack>
                   <Input
@@ -256,7 +257,7 @@ export default function AdminPage() {
         <Card.Root bg="white" _dark={{ bg: 'gray.800' }} shadow="sm" borderRadius="xl">
           <Card.Header>
             <HStack justify="space-between">
-              <Heading size="md">Utilisateurs ({users.length})</Heading>
+              <Heading size="md">{t("admin.usersCount")} ({users.length})</Heading>
             </HStack>
           </Card.Header>
           <Card.Body p={0}>
@@ -268,7 +269,7 @@ export default function AdminPage() {
               <Table.Root size="sm">
                 <Table.Header>
                   <Table.Row>
-                    <Table.ColumnHeader pl={6}>Utilisateur</Table.ColumnHeader>
+                    <Table.ColumnHeader pl={6}>{t("admin.userColumn")}</Table.ColumnHeader>
                     <Table.ColumnHeader>{t("admin.status")}</Table.ColumnHeader>
                     <Table.ColumnHeader>{t("admin.role")}</Table.ColumnHeader>
                     <Table.ColumnHeader>{t("admin.createdAt")}</Table.ColumnHeader>
@@ -288,7 +289,7 @@ export default function AdminPage() {
                           borderRadius="full"
                           px={2}
                         >
-                          {user.status === 'active' ? 'Actif' : 'En attente'}
+                          {user.status === 'active' ? t("admin.activeStatus") : t("admin.pendingStatus")}
                         </Badge>
                       </Table.Cell>
                       <Table.Cell>

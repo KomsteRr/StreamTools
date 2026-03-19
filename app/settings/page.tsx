@@ -42,93 +42,85 @@ interface PlatformSettings {
 interface AllSettings {
   twitch?: PlatformSettings;
   youtube?: PlatformSettings;
-  kick?: PlatformSettings;
   spotify?: PlatformSettings;
 }
 
 // ─── Field definitions per platform ─────────────────────────────────────────
 
-function getTwitchFields(t) {
+function getTwitchFields(t: any) {
   return [
-  {
-    key: "channelName",
-    label: "Channel Name",
-    hint: "Votre nom d'utilisateur Twitch (ex: komsterr)",
-    type: "text",
-  },
-  {
-    key: "botName",
-    label: t('settings.botName'),
-    hint: "Nom d'utilisateur du compte Bot Twitch",
-    type: "text",
-  },
-  {
-    key: "botPassword",
-    label: t('settings.botPassword'),
-    hint: "Token OAuth du bot (oauth:...)",
-    type: "password",
-  },
-
-  {
-    key: "broadcasterId",
-    label: "Broadcaster ID",
-    hint: "Votre ID numérique Twitch (ex: 12345678)",
-    type: "text",
-  },
-  {
-    key: "clientId",
-    label: "Client ID",
-    hint: "ID de votre application sur dev.twitch.tv",
-    type: "text",
-  },
-  {
-    key: "accessToken",
-    label: "Access Token",
-    hint: "Token OAuth avec scopes: channel:read:subscriptions, bits:read, moderator:read:followers",
-    type: "password",
-  },
+    {
+      key: "channelName",
+      label: t("settings.fields.channelName"),
+      hint: t("settings.fields.channelNameHint"),
+      type: "text",
+    },
+    {
+      key: "botName",
+      label: t('settings.fields.botName'),
+      hint: t("settings.fields.botNameHint"),
+      type: "text",
+    },
+    {
+      key: "botPassword",
+      label: t('settings.fields.botPassword'),
+      hint: t("settings.fields.botTokenHint"),
+      type: "password",
+    },
+    {
+      key: "broadcasterId",
+      label: t("settings.fields.broadcasterId"),
+      hint: t("settings.fields.broadcasterIdHint"),
+      type: "text",
+    },
+    {
+      key: "clientId",
+      label: t("settings.fields.clientId"),
+      hint: t("settings.fields.clientIdHint"),
+      type: "text",
+    },
+    {
+      key: "accessToken",
+      label: t("settings.fields.accessToken"),
+      hint: t("settings.fields.accessTokenHint"),
+      type: "password",
+    },
 ]
 }
 
+function getSpotifyFields(t: any) {
+  return [
+    {
+      key: "clientId",
+      label: t("settings.fields.clientId"),
+      hint: t("settings.fields.spotifyClientIdHint"),
+      type: "text",
+    },
+    {
+      key: "clientSecret",
+      label: t("settings.clientSecret"),
+      hint: t("settings.fields.spotifyClientSecretHint"),
+      type: "password",
+    },
+  ];
+}
 
-const SPOTIFY_FIELDS = [
-  {
-    key: "clientId",
-    label: "Client ID",
-    hint: "Depuis developer.spotify.com",
-    type: "text",
-  },
-  {
-    key: "clientSecret",
-    label: "Client Secret",
-    hint: "Depuis developer.spotify.com",
-    type: "password",
-  },
-];
-
-const YOUTUBE_FIELDS = [
-  {
-    key: "channelId",
-    label: "Channel ID",
-    hint: "Votre Channel ID YouTube (ex: UCxxxxxxxx)",
-    type: "text",
-  },
-  {
-    key: "apiKey",
-    label: "API Key",
-    hint: "Clé API Google Cloud avec YouTube Data API v3 activé",
-    type: "password",
-  },
-];
-
-const KICK_FIELDS = [
-  {
-    key: "channelName",
-    label: "Channel Name",
-    hint: "Votre nom de chaîne Kick (pas d'API officielle pour l'instant)",
-    type: "text",
-  },
-];
+function getYoutubeFields(t: any) {
+  return [
+    {
+      key: "channelId",
+      label: t("settings.fields.broadcasterId"),
+      hint: t("settings.fields.youtubeChannelIdHint"),
+      type: "text",
+    },
+    {
+      key: "apiKey",
+      label: t("settings.fields.accessToken"),
+      hint: t("settings.fields.youtubeApiKeyHint"),
+      type: "password",
+    },
+  ];
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -176,7 +168,7 @@ function PlatformCard({
     setSaving(true);
     try {
       await onSave(platform, values);
-      toaster.create({ title: `${label} sauvegardé !`, type: "success" });
+      toaster.create({ title: t("settings.saveSuccess"), type: "success" });
     } catch {
       toaster.create({ title: t('common.saveError'), type: "error" });
     } finally {
@@ -222,7 +214,7 @@ function PlatformCard({
             <Box>
               <Heading size="md">{label}</Heading>
               <Text fontSize="xs" color="gray.500">
-                Paramètres de connexion
+                {t("settings.connectionParams")}
               </Text>
             </Box>
           </HStack>
@@ -235,7 +227,7 @@ function PlatformCard({
                 variant="subtle"
                 fontSize="xs"
               >
-                {isConnected ? "🟢 Connecté" : "⚫ Déconnecté"}
+                {isConnected ? `🟢 ${t("settings.statusConnected")}` : `⚫ ${t("settings.statusDisconnected")}`}
               </Badge>
               {isConnected ? (
                 <Button
@@ -245,7 +237,7 @@ function PlatformCard({
                   loading={connecting}
                   onClick={handleDisconnect}
                 >
-                  <FiWifiOff /> Déconnecter
+                  <FiWifiOff /> {t("settings.disconnectBtn")}
                 </Button>
               ) : (
                 <Button
@@ -255,7 +247,7 @@ function PlatformCard({
                   loading={connecting}
                   onClick={handleConnect}
                 >
-                  <FiWifi /> Connecter
+                  <FiWifi /> {t("common.connect")}
                 </Button>
               )}
             </HStack>
@@ -289,11 +281,10 @@ function PlatformCard({
           <HStack justify="flex-end">
             <Button
               size="sm"
-              colorPalette={color}
               loading={saving}
               onClick={handleSave}
             >
-              <FiSave /> Sauvegarder
+              <FiSave /> {t("common.save")}
             </Button>
           </HStack>
         </VStack>
@@ -305,6 +296,7 @@ function PlatformCard({
 // ─── Twitch scopes helper ─────────────────────────────────────────────────────
 
 function TwitchScopeHelper({ clientId }: { clientId: string }) {
+  const { t } = useTranslation();
   const scopes = [
     "moderator:read:followers",
     "channel:read:subscriptions",
@@ -338,7 +330,7 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
           color="purple.700"
           _dark={{ color: "purple.300" }}
         >
-          🔑 Comment obtenir un Access Token Twitch
+          {t("settings.twitchAppHelpTitle")}
         </Heading>
         <VStack
           align="stretch"
@@ -347,15 +339,9 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
           color="gray.600"
           _dark={{ color: "gray.400" }}
         >
-          <Text>
-            1. Créez une app sur <strong>dev.twitch.tv/console</strong> → copiez
-            votre <strong>Client ID</strong> et collez-le dans le champ
-            ci-dessus.
-          </Text>
+          <Text>{t("settings.twitchAppHelp1")}</Text>
 
-          <Text>
-            2. Cliquez sur le lien ci-dessous pour autoriser votre app :
-          </Text>
+          <Text>{t("settings.twitchAppHelp2")}</Text>
 
           {/* Dynamic URL box with copy + open buttons */}
           <Box
@@ -380,7 +366,7 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
                 disabled={!hasClientId}
               >
                 {copied ? <FiCheck /> : <FiCopy />}
-                {copied ? "Copié !" : "Copier l'URL"}
+                {copied ? t("settings.twitchAppHelpCopied") : t("settings.twitchAppHelpCopy")}
               </Button>
               {hasClientId && (
                 <Button
@@ -390,7 +376,7 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
                   asChild
                 >
                   <a href={oauthUrl} target="_blank" rel="noopener noreferrer">
-                    <FiExternalLink /> Ouvrir
+                    <FiExternalLink /> {t("settings.twitchAppHelpOpen")}
                   </a>
                 </Button>
               )}
@@ -399,7 +385,7 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
 
           {!hasClientId && (
             <Text color="orange.500" fontStyle="italic">
-              ⬆️ Entrez d'abord votre Client ID dans le formulaire ci-dessus.
+              {t("settings.twitchAppHelpWarning")}
             </Text>
           )}
 
@@ -416,21 +402,15 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
               _dark={{ color: "blue.300" }}
               fontWeight="medium"
             >
-              ℹ️ Message "You are about to leave Twitch" ?
+              {t("settings.twitchAppHelpMsgTitle")}
             </Text>
             <Text mt={1}>
-              C'est <strong>normal</strong> — Twitch vous avertit que vous allez
-              être redirigé vers <code>localhost</code>. Cliquez{" "}
-              <strong>{t('common.continue')}</strong>. Après redirection, copiez le paramètre{" "}
-              <code>access_token=...</code>
-              depuis l'URL de votre navigateur.
+              {t("settings.twitchAppHelpMsgDescPart1")}{" "}
+              <strong>{t("common.continue")}</strong>. {t("settings.twitchAppHelpMsgDescPart2")}
             </Text>
           </Box>
 
-          <Text>
-            3. Collez le token dans le champ <strong>Access Token</strong>{" "}
-            ci-dessus et cliquez <strong>Sauvegarder</strong>.
-          </Text>
+          <Text>{t("settings.twitchAppHelp3")}</Text>
         </VStack>
       </Card.Body>
     </Card.Root>
@@ -440,6 +420,7 @@ function TwitchScopeHelper({ clientId }: { clientId: string }) {
 // ─── Twitch Broadcaster ID helper ────────────────────────────────────────────
 
 function TwitchBroadcasterIdHelper() {
+  const { t } = useTranslation();
   return (
     <Card.Root
       border="1px dashed"
@@ -454,7 +435,7 @@ function TwitchBroadcasterIdHelper() {
           color="blue.700"
           _dark={{ color: "blue.300" }}
         >
-          🆔 Comment trouver votre Broadcaster ID
+          {t("settings.twitchIdHelpTitle")}
         </Heading>
         <VStack
           align="stretch"
@@ -464,7 +445,7 @@ function TwitchBroadcasterIdHelper() {
           _dark={{ color: "gray.400" }}
         >
           <Text fontWeight="semibold">
-            Option 1 — Outil en ligne (le plus rapide) :
+            {t("settings.twitchIdHelpOpt1")}
           </Text>
           <Box
             fontFamily="mono"
@@ -477,12 +458,10 @@ function TwitchBroadcasterIdHelper() {
           >
             streamweasels.com/tools/convert-twitch-username-to-user-id/
           </Box>
-          <Text>
-            Tapez votre pseudo → l'ID numérique s'affiche instantanément.
-          </Text>
+          <Text>{t("settings.twitchIdHelpOpt1Desc")}</Text>
 
           <Text fontWeight="semibold" mt={1}>
-            Option 2 — Via l'API (avec votre token) :
+            {t("settings.twitchIdHelpOpt2")}
           </Text>
           <Box
             fontFamily="mono"
@@ -497,14 +476,10 @@ function TwitchBroadcasterIdHelper() {
             VOTRE_CLIENT_ID"
             "https://api.twitch.tv/helix/users?login=VOTRE_PSEUDO"
           </Box>
-          <Text>
-            La réponse JSON contient <code>{'"id"'}</code> — c'est votre
-            Broadcaster ID.
-          </Text>
+          <Text>{t("settings.twitchIdHelpOpt2Desc")}</Text>
 
           <Text fontSize="xs" color="gray.400" mt={1}>
-            ℹ️ C'est un nombre entier, ex: <strong>123456789</strong>. Il ne
-            change jamais.
+            {t("settings.twitchIdHelpInfo")}
           </Text>
         </VStack>
       </Card.Body>
@@ -616,9 +591,9 @@ export default function SettingsPage() {
             <FiSettings size={24} />
           </Box>
           <Box>
-            <Heading size="2xl">⚙️ Paramètres Globaux</Heading>
+            <Heading size="2xl">{t("settings.headerTitle")}</Heading>
             <Text color="gray.500" mt={1}>
-              Connexions aux plateformes de streaming
+              {t("settings.headerDesc")}
             </Text>
           </Box>
           <Button
@@ -627,7 +602,7 @@ export default function SettingsPage() {
             variant="ghost"
             onClick={() => fetchSettings()}
           >
-            <FiRefreshCw /> Rafraîchir
+            <FiRefreshCw /> {t("settings.refreshBtn")}
           </Button>
         </HStack>
 
@@ -639,7 +614,7 @@ export default function SettingsPage() {
               <FiTwitch /> Twitch
               {twitchConnected && (
                 <Badge colorPalette="green" variant="solid" size="xs" ml={1}>
-                  Live
+                  {t("settings.statusLive")}
                 </Badge>
               )}
             </Tabs.Trigger>
@@ -647,7 +622,7 @@ export default function SettingsPage() {
               <FiYoutube /> YouTube
               {youtubeConnected && (
                 <Badge colorPalette="red" variant="solid" size="xs" ml={1}>
-                  Live
+                  {t("settings.statusLive")}
                 </Badge>
               )}
             </Tabs.Trigger>
@@ -655,7 +630,7 @@ export default function SettingsPage() {
               <FiMusic /> Spotify
               {spotifyConnected && (
                 <Badge colorPalette="green" variant="solid" size="xs" ml={1}>
-                  Connecté
+                  {t("settings.statusConnected")}
                 </Badge>
               )}
             </Tabs.Trigger>
@@ -688,7 +663,7 @@ export default function SettingsPage() {
                 label="YouTube"
                 icon={<FiYoutube />}
                 color="red"
-                fields={YOUTUBE_FIELDS}
+                fields={getYoutubeFields(t)}
                 initialValues={settings.youtube ?? {}}
                 onSave={savePlatform}
                 connectStatus={youtubeConnected}
@@ -708,7 +683,7 @@ export default function SettingsPage() {
                     color="red.700"
                     _dark={{ color: "red.300" }}
                   >
-                    📺 Comment configurer YouTube
+                    {t("settings.youtubeHelpTitle")}
                   </Heading>
                   <VStack
                     align="stretch"
@@ -717,22 +692,11 @@ export default function SettingsPage() {
                     color="gray.600"
                     _dark={{ color: "gray.400" }}
                   >
-                    <Text>
-                      1. Allez sur <strong>console.cloud.google.com</strong>
-                    </Text>
-                    <Text>
-                      2. Créez un projet → Activez{" "}
-                      <strong>YouTube Data API v3</strong>
-                    </Text>
-                    <Text>3. Créez une clé API → collez-la ci-dessus</Text>
-                    <Text>
-                      4. Trouvez votre Channel ID dans YouTube Studio →
-                      Paramètres → Infos sur la chaîne
-                    </Text>
-                    <Text>
-                      5. Lancez votre live, puis cliquez{" "}
-                      <strong>Connecter</strong>
-                    </Text>
+                    <Text>{t("settings.youtubeHelp1")}</Text>
+                    <Text>{t("settings.youtubeHelp2")}</Text>
+                    <Text>{t("settings.youtubeHelp3")}</Text>
+                    <Text>{t("settings.youtubeHelp4")}</Text>
+                    <Text>{t("settings.youtubeHelp5")}</Text>
                   </VStack>
                 </Card.Body>
               </Card.Root>
@@ -746,7 +710,7 @@ export default function SettingsPage() {
                 label="Spotify"
                 icon={<FiMusic />}
                 color="green"
-                fields={SPOTIFY_FIELDS}
+                fields={getSpotifyFields(t)}
                 initialValues={settings.spotify ?? {}}
                 onSave={savePlatform}
                 connectStatus={spotifyConnected}

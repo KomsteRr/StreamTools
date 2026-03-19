@@ -60,10 +60,10 @@ export default function AdminSetupPage() {
         <Stack gap={8}>
           <Box textAlign="center">
             <Heading size="2xl" mb={4}>
-              Bienvenue dans Stream All-In-One
+              {t('admin.setup.welcomeTitle')}
             </Heading>
             <Text color="gray.500">
-              Configuration initiale. Préparez votre environnement en quelques étapes simples.
+              {t('admin.setup.welcomeDesc')}
             </Text>
           </Box>
 
@@ -100,7 +100,7 @@ export default function AdminSetupPage() {
               {/* Step 1: Base de données */}
               <Box display={step === 1 ? "block" : "none"}>
                 <Heading size="lg" mb={6} textAlign="center">
-                  1. Choix du moteur de données
+                  {t('admin.setup.step1Title')}
                 </Heading>
                 <Stack gap={6} direction={{ base: "column", md: "row" }}>
                   <Box
@@ -123,13 +123,13 @@ export default function AdminSetupPage() {
                       <Box color={dbType === "sqlite" ? "blue.500" : "gray.400"}>
                         <FaDatabase size={40} />
                       </Box>
-                      <Heading size="md">SQLite</Heading>
+                      <Heading size="md">{t('admin.setup.sqliteTitle')}</Heading>
                       <Text fontSize="sm" color="gray.500">
-                        Idéal pour une utilisation personnelle (un seul utilisateur). Aucune configuration complexe n'est requise, tout est prêt immédiatement.
+                        {t('admin.setup.sqliteDesc')}
                       </Text>
                       {dbType === "sqlite" && (
                         <Flex align="center" color="blue.500" gap={2} fontSize="sm" fontWeight="bold">
-                          <FaCheckCircle /> Sélectionné
+                          <FaCheckCircle /> {t('admin.setup.selected')}
                         </Flex>
                       )}
                     </VStack>
@@ -155,13 +155,13 @@ export default function AdminSetupPage() {
                       <Box color={dbType === "postgres" ? "blue.500" : "gray.400"}>
                         <FaServer size={40} />
                       </Box>
-                      <Heading size="md">PostgreSQL</Heading>
+                      <Heading size="md">{t('admin.setup.postgresTitle')}</Heading>
                       <Text fontSize="sm" color="gray.500">
-                        Robuste et performant. Obligatoire si vous souhaitez activer le mode multi-utilisateurs pour héberger plusieurs streamers.
+                        {t('admin.setup.postgresDesc')}
                       </Text>
                       {dbType === "postgres" && (
                         <Flex align="center" color="blue.500" gap={2} fontSize="sm" fontWeight="bold">
-                          <FaCheckCircle /> Sélectionné
+                          <FaCheckCircle /> {t('admin.setup.selected')}
                         </Flex>
                       )}
                     </VStack>
@@ -178,8 +178,8 @@ export default function AdminSetupPage() {
                       style={{ overflow: "hidden" }}
                     >
                       <Box mt={6} p={5} bg="blue.50" _dark={{ bg: "blue.900/10", borderWidth: "1px", borderColor: "blue.900/30" }} borderRadius="xl">
-                        <Heading size="sm" mb={4}>Configuration PostgreSQL</Heading>
-                        <Field label={t('admin.setup.dbUrl')} helperText="Si vous avez une variable d'environnement DATABASE_URL, elle sera utilisée par défaut.">
+                        <Heading size="sm" mb={4}>{t('admin.setup.postgresConfig')}</Heading>
+                        <Field label={t('admin.setup.dbUrl')} helperText={t('admin.setup.dbUrlHelper')}>
                           <Input 
                             name="database_url" 
                             defaultValue={envDbUrl}
@@ -189,13 +189,25 @@ export default function AdminSetupPage() {
                           />
                         </Field>
                       </Box>
+                      <Box mt={4} p={4} bg="orange.50" _dark={{ bg: "orange.900/10", borderWidth: "1px", borderColor: "orange.900/30" }} borderRadius="xl">
+                        <Text fontWeight="bold" color="orange.600" _dark={{ color: "orange.300" }} mb={2}>{t('admin.setup.migrationWarning')}</Text>
+                        <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.400" }}>
+                          {t('admin.setup.migrationDesc1')}
+                        </Text>
+                        <Box mt={2} p={3} bg="gray.900" borderRadius="md" fontFamily="mono" fontSize="sm" color="green.300">
+                          npm run migrate
+                        </Box>
+                        <Text fontSize="xs" color="gray.500" mt={2}>
+                          {t('admin.setup.migrationDesc2')}
+                        </Text>
+                      </Box>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
                 <Flex justify="flex-end" mt={8}>
                   <Button type="button" onClick={nextStep} colorPalette="blue" size="lg">
-                    Continuer <FaArrowRight />
+                    {t('admin.setup.continueBtn')} <FaArrowRight />
                   </Button>
                 </Flex>
               </Box>
@@ -203,7 +215,7 @@ export default function AdminSetupPage() {
               {/* Step 2: Fonctionnalités */}
               <Box display={step === 2 ? "block" : "none"}>
                 <Heading size="lg" mb={6} textAlign="center">
-                  2. Fonctionnalités Optionnelles
+                  {t('admin.setup.step2Title')}
                 </Heading>
                 <Stack gap={6}>
                   <Box p={5} borderWidth="1px" borderRadius="xl" shadow="sm" transition="all 0.2s" _hover={{ shadow: "md" }}>
@@ -213,7 +225,7 @@ export default function AdminSetupPage() {
                           <FaTwitch color="#8B5CF6" size={24} />
                         </Flex>
                         <Box>
-                          <Text fontWeight="bold" fontSize="lg">Twitch</Text>
+                          <Text fontWeight="bold" fontSize="lg">{t('admin.setup.twitchTitle')}</Text>
                           <Text fontSize="sm" color="gray.500">{t('admin.setup.twitchDesc')}</Text>
                         </Box>
                       </HStack>
@@ -228,7 +240,7 @@ export default function AdminSetupPage() {
                           <FaYoutube color="#EF4444" size={24} />
                         </Flex>
                         <Box>
-                          <Text fontWeight="bold" fontSize="lg">YouTube</Text>
+                          <Text fontWeight="bold" fontSize="lg">{t('admin.setup.youtubeTitle')}</Text>
                           <Text fontSize="sm" color="gray.500">{t('admin.setup.youtubeDesc')}</Text>
                         </Box>
                       </HStack>
@@ -243,8 +255,8 @@ export default function AdminSetupPage() {
                           <FaSpotify color="#10B981" size={24} />
                         </Flex>
                         <Box>
-                          <Text fontWeight="bold" fontSize="lg">Spotify</Text>
-                          <Text fontSize="sm" color="gray.500">Permettez l'affichage de la musique en cours de lecture</Text>
+                          <Text fontWeight="bold" fontSize="lg">{t('admin.setup.spotifyTitle')}</Text>
+                          <Text fontSize="sm" color="gray.500">{t('admin.setup.spotifyDesc')}</Text>
                         </Box>
                       </HStack>
                       <Switch name="spotify_active" defaultChecked value="true" size="lg" />
@@ -253,10 +265,10 @@ export default function AdminSetupPage() {
                 </Stack>
                 <Flex justify="space-between" mt={8}>
                   <Button type="button" variant="outline" onClick={prevStep} size="lg">
-                    <FaArrowLeft /> Retour
+                    <FaArrowLeft /> {t('admin.setup.backBtn')}
                   </Button>
                   <Button type="button" onClick={nextStep} colorPalette="blue" size="lg">
-                    Continuer <FaArrowRight />
+                    {t('admin.setup.continueBtn')} <FaArrowRight />
                   </Button>
                 </Flex>
               </Box>
@@ -264,16 +276,16 @@ export default function AdminSetupPage() {
               {/* Step 3: Configuration Globale */}
               <Box display={step === 3 ? "block" : "none"}>
                 <Heading size="lg" mb={6} textAlign="center">
-                  3. Configuration Avancée
+                  {t('admin.setup.step3Title')}
                 </Heading>
                 <Stack gap={8}>
                   <Box>
                     <HStack mb={4} gap={3}>
                       <FaSpotify color="#10B981" size={20} />
-                      <Heading size="md">Application Spotify</Heading>
+                      <Heading size="md">{t('admin.setup.spotifyAppTitle')}</Heading>
                     </HStack>
                     <Stack gap={4} p={5} bg="gray.50" _dark={{ bg: "gray.800", borderWidth: "1px", borderColor: "gray.700" }} borderRadius="xl">
-                      <Field label={t('admin.setup.redirectUri')} helperText="Utile uniquement si l'URI calculé par défaut pose un problème avec l'API Spotify.">
+                      <Field label={t('admin.setup.redirectUri')} helperText={t('admin.setup.redirectUriHelper')}>
                         <Input name="spotify_redirect_uri" defaultValue={origin ? `${origin}/api/spotify/callback` : ""} placeholder="https://votre-domaine.com/api/spotify/callback" bg="white" _dark={{ bg: "gray.900" }} />
                       </Field>
                     </Stack>
@@ -282,14 +294,14 @@ export default function AdminSetupPage() {
                   <Box>
                     <HStack mb={4} gap={3}>
                       <FaRobot color="#8B5CF6" size={20} />
-                      <Heading size="md">Bot Twitch Global</Heading>
+                      <Heading size="md">{t('admin.setup.botGlobalTitle')}</Heading>
                     </HStack>
                     <Stack gap={4} p={5} bg="purple.50" _dark={{ bg: "purple.900/10", borderWidth: "1px", borderColor: "purple.900/30" }} borderRadius="xl">
                       <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.400" }} mb={2}>
-                        Ce compte expédiera les messages dans le chat (ex: réponses aux commandes).
+                        {t('admin.setup.botGlobalDesc')}
                       </Text>
                       <Stack direction="row" justify="space-between" align="center" mb={2}>
-                        <Text fontWeight="bold">Bot Actif</Text>
+                        <Text fontWeight="bold">{t('admin.setup.botActive')}</Text>
                         <Switch name="twitch_bot_active" value="true" checked={twitchBotActive} onCheckedChange={(e) => setTwitchBotActive(!!e.checked)} />
                       </Stack>
                       <AnimatePresence>
@@ -302,10 +314,10 @@ export default function AdminSetupPage() {
                             style={{ overflow: "hidden" }}
                           >
                             <Stack gap={4} mt={2}>
-                              <Field label="Nom d'utilisateur du Bot">
+                              <Field label={t('admin.setup.botUsername')}>
                                 <Input name="twitch_bot_username" placeholder="ex: mon_bot_cool" bg="white" _dark={{ bg: "gray.900" }} />
                               </Field>
-                              <Field label="Token OAuth du Bot" helperText={<>{t('admin.setup.botToken')} <a href="https://twitchtokengenerator.com/" target="_blank" rel="noreferrer" style={{color: "var(--chakra-colors-blue-500)", textDecoration: "underline"}}>twitchtokengenerator.com</a> (commence par oauth:...)</>}>
+                              <Field label="Token OAuth du Bot" helperText={<>{t('admin.setup.botTokenHelperPart1')} <a href="https://twitchtokengenerator.com/" target="_blank" rel="noreferrer" style={{color: "var(--chakra-colors-blue-500)", textDecoration: "underline"}}>twitchtokengenerator.com</a> {t('admin.setup.botTokenHelperPart2')}</>}>
                                 <Input name="twitch_bot_token" type="password" placeholder="oauth:..." bg="white" _dark={{ bg: "gray.900" }} />
                               </Field>
                             </Stack>
@@ -328,10 +340,10 @@ export default function AdminSetupPage() {
 
                   <Flex justify="space-between" mt={8}>
                     <Button type="button" variant="outline" onClick={prevStep} size="lg">
-                      <FaArrowLeft /> Retour
+                      <FaArrowLeft /> {t('admin.setup.backBtn')}
                     </Button>
                     <Button type="submit" colorPalette="green" size="lg" loading={isPending}>
-                      Terminer l'installation <FaCheckCircle />
+                      {t('admin.setup.finishSetup')} <FaCheckCircle />
                     </Button>
                   </Flex>
                 </Stack>

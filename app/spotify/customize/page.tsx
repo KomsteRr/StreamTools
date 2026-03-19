@@ -375,10 +375,10 @@ export default function SpotifyCustomizePage() {
           <HStack gap={3}>
             <Button asChild variant="ghost" size="sm">
               <Link href="/">
-                <FiArrowLeft /> Retour
+                <FiArrowLeft /> {t("alerts.backBtn")}
               </Link>
             </Button>
-            <Heading size="xl">🎵 Spotify Widget — Personnalisation</Heading>
+            <Heading size="xl">{t("spotify.title")}</Heading>
           </HStack>
           <HStack gap={2}>
             <Button
@@ -387,7 +387,7 @@ export default function SpotifyCustomizePage() {
               loading={saving}
               onClick={save}
             >
-              <FiSave /> Sauvegarder
+              <FiSave /> {t("spotify.saveBtn")}
             </Button>
           </HStack>
         </HStack>
@@ -397,7 +397,7 @@ export default function SpotifyCustomizePage() {
           <GridItem>
             <Box position="sticky" top="24px">
               <HStack mb={4} justify="space-between">
-                <Heading size="md">👁 Aperçu en temps réel</Heading>
+                <Heading size="md">{t("spotify.previewTitle")}</Heading>
               </HStack>
               <Box
                 w="full"
@@ -427,7 +427,7 @@ export default function SpotifyCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={3}>
-                  📍 Position sur l&apos;écran
+                  {t("spotify.positionTitle")}
                 </Heading>
                 <Box
                   display="grid"
@@ -468,7 +468,7 @@ export default function SpotifyCustomizePage() {
                   ))}
                 </Box>
                 <Text fontSize="xs" color="gray.400" mt={2}>
-                  Position actuelle : {config.sp_position}
+                  {t("spotify.currentPosition")} {config.sp_position}
                 </Text>
               </Box>
 
@@ -481,12 +481,12 @@ export default function SpotifyCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={4}>
-                  🎨 Couleurs & fond
+                  {t("spotify.colorsBgTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Couleur principale
+                      {t("spotify.brandColor")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -516,7 +516,7 @@ export default function SpotifyCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Couleur secondaire
+                      {t("spotify.accentColor")}
                     </Text>
                     <HStack gap={2}>
                       <input
@@ -547,7 +547,7 @@ export default function SpotifyCustomizePage() {
                   <Separator />
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Opacité du fond :{" "}
+                      {t("spotify.bgOpacity")}{" "}
                       {parseFloat(config.sp_bgOpacity).toFixed(2)}
                     </Text>
                     <Slider.Root
@@ -569,7 +569,7 @@ export default function SpotifyCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Intensité Flou : {config.sp_blurStrength}px
+                      {t("spotify.blurStrength")} {config.sp_blurStrength}px
                     </Text>
                     <Slider.Root
                       min={0}
@@ -590,7 +590,7 @@ export default function SpotifyCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Rayon des bords : {config.sp_borderRadius}px
+                      {t("spotify.borderRadius")} {config.sp_borderRadius}px
                     </Text>
                     <Slider.Root
                       min={0}
@@ -621,12 +621,12 @@ export default function SpotifyCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={4}>
-                  📐 Taille & typographie
+                  {t("spotify.sizeTypoTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Largeur du widget : {config.sp_widgetWidth}px
+                      {t("spotify.widgetWidth")} {config.sp_widgetWidth}px
                     </Text>
                     <Slider.Root
                       min={280}
@@ -647,7 +647,7 @@ export default function SpotifyCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Taille pochette : {config.sp_albumSize}px
+                      {t("spotify.albumSize")} {config.sp_albumSize}px
                     </Text>
                     <Slider.Root
                       min={80}
@@ -668,7 +668,7 @@ export default function SpotifyCustomizePage() {
                   </Box>
                   <Box>
                     <Text fontSize="sm" mb={1}>
-                      Taille du titre :{" "}
+                      {t("spotify.trackFontSize")}{" "}
                       {parseFloat(config.sp_trackFontSize).toFixed(1)}rem
                     </Text>
                     <Slider.Root
@@ -688,7 +688,7 @@ export default function SpotifyCustomizePage() {
                       </Slider.Control>
                     </Slider.Root>
                   </Box>
-                  <Field label="Police">
+                  <Field label={t("spotify.fontTitle")}>
                     <Select.Root
                       collection={fontCollection}
                       value={[config.sp_font]}
@@ -724,14 +724,14 @@ export default function SpotifyCustomizePage() {
                 shadow="sm"
               >
                 <Heading size="sm" mb={4}>
-                  ⚙️ Éléments affichés
+                  {t("spotify.displayedElementsTitle")}
                 </Heading>
                 <VStack align="stretch" gap={4}>
                   <HStack justify="space-between">
                     <Box>
-                      <Text fontSize="sm">Barre de progression</Text>
+                      <Text fontSize="sm">{t("spotify.progressBarTitle")}</Text>
                       <Text fontSize="xs" color="gray.400">
-                        Temps écoulé / durée
+                        {t("spotify.progressBarDesc")}
                       </Text>
                     </Box>
                     <Switch.Root
@@ -750,7 +750,7 @@ export default function SpotifyCustomizePage() {
                     <Box>
                       <Text fontSize="sm">{t('spotify.playbackControls')}</Text>
                       <Text fontSize="xs" color="gray.400">
-                        ⏮ ⏸ ⏭
+                        {t('spotify.playbackControlsDesc')}
                       </Text>
                     </Box>
                     <Switch.Root

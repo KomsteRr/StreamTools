@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Box, Button, Text, HStack, VStack, Image } from "@chakra-ui/react";
 import { FiUpload, FiX, FiVolume2 } from "react-icons/fi";
+import { useTranslation } from "@/lib/i18n";
 
 interface FileUploaderProps {
   label: string;
@@ -21,6 +22,7 @@ export function FileUploader({
   onUploaded,
   onRemove,
 }: FileUploaderProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -128,7 +130,7 @@ export function FileUploader({
         onClick={() => inputRef.current?.click()}
       >
         <FiUpload />
-        {currentUrl ? "Remplacer" : "Choisir un fichier"}
+        {currentUrl ? t("alerts.replaceBtn") : t("alerts.chooseFileBtn")}
       </Button>
     </VStack>
   );

@@ -55,7 +55,7 @@ export default function InvitePage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Une erreur est survenue.')
+        setError(data.error || t('invite.defaultError'))
         setStatus(res.status === 404 || res.status === 410 ? 'error' : 'ready')
         return
       }
@@ -63,7 +63,7 @@ export default function InvitePage() {
       setUsername(data.username)
       setStatus('success')
     } catch {
-      setError('Erreur réseau.')
+      setError(t('invite.networkError'))
       setStatus('ready')
     }
   }
@@ -91,36 +91,36 @@ export default function InvitePage() {
       >
         {status === 'success' ? (
           <Stack gap={4} align="center" textAlign="center">
-            <Heading size="lg">✅ Compte activé !</Heading>
+            <Heading size="lg">{t('invite.successTitle')}</Heading>
             <Text color="gray.500">
-              Votre compte <strong>{username}</strong> est prêt. Vous pouvez maintenant vous connecter.
+              {t('invite.successDesc1')} <strong>{username}</strong> {t('invite.successDesc2')}
             </Text>
             <Button
               colorPalette="blue"
               width="full"
               onClick={() => router.push('/login')}
             >
-              Se connecter
+              {t('invite.loginButton')}
             </Button>
           </Stack>
         ) : status === 'error' ? (
           <Stack gap={4} align="center" textAlign="center">
-            <Heading size="lg">❌ Lien invalide</Heading>
+            <Heading size="lg">{t('invite.invalidLinkTitle')}</Heading>
             <Text color="gray.500">{error}</Text>
             <Button
               variant="outline"
               onClick={() => router.push('/login')}
             >
-              Retour à la connexion
+              {t('invite.backToLogin')}
             </Button>
           </Stack>
         ) : (
           <Stack gap={6} align="center">
             <Heading as="h1" size="xl" textAlign="center">
-              Activer votre compte
+              {t('invite.activateTitle')}
             </Heading>
             <Text color="gray.500" textAlign="center" fontSize="sm">
-              Définissez votre mot de passe pour commencer à utiliser l&apos;application.
+              {t('invite.activateDesc')}
             </Text>
 
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
@@ -130,7 +130,7 @@ export default function InvitePage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    placeholder="Choisissez un mot de passe"
+                    placeholder={t('invite.choosePassword')}
                   />
                 </Field>
 
@@ -157,9 +157,9 @@ export default function InvitePage() {
                   colorPalette="blue"
                   width="full"
                   loading={status === 'submitting'}
-                  loadingText="Activation..."
+                  loadingText={t('invite.activating')}
                 >
-                  Activer mon compte
+                  {t('invite.submit')}
                 </Button>
               </Stack>
             </form>

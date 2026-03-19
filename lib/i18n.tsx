@@ -12,7 +12,7 @@ interface I18nContextType {
   locale: Locale
   setLocale: (locale: Locale) => void
   t: (key: string) => string
-  locales: { value: Locale; label: string }[]
+  locales: { value: Locale; label: string; flag: string }[]
 }
 
 const I18nContext = createContext<I18nContextType | null>(null)
@@ -21,8 +21,8 @@ const STORAGE_KEY = 'streamtools-locale'
 const DEFAULT_LOCALE: Locale = 'en'
 
 const LOCALE_OPTIONS = [
-  { value: 'en' as Locale, label: '\U0001F1EC\U0001F1E7 English' },
-  { value: 'fr' as Locale, label: '\U0001F1EB\U0001F1F7 Fran\u00e7ais' },
+  { value: 'en' as Locale, label: 'English', flag: '🇬🇧' },
+  { value: 'fr' as Locale, label: 'Français', flag: '🇫🇷' },
 ]
 
 function getNestedValue(obj: Record<string, any>, path: string): string {
