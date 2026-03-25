@@ -30,7 +30,7 @@ async function main() {
   }
   await checkClient.$disconnect();
 
-  const isPostgres = databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://');
+  const isPostgres = databaseUrl!.startsWith('postgresql://') || databaseUrl!.startsWith('postgres://');
   const rootDir = path.resolve(__dirname, '..');
   const envPath = path.join(rootDir, '.env.local');
 

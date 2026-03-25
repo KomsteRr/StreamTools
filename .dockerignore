@@ -1,0 +1,15 @@
+.next
+node_modules
+.git
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
+build_error.log
+outdated.json
+tests.js
+snippets.txt
+tsconfig.tsbuildinfo
+migration_data.json
+README.md
