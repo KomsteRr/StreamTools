@@ -6,6 +6,7 @@ export interface VisualConfig {
   borderRadius: string;
   clientId?: string;
   clientSecret?: string;
+  redirect_uri?: string;
 }
 
 const DEFAULT_CONFIG: VisualConfig = {
@@ -14,6 +15,7 @@ const DEFAULT_CONFIG: VisualConfig = {
   borderRadius: "32px",
   clientId: "",
   clientSecret: "",
+  redirect_uri: "",
 };
 
 export async function getConfig(userId?: string | null): Promise<VisualConfig> {
@@ -23,7 +25,7 @@ export async function getConfig(userId?: string | null): Promise<VisualConfig> {
       where: { userId: safeUserId },
     });
     const techItems = await prisma.platformConfig.findMany({
-      where: { platform: "spotify", userId: safeUserId },
+      where: { platform: "spotify" },
     });
     
     if (visualItems.length === 0 && techItems.length === 0) return DEFAULT_CONFIG;
@@ -33,7 +35,7 @@ export async function getConfig(userId?: string | null): Promise<VisualConfig> {
       config[item.key] = item.value;
     });
     techItems.forEach((item) => {
-      if (item.key === "clientId" || item.key === "clientSecret") {
+      if (item.key === "clientId" || item.key === "clientSecret" || item.key === "redirect_uri") {
         config[item.key] = item.value;
       }
     });

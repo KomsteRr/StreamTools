@@ -23,12 +23,15 @@ export async function GET(request: Request) {
   const config = await getConfig(userId);
   const client_id = config.clientId || process.env.SPOTIFY_CLIENT_ID;
   const client_secret = config.clientSecret || process.env.SPOTIFY_CLIENT_SECRET;
-  const redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
+  const redirect_uri =
+    process.env.SPOTIFY_REDIRECT_URI ||
+    config.redirect_uri ||
+    `${new URL(request.url).origin}/api/spotify/callback`;
 
-  if (!client_id || !client_secret || !redirect_uri) {
+  if (!client_id || !client_secret) {
     return NextResponse.json(
-      { error: "Missing configuration" },
-      { status: 500 }
+      { error: "Configuration Spotify incomplète (Client ID ou Client Secret manquant)." },
+      { status: 400 }
     );
   }
 
