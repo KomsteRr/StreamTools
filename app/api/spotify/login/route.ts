@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { getConfig } from "@/lib/spotify-config";
 import { getSession, getSafeUserId } from "@/lib/session";
-import { getRequestOrigin } from "@/lib/origin";
+import { resolveSpotifyRedirectUri } from "@/lib/origin";
 
 export async function GET(request: Request) {
   const session = await getSession();
   const userId = getSafeUserId(session);
   const config = await getConfig(userId);
   const client_id = config.clientId || process.env.SPOTIFY_CLIENT_ID;
-  const redirect_uri =
-    process.env.SPOTIFY_REDIRECT_URI ||
-    config.redirect_uri ||
-    `${getRequestOrigin(request)}/api/spotify/callback`;
+  const redirect_uri = resolveSpotifyRedirectUri(
+    request,
+    config.redirect_uri,
+    process.env.SPOTIFY_REDIRECT_URI
+  );
   const state = Math.random().toString(36).substring(7); // Simple state
   const scope = "user-read-currently-playing user-read-playback-state";
 

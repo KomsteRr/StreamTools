@@ -57,3 +57,14 @@ export async function saveTokens(tokens: SpotifyTokens, userId?: string | null) 
     console.error("Error saving token to DB", e);
   }
 }
+
+export async function deleteTokens(userId?: string | null) {
+  try {
+    const safeUserId = userId ?? null;
+    await prisma.spotifyToken.deleteMany({
+      where: { userId: safeUserId },
+    });
+  } catch (e) {
+    console.error("Error deleting Spotify tokens from DB", e);
+  }
+}

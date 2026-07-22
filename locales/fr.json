@@ -169,6 +169,8 @@
     "twitchDisconnected": "Twitch déconnecté",
     "youtubeConnected": "YouTube connecté ! 🎉",
     "youtubeDisconnected": "YouTube déconnecté",
+    "spotifyConnected": "Spotify connecté ! 🎉",
+    "spotifyDisconnected": "Spotify déconnecté",
     "fontFamily": "Police de caractères",
     "borderColor": "Couleur bordure",
     "twitchAppHelpTitle": "💡 Comment créer votre Application Twitch Dev & obtenir un Token :",

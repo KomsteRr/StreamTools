@@ -789,7 +789,11 @@ export default function SettingsPage() {
                 onConnect={async () => {
                   window.location.href = "/api/spotify/login";
                 }}
-                onDisconnect={async () => {}}
+                onDisconnect={async () => {
+                  await fetch("/api/spotify/status", { method: "DELETE" });
+                  setSpotifyConnected(false);
+                  toaster.create({ title: t("settings.spotifyDisconnected"), type: "info" });
+                }}
               />
               <SpotifyHelpHelper origin={origin} />
             </VStack>

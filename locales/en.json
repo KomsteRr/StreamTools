@@ -160,6 +160,8 @@
     "twitchDisconnected": "Twitch disconnected",
     "youtubeConnected": "YouTube connected! 🎉",
     "youtubeDisconnected": "YouTube disconnected",
+    "spotifyConnected": "Spotify connected! 🎉",
+    "spotifyDisconnected": "Spotify disconnected",
     "fontFamily": "Font family",
     "borderColor": "Border color",
     "headerTitle": "⚙️ Global Settings",
