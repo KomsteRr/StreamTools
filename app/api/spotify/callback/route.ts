@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { saveTokens } from "@/lib/spotify-tokens";
 import { getConfig } from "@/lib/spotify-config";
 import { getSession, getSafeUserId } from "@/lib/session";
+import { getRequestOrigin } from "@/lib/origin";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
   const redirect_uri =
     process.env.SPOTIFY_REDIRECT_URI ||
     config.redirect_uri ||
-    `${new URL(request.url).origin}/api/spotify/callback`;
+    `${getRequestOrigin(request)}/api/spotify/callback`;
 
   if (!client_id || !client_secret) {
     return NextResponse.json(

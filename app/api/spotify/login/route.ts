@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getConfig } from "@/lib/spotify-config";
 import { getSession, getSafeUserId } from "@/lib/session";
+import { getRequestOrigin } from "@/lib/origin";
 
 export async function GET(request: Request) {
   const session = await getSession();
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   const redirect_uri =
     process.env.SPOTIFY_REDIRECT_URI ||
     config.redirect_uri ||
-    `${new URL(request.url).origin}/api/spotify/callback`;
+    `${getRequestOrigin(request)}/api/spotify/callback`;
   const state = Math.random().toString(36).substring(7); // Simple state
   const scope = "user-read-currently-playing user-read-playback-state";
 
