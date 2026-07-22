@@ -1,9 +1,13 @@
 .next
 node_modules
 .git
+.agents
+.vercel
 *.db
 *.sqlite
 *.sqlite3
+*.log
+*.pem
 .env
 .env.*
 build_error.log

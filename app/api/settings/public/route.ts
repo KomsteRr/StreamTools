@@ -6,11 +6,35 @@ import { isOverlayAuthorized } from "@/lib/overlay-token";
 const SENSITIVE_KEYS = [
   "clientId",
   "clientSecret",
+  "client_secret",
   "accessToken",
-  "botPassword",
-  "overlayToken",
+  "access_token",
   "refreshToken",
+  "refresh_token",
+  "botPassword",
+  "bot_password",
+  "botToken",
+  "bot_token",
+  "overlayToken",
+  "overlay_token",
+  "apiKey",
+  "api_key",
+  "database_url",
+  "db_url",
+  "pending_migration",
 ];
+
+function isSensitiveKey(key: string): boolean {
+  if (SENSITIVE_KEYS.includes(key)) return true;
+  const lower = key.toLowerCase();
+  return (
+    lower.includes("secret") ||
+    lower.includes("password") ||
+    lower.includes("token") ||
+    (lower.includes("key") && lower !== "fontfamily" && lower !== "glowcolor")
+  );
+}
+
 
 // GET /api/settings/public — returns all non-sensitive PlatformConfig entries for the authenticated user
 export async function GET(req: Request) {
@@ -30,7 +54,7 @@ export async function GET(req: Request) {
     const grouped: Record<string, Record<string, any>> = {};
 
     for (const r of rows) {
-      if (SENSITIVE_KEYS.includes(r.key)) continue;
+      if (isSensitiveKey(r.key)) continue;
       
       let val: any = r.value;
       try {

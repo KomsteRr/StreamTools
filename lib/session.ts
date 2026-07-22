@@ -5,18 +5,17 @@ export interface SessionPayload {
   role: "admin" | "user";
 }
 
-const SECRET = process.env.SESSION_SECRET;
-if (!SECRET && typeof window === "undefined") {
-  throw new Error("SESSION_SECRET environment variable is required");
-}
-const SESSION_SECRET = SECRET!;
-
 // Internal helper to get a CryptoKey for HMAC-SHA256
 async function getSecretKey(): Promise<CryptoKey> {
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret) {
+    throw new Error("SESSION_SECRET environment variable is required");
+  }
+
   const encoder = new TextEncoder();
   return crypto.subtle.importKey(
     "raw",
-    encoder.encode(SESSION_SECRET),
+    encoder.encode(sessionSecret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"]

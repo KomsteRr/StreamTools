@@ -23,6 +23,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(config);
   } catch (error) {
+    console.error("Twitch Config Fetch Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch config" },
       { status: 500 }

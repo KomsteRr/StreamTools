@@ -37,12 +37,14 @@ export async function isOverlayAuthorized(req?: Request | null, searchParamsToke
     token = url.searchParams.get("token");
   }
 
+  if (!token) return { authorized: false };
+
   // Find which user this overlay token belongs to
   const record = await prisma.platformConfig.findFirst({
     where: {
       platform: "system",
       key: "overlayToken",
-      value: token as string,
+      value: token,
     },
   });
 

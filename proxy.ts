@@ -30,7 +30,7 @@ const SETUP_EXEMPT = [
   '/logout',
 ]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value
   let session = null;
   if (sessionCookie) {
@@ -106,6 +106,8 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next()
 }
+
+export const middleware = proxy
 
 export const config = {
   matcher: [

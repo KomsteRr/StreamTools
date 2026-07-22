@@ -1,9 +1,10 @@
 # ─── Stage 1: deps ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.18.3 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
@@ -12,7 +13,7 @@ RUN pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.18.3 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -29,35 +30,33 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Add a non-root user for security
+# Install OpenSSL required by Prisma native engine on Alpine Linux
+RUN apk add --no-cache openssl libc6-compat
+
+# Add non-root user for security
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 nextjs
 
-# Install pnpm (needed for the prisma db push at startup)
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Directory for SQLite database file (mount volume here)
+RUN mkdir -p /data && chown -R nextjs:nodejs /data
 
-# Copy only what is needed to run
-COPY --from=builder /app/public           ./public
-COPY --from=builder /app/.next/standalone  ./
-COPY --from=builder /app/.next/static      ./.next/static
-COPY --from=builder /app/prisma           ./prisma
-COPY --from=builder /app/node_modules/.pnpm  ./node_modules/.pnpm
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma  ./node_modules/prisma
-COPY --from=builder /app/package.json     ./package.json
-
-# Directory for the SQLite database file (mount a volume here)
-RUN mkdir -p /data && chown nextjs:nodejs /data
+# Copy standalone build artifacts with proper non-root ownership
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm ./node_modules/.pnpm
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-# DATABASE_URL should point to a path inside /data, e.g.:
-#   DATABASE_URL="file:/data/prod.db"
-
-# Push the schema then start the server
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node server.js"]
+# Push schema with local Prisma binary then start server
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --skip-generate && node server.js"]

@@ -23,6 +23,10 @@ export async function login(prevState: { error: string } | null, formData: FormD
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
   const ip = (forwardedFor ? forwardedFor.split(',')[0].trim() : null) || headersList.get('x-real-ip') || 'unknown'
+  const forwardedProto = headersList.get('x-forwarded-proto')?.split(',')[0].trim().toLowerCase()
+  const secureCookie = process.env.COOKIE_SECURE
+    ? process.env.COOKIE_SECURE === 'true'
+    : forwardedProto === 'https'
 
   const rateCheck = checkLoginRateLimit(ip)
   if (!rateCheck.allowed) {
@@ -49,7 +53,8 @@ export async function login(prevState: { error: string } | null, formData: FormD
     }
 
 
-    // Create admin user if not exists (use bcrypt hash for password)
+    // Keep the environment variable as the source of truth for the admin
+    // password, including after it changes between deployments.
     if (!adminUser) {
       adminUser = await prisma.user.create({
         data: {
@@ -57,6 +62,11 @@ export async function login(prevState: { error: string } | null, formData: FormD
           role: 'admin',
           passwordHash: await bcrypt.hash(adminPassword, 12),
         },
+      })
+    } else if (!adminUser.passwordHash || !(await bcrypt.compare(adminPassword, adminUser.passwordHash))) {
+      adminUser = await prisma.user.update({
+        where: { id: adminUser.id },
+        data: { passwordHash: await bcrypt.hash(adminPassword, 12) },
       })
     }
 
@@ -69,7 +79,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
     const cookieStore = await cookies()
     cookieStore.set('session', sessionValue, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: secureCookie,
       expires,
       sameSite: 'strict',
       path: '/',
@@ -106,7 +116,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
   const cookieStore = await cookies()
   cookieStore.set('session', sessionValue, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookie,
     expires,
     sameSite: 'lax',
     path: '/',

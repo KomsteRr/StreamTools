@@ -45,7 +45,7 @@ import Link from "next/link";
 
 interface DashboardData {
   spotify: { connected: boolean };
-  twitch: { channelName?: string; clientId?: string };
+  twitch: { channelName?: string; clientId?: string; connected?: boolean };
   youtube: { connected: boolean };
   overlayToken?: string;
   user?: { userId: string; role: string };
@@ -226,22 +226,24 @@ export default function DashboardPage() {
     setOrigin(window.location.origin);
     async function fetchData() {
       try {
-        const [spotifyRes, twitchRes, youtubeRes, settingsRes, meRes] =
+        const [spotifyRes, twitchRes, twitchConnectRes, youtubeRes, settingsRes, meRes] =
           await Promise.all([
             fetch("/api/spotify/status"),
             fetch("/api/twitch/config"),
+            fetch("/api/twitch/connect"),
             fetch("/api/youtube/status"),
             fetch("/api/settings"),
             fetch("/api/me"),
           ]);
         const spotify = await spotifyRes.json();
         const twitch = await twitchRes.json();
+        const twitchConn = await twitchConnectRes.json();
         const youtube = await youtubeRes.json();
         const settings = await settingsRes.json();
         const me = meRes.ok ? await meRes.json() : null;
         setData({
           spotify,
-          twitch,
+          twitch: { ...twitch, connected: twitchConn?.connected ?? false },
           youtube,
           overlayToken: settings.system?.overlayToken,
           user: me,
@@ -263,7 +265,8 @@ export default function DashboardPage() {
     );
   }
 
-  const twitchOk = !!data?.twitch?.channelName;
+  const twitchConfigured = !!data?.twitch?.channelName;
+  const twitchConnected = !!data?.twitch?.connected;
   const spotifyOk = !!data?.spotify?.connected;
   const youtubeOk = !!data?.youtube?.connected;
   const tokenQuery = data?.overlayToken ? `?token=${data.overlayToken}` : "";
@@ -307,7 +310,7 @@ export default function DashboardPage() {
               flexWrap="wrap"
             >
               <HStack gap={2}>
-                {twitchOk ? (
+                {twitchConnected ? (
                   <FiWifi size={14} color="var(--chakra-colors-purple-400)" />
                 ) : (
                   <FiWifiOff size={14} color="var(--chakra-colors-gray-400)" />
@@ -321,12 +324,16 @@ export default function DashboardPage() {
                   Twitch
                 </Text>
                 <Badge
-                  colorPalette={twitchOk ? "purple" : "gray"}
+                  colorPalette={twitchConnected ? "purple" : twitchConfigured ? "orange" : "gray"}
                   variant="subtle"
                   borderRadius="full"
                   px={2}
                 >
-                  {twitchOk ? `@${data?.twitch.channelName}` : t("dashboard.statusNotConfigured")}
+                  {twitchConnected
+                    ? `@${data?.twitch.channelName}`
+                    : twitchConfigured
+                    ? `@${data?.twitch.channelName} (${t("dashboard.statusNotConnected")})`
+                    : t("dashboard.statusNotConfigured")}
                 </Badge>
               </HStack>
 
@@ -413,9 +420,13 @@ export default function DashboardPage() {
             title={t("dashboard.twitchTitle")}
             status={
               <StatusBadge
-                ok={twitchOk}
+                ok={twitchConnected}
                 labelOk={`@${data?.twitch.channelName}`}
-                labelKo={t("dashboard.statusNotConfigured")}
+                labelKo={
+                  twitchConfigured
+                    ? `@${data?.twitch.channelName} (${t("dashboard.statusNotConnected")})`
+                    : t("dashboard.statusNotConfigured")
+                }
               />
             }
             description={t("dashboard.twitchDesc")}

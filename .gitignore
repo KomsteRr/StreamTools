@@ -47,5 +47,10 @@ next-env.d.ts
 *.sqlite
 *.sqlite3
 
-# local tests
+# local tests & temp files
 /tests.js
+*.log
+migration_data.json
+snippets.txt
+outdated.json
+
