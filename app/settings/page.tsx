@@ -487,12 +487,83 @@ function TwitchBroadcasterIdHelper() {
   );
 }
 
+// ─── Spotify Redirect URI helper ─────────────────────────────────────────────
+
+function SpotifyHelpHelper({ origin }: { origin: string }) {
+  const { t } = useTranslation();
+  const callbackUrl = `${origin || "http://localhost:3000"}/api/spotify/callback`;
+  const [copied, setCopied] = useState(false);
+
+  function copyUrl() {
+    navigator.clipboard.writeText(callbackUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <Card.Root
+      border="1px dashed"
+      borderColor="green.300"
+      bg="green.50"
+      _dark={{ bg: "green.950", borderColor: "green.700" }}
+    >
+      <Card.Body>
+        <Heading
+          size="xs"
+          mb={3}
+          color="green.700"
+          _dark={{ color: "green.300" }}
+        >
+          {t("settings.spotifyHelpTitle")}
+        </Heading>
+        <VStack
+          align="stretch"
+          gap={3}
+          fontSize="xs"
+          color="gray.600"
+          _dark={{ color: "gray.400" }}
+        >
+          <Text>{t("settings.spotifyHelp1")}</Text>
+          <Text>{t("settings.spotifyHelp2")}</Text>
+
+          <Box
+            fontFamily="mono"
+            fontSize="xs"
+            p={3}
+            bg="green.100"
+            _dark={{ bg: "green.900" }}
+            borderRadius="md"
+            wordBreak="break-all"
+          >
+            <Text mb={2} color="inherit">
+              {callbackUrl}
+            </Text>
+            <Button
+              size="xs"
+              variant="outline"
+              colorPalette="green"
+              onClick={copyUrl}
+            >
+              {copied ? <FiCheck /> : <FiCopy />}
+              {copied ? t("settings.spotifyHelpCopied") : t("settings.spotifyHelpCopy")}
+            </Button>
+          </Box>
+
+          <Text>{t("settings.spotifyHelp3")}</Text>
+        </VStack>
+      </Card.Body>
+    </Card.Root>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
   const { t } = useTranslation()
   const [settings, setSettings] = useState<AllSettings>({});
   const [loading, setLoading] = useState(true);
+  const [origin, setOrigin] = useState("");
   const [twitchConnected, setTwitchConnected] = useState<boolean | null>(null);
   const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(
     null,
@@ -522,6 +593,7 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
+    setOrigin(window.location.origin);
     fetchSettings().finally(() => setLoading(false));
   }, [fetchSettings]);
 
@@ -719,6 +791,7 @@ export default function SettingsPage() {
                 }}
                 onDisconnect={async () => {}}
               />
+              <SpotifyHelpHelper origin={origin} />
             </VStack>
           </Tabs.Content>
         </Tabs.Root>
