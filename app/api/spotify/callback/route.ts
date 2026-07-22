@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { saveTokens } from "@/lib/spotify-tokens";
 import { getConfig } from "@/lib/spotify-config";
 import { getSession, getSafeUserId } from "@/lib/session";
-import { resolveSpotifyRedirectUri } from "@/lib/origin";
+import { resolveSpotifyRedirectUri, getRequestOrigin } from "@/lib/origin";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -66,8 +66,9 @@ export async function GET(request: Request) {
       expires_at: Date.now() + data.expires_in * 1000,
     }, userId);
 
-    // Redirect to the widget page
-    return NextResponse.redirect(new URL("/spotify-stream", request.url));
+    // Redirect back to settings page with success indicator using the real public origin
+    const origin = getRequestOrigin(request);
+    return NextResponse.redirect(`${origin}/settings?spotify=connected`);
   } catch (err: any) {
     return NextResponse.json(
       { error: "Internal Server Error", details: err.message },

@@ -62,7 +62,9 @@ export async function proxy(request: NextRequest) {
           { status: 403 }
         )
       }
-      return NextResponse.redirect(new URL('/login', request.url))
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/login'
+      return NextResponse.redirect(redirectUrl)
     }
     return NextResponse.next()
   }
@@ -81,14 +83,17 @@ export async function proxy(request: NextRequest) {
   // ── Redirect authenticated users away from /login ──────────────────────────
   if (pathname.startsWith('/login')) {
     if (session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/dashboard'
+      return NextResponse.redirect(redirectUrl)
     }
     return NextResponse.next()
   }
 
   // ── Protect all other pages ────────────────────────────────────────────────
   if (!session) {
-    const loginUrl = new URL('/login', request.url)
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
     loginUrl.searchParams.set('from', pathname)
     return NextResponse.redirect(loginUrl)
   }
@@ -99,7 +104,9 @@ export async function proxy(request: NextRequest) {
   const isSetupExempt = SETUP_EXEMPT.some((p) => pathname.startsWith(p))
 
   if (!setupComplete && !isSetupExempt && session.role === 'admin') {
-    return NextResponse.redirect(new URL('/admin/setup', request.url))
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/admin/setup'
+    return NextResponse.redirect(redirectUrl)
   }
 
   // Non-admin sans setup : on laisse passer (l'admin setup en premier, les users suivent)
