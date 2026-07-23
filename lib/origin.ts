@@ -1,42 +1,29 @@
-export function getRequestOrigin(request: Request): string {
-  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0].trim();
-  const hostHeader = request.headers.get("host");
-  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0].trim() || "http";
-
-  const targetHost =
-    forwardedHost && !forwardedHost.includes("0.0.0.0")
-      ? forwardedHost
-      : hostHeader && !hostHeader.includes("0.0.0.0")
-      ? hostHeader
-      : null;
-
-  if (targetHost) {
-    return `${proto}://${targetHost}`;
-  }
+function configuredOrigin(): string | null {
+  const value = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!value) return null;
 
   try {
-    const urlOrigin = new URL(request.url).origin;
-    if (!urlOrigin.includes("0.0.0.0")) {
-      return urlOrigin;
-    }
-  } catch {}
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
 
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+export function getRequestOrigin(request: Request): string {
+  // Never trust X-Forwarded-Host/Proto supplied by a client. Production should
+  // set NEXT_PUBLIC_APP_URL to the canonical public origin.
+  const configured = configuredOrigin();
+  if (configured) return configured;
+
+  return new URL(request.url).origin;
 }
 
 export function resolveSpotifyRedirectUri(
   req: Request,
   dbRedirectUri?: string,
-  envRedirectUri?: string
+  envRedirectUri?: string,
 ): string {
-  if (envRedirectUri && envRedirectUri.trim() !== "" && !envRedirectUri.includes("0.0.0.0")) {
-    return envRedirectUri;
-  }
-
-  if (dbRedirectUri && dbRedirectUri.trim() !== "" && !dbRedirectUri.includes("0.0.0.0")) {
-    return dbRedirectUri;
-  }
-
-  const origin = getRequestOrigin(req);
-  return `${origin}/api/spotify/callback`;
+  if (envRedirectUri?.trim()) return envRedirectUri.trim();
+  if (dbRedirectUri?.trim()) return dbRedirectUri.trim();
+  return `${getRequestOrigin(req)}/api/spotify/callback`;
 }
