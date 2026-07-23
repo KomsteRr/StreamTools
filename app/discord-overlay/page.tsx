@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface DiscordMediaAlert {
@@ -8,30 +8,40 @@ interface DiscordMediaAlert {
   authorName: string;
   authorAvatar: string;
   content: string;
-  mediaType: "image" | "gif" | "video" | "audio" | "text";
+  mediaType: "image" | "gif" | "video" | "audio" | "youtube" | "text";
   mediaUrl?: string;
   timestamp: number;
 }
 
 interface DiscordConfig {
   alertDuration?: number;
-  maxMediaHeight?: number;
-  borderColor?: string;
 }
 
 export default function DiscordMediaOverlayPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [queue, setQueue] = useState<DiscordMediaAlert[]>([]);
   const [currentAlert, setCurrentAlert] = useState<DiscordMediaAlert | null>(null);
   const [visible, setVisible] = useState(false);
   const [config, setConfig] = useState<DiscordConfig>({
     alertDuration: 8,
-    maxMediaHeight: 350,
-    borderColor: "#5865F2",
   });
 
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const currentAlertRef = useRef<DiscordMediaAlert | null>(currentAlert);
+  const configRef = useRef(config);
+
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
+
+  useEffect(() => {
+    currentAlertRef.current = currentAlert;
+  }, [currentAlert]);
+
+  // Load config
   useEffect(() => {
     const fetchConfig = async () => {
       const url = token ? `/api/discord/config?token=${token}` : `/api/discord/config`;
@@ -40,14 +50,41 @@ export default function DiscordMediaOverlayPage() {
         const data = await res.json();
         setConfig({
           alertDuration: Number(data.alertDuration) || 8,
-          maxMediaHeight: Number(data.maxMediaHeight) || 350,
-          borderColor: data.borderColor || "#5865F2",
         });
       }
     };
     fetchConfig();
   }, [token]);
 
+  // Helper to remove item from queue when played/finished
+  const removeAlertFromQueue = useCallback((alertId: string) => {
+    const url = token ? `/api/discord/queue?token=${token}&id=${alertId}` : `/api/discord/queue?id=${alertId}`;
+    fetch(url, { method: "DELETE" }).catch(() => {});
+  }, [token]);
+
+  // Finish current alert and auto-clear from queue
+  const handleFinishAlert = useCallback((alertId: string) => {
+    setVisible(false);
+    removeAlertFromQueue(alertId);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setTimeout(() => {
+      setCurrentAlert((prev) => (prev?.id === alertId ? null : prev));
+    }, 200);
+  }, [removeAlertFromQueue]);
+
+  // Explicit Autoplay for Video and Audio when currentAlert updates or renders
+  useEffect(() => {
+    if (currentAlert?.mediaType === "video" && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch((err) => console.log("Autoplay video error:", err));
+    }
+    if (currentAlert?.mediaType === "audio" && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => console.log("Autoplay audio error:", err));
+    }
+  }, [currentAlert]);
+
+  // Connect to SSE stream and handle incoming media alerts, deletes, and queue clears
   useEffect(() => {
     const url = token ? `/api/discord/stream?token=${token}` : `/api/discord/stream`;
     const eventSource = new EventSource(url);
@@ -55,130 +92,292 @@ export default function DiscordMediaOverlayPage() {
     eventSource.addEventListener("media-alert", (event) => {
       try {
         const alert: DiscordMediaAlert = JSON.parse(event.data);
-        setQueue((prev) => [...prev, alert]);
+
+        // Strip raw URLs from text content so text isn't printed as URL string
+        let cleanText = alert.content || "";
+        if (alert.mediaUrl || cleanText.match(/https?:\/\/[^\s]+/i)) {
+          cleanText = cleanText
+            .replace(/https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]+(\&[^\s]*)?/gi, "")
+            .replace(/https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/[0-9]+(\?[^\s]*)?/gi, "")
+            .replace(/https?:\/\/(?:www\.|vm\.|vt\.)?tiktok\.com\/[^\s]+/gi, "")
+            .replace(/https?:\/\/(?:www\.)?instagram\.com\/(?:reel|reels|p)\/[a-zA-Z0-9_-]+(\?[^\s]*)?/gi, "")
+            .replace(/https?:\/\/[^\s]*(tenor\.com|giphy\.com|cdn\.discordapp\.com|media\.discordapp\.net|ddinstagram\.com)[^\s]*/gi, "")
+            .replace(/https?:\/\/[^\s]+\.(gif|png|jpg|jpeg|webp|mp4|webm|mov)(\?[^\s]*)?/gi, "")
+            .replace(/https?:\/\/[^\s]+/gi, "")
+            .trim();
+        }
+
+        setCurrentAlert({ ...alert, content: cleanText });
+        setVisible(true);
+
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+
+        // Only set timer for static media (images, gifs, text). Videos & Audio use onEnded event.
+        const isStaticMedia = !alert.mediaUrl || alert.mediaType === "image" || alert.mediaType === "gif" || alert.mediaType === "text";
+        if (isStaticMedia) {
+          const duration = (configRef.current.alertDuration || 8) * 1000;
+          timerRef.current = setTimeout(() => {
+            handleFinishAlert(alert.id);
+          }, duration);
+        }
       } catch (err) {
         console.error("Error parsing discord media alert:", err);
       }
     });
 
+    // INSTANT SKIP: Handle when an item currently playing is deleted from moderation queue
+    eventSource.addEventListener("media-delete", (event) => {
+      try {
+        const { id } = JSON.parse(event.data);
+        setCurrentAlert((prev) => {
+          if (prev && prev.id === id) {
+            setVisible(false);
+            if (timerRef.current) clearTimeout(timerRef.current);
+            setTimeout(() => setCurrentAlert(null), 150);
+          }
+          return prev;
+        });
+      } catch (err) {
+        console.error("Error processing media-delete event:", err);
+      }
+    });
+
+    // INSTANT CLEAR: Handle when queue is cleared
+    eventSource.addEventListener("queue-update", (event) => {
+      try {
+        const updatedQueue: DiscordMediaAlert[] = JSON.parse(event.data);
+        if (updatedQueue.length === 0) {
+          setVisible(false);
+          if (timerRef.current) clearTimeout(timerRef.current);
+          setTimeout(() => setCurrentAlert(null), 150);
+        }
+      } catch {}
+    });
+
     return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
       eventSource.close();
     };
-  }, [token]);
+  }, [token, handleFinishAlert]);
 
+  // YouTube Iframe API postMessage listener for video ENDED (playerState === 0)
   useEffect(() => {
-    if (!currentAlert && queue.length > 0) {
-      const nextAlert = queue[0];
-      queueMicrotask(() => {
-        setQueue((prev) => prev.slice(1));
-        setCurrentAlert(nextAlert);
-      });
+    const handleMessage = (e: MessageEvent) => {
+      try {
+        let data = e.data;
+        if (typeof data === "string") {
+          data = JSON.parse(data);
+        }
+        const isEnded =
+          data?.info?.playerState === 0 ||
+          data?.playerState === 0 ||
+          (data?.event === "onStateChange" && data?.info === 0) ||
+          (data?.event === "infoDelivery" && data?.info?.playerState === 0);
 
-      // Animate in
-      requestAnimationFrame(() => setVisible(true));
+        if (isEnded && currentAlertRef.current?.id) {
+          handleFinishAlert(currentAlertRef.current.id);
+        }
+      } catch {}
+    };
 
-      const duration = (config.alertDuration || 8) * 1000;
-      const timer = setTimeout(() => {
-        setVisible(false);
-        setTimeout(() => setCurrentAlert(null), 500);
-      }, duration);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [handleFinishAlert]);
 
-      return () => clearTimeout(timer);
-    }
-  }, [queue, currentAlert, config.alertDuration]);
+  // Adaptive Font Size calculation based on text length
+  const getAdaptiveFontSize = (text: string) => {
+    const len = text.length;
+    if (len <= 25) return "34px";
+    if (len <= 60) return "26px";
+    if (len <= 120) return "22px";
+    return "18px";
+  };
 
   return (
-    <div style={{
-      width: "100vw",
-      height: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-      background: "transparent",
-      fontFamily: "Inter, sans-serif",
-    }}>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        position: "relative",
+        overflow: "hidden",
+        background: "transparent",
+        fontFamily: "Inter, system-ui, sans-serif",
+      }}
+    >
       {currentAlert && (
         <div
           style={{
-            background: "rgba(18, 18, 24, 0.85)",
-            backdropFilter: "blur(16px)",
-            border: `1px solid ${config.borderColor || "#5865F2"}`,
-            borderRadius: "24px",
-            padding: "24px 32px",
-            maxWidth: "600px",
-            width: "90%",
-            boxShadow: `0 20px 50px rgba(0,0,0,0.6), 0 0 30px ${config.borderColor || "#5865F2"}55`,
-            color: "#ffffff",
-            textAlign: "center",
+            width: "100vw",
+            height: "100vh",
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             opacity: visible ? 1 : 0,
-            transform: visible ? "scale(1) translateY(0)" : "scale(0.8) translateY(50px)",
-            transition: "opacity 0.5s ease, transform 0.5s ease",
+            transition: "opacity 0.2s ease",
           }}
         >
-          {/* Header: Avatar + User */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginBottom: "16px" }}>
-            {currentAlert.authorAvatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={currentAlert.authorAvatar}
-                alt={currentAlert.authorName}
-                style={{ width: "50px", height: "50px", borderRadius: "50%", border: `2px solid ${config.borderColor || "#5865F2"}` }}
-              />
-            ) : (
-              <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: config.borderColor || "#5865F2", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "20px" }}>
-                {currentAlert.authorName.charAt(0)}
-              </div>
-            )}
-            <div style={{ textAlign: "left" }}>
-              <span style={{ fontSize: "14px", color: config.borderColor || "#5865F2", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px" }}>
-                Discord Stream Alert
-              </span>
-              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#ffffff" }}>
-                {currentAlert.authorName}
-              </h3>
-            </div>
-          </div>
-
-          {/* Message Text */}
-          {currentAlert.content && (
-            <p style={{ fontSize: "16px", color: "#E0E0E0", marginBottom: "16px", lineHeight: "1.5" }}>
-              {currentAlert.content}
-            </p>
-          )}
-
-          {/* Media Display */}
-          {currentAlert.mediaUrl && (
-            <div style={{ marginTop: "12px", borderRadius: "16px", overflow: "hidden", maxHeight: `${config.maxMediaHeight || 350}px`, display: "flex", justifyContent: "center" }}>
-              {currentAlert.mediaType === "video" ? (
+          {/* Full Screen Media Display */}
+          {currentAlert.mediaUrl ? (
+            <div
+              style={{
+                width: "100vw",
+                height: "100vh",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {currentAlert.mediaType === "youtube" ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${currentAlert.mediaUrl}?autoplay=1&controls=0&mute=0&enablejsapi=1&playsinline=1&rel=0`}
+                  title="YouTube video player"
+                  style={{
+                    width: "100vw",
+                    height: "100vh",
+                    border: "none",
+                    pointerEvents: "none",
+                  }}
+                  allow="autoplay; encrypted-media; fullscreen"
+                  onLoad={(e) => {
+                    try {
+                      e.currentTarget.contentWindow?.postMessage(
+                        JSON.stringify({ event: "listening", id: 1 }),
+                        "*"
+                      );
+                    } catch {}
+                  }}
+                />
+              ) : currentAlert.mediaType === "video" ? (
                 <video
+                  ref={videoRef}
                   src={currentAlert.mediaUrl}
                   autoPlay
                   playsInline
-                  style={{ maxWidth: "100%", maxHeight: `${config.maxMediaHeight || 350}px`, borderRadius: "12px" }}
-                  onEnded={() => {
-                    setVisible(false);
-                    setTimeout(() => setCurrentAlert(null), 500);
+                  controls={false}
+                  style={{
+                    maxWidth: "100vw",
+                    maxHeight: "100vh",
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain",
                   }}
+                  onCanPlay={(e) => {
+                    const v = e.currentTarget;
+                    v.play().catch((err) => console.log("Video autoplay onCanPlay error:", err));
+                  }}
+                  onLoadedData={(e) => {
+                    const v = e.currentTarget;
+                    v.play().catch(() => {});
+                  }}
+                  onEnded={() => handleFinishAlert(currentAlert.id)}
                 />
               ) : currentAlert.mediaType === "audio" ? (
                 <audio
+                  ref={audioRef}
                   src={currentAlert.mediaUrl}
                   autoPlay
                   controls
-                  style={{ width: "100%", marginTop: "8px" }}
-                  onEnded={() => {
-                    setVisible(false);
-                    setTimeout(() => setCurrentAlert(null), 500);
+                  style={{ width: "80%", maxWidth: "500px" }}
+                  onCanPlay={(e) => {
+                    const a = e.currentTarget;
+                    a.play().catch((err) => console.log("Audio autoplay onCanPlay error:", err));
                   }}
+                  onLoadedData={(e) => {
+                    const a = e.currentTarget;
+                    a.play().catch(() => {});
+                  }}
+                  onEnded={() => handleFinishAlert(currentAlert.id)}
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={currentAlert.mediaUrl}
                   alt="Discord Media"
-                  style={{ maxWidth: "100%", maxHeight: `${config.maxMediaHeight || 350}px`, borderRadius: "12px", objectFit: "contain" }}
+                  style={{
+                    maxWidth: "100vw",
+                    maxHeight: "100vh",
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain",
+                  }}
                 />
+              )}
+            </div>
+          ) : null}
+
+          {/* Top-Center Message Banner with Adaptive Font Size */}
+          {(currentAlert.content || currentAlert.authorName) && (
+            <div
+              style={{
+                position: "absolute",
+                top: "32px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 100,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                background: "rgba(10, 10, 15, 0.88)",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                border: "1px solid rgba(255, 255, 255, 0.18)",
+                borderRadius: "20px",
+                padding: "12px 28px",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.7)",
+                color: "#ffffff",
+                maxWidth: "90vw",
+                pointerEvents: "none",
+              }}
+            >
+              {/* Author Row */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: currentAlert.content ? "6px" : "0" }}>
+                {currentAlert.authorAvatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={currentAlert.authorAvatar}
+                    alt={currentAlert.authorName}
+                    style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid #5865F2" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "50%",
+                      background: "#5865F2",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {currentAlert.authorName.charAt(0)}
+                  </div>
+                )}
+                <span style={{ fontSize: "16px", fontWeight: "800", color: "#5865F2", textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>
+                  {currentAlert.authorName}
+                </span>
+              </div>
+
+              {/* Adaptive Text Row */}
+              {currentAlert.content && (
+                <div
+                  style={{
+                    fontSize: getAdaptiveFontSize(currentAlert.content),
+                    fontWeight: "700",
+                    color: "#FFFFFF",
+                    lineHeight: "1.3",
+                    textShadow: "0 2px 10px rgba(0,0,0,0.9)",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {currentAlert.content}
+                </div>
               )}
             </div>
           )}

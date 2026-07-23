@@ -29,6 +29,11 @@ import {
   FiCopy,
   FiCheck,
   FiExternalLink,
+  FiShield,
+  FiKey,
+  FiEye,
+  FiEyeOff,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { toaster, Toaster } from "@/components/ui/toaster";
 import { useTranslation } from '@/lib/i18n'
@@ -43,6 +48,7 @@ interface AllSettings {
   twitch?: PlatformSettings;
   youtube?: PlatformSettings;
   spotify?: PlatformSettings;
+  system?: PlatformSettings;
 }
 
 // ─── Field definitions per platform ─────────────────────────────────────────
@@ -557,6 +563,118 @@ function SpotifyHelpHelper({ origin }: { origin: string }) {
   );
 }
 
+// ─── Security & Token Regeneration Component ─────────────────────────────────
+
+function SecurityCard({
+  overlayToken,
+  onRegenerateToken,
+}: {
+  overlayToken: string;
+  onRegenerateToken: () => Promise<void>;
+}) {
+  const [showToken, setShowToken] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleRegen = async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir régénérer votre Token Overlay ? Tous vos liens d'overlays OBS existants deviendront inactifs et devront être mis à jour dans OBS Studio.")) {
+      return;
+    }
+    setLoading(true);
+    try {
+      await onRegenerateToken();
+      toaster.create({ title: "Nouveau Token d'Overlay généré avec succès !", type: "success" });
+    } catch {
+      toaster.create({ title: "Erreur lors de la régénération du token", type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToken = () => {
+    navigator.clipboard.writeText(overlayToken);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toaster.create({ title: "Token copié dans le presse-papier !", type: "success" });
+  };
+
+  return (
+    <Card.Root border="1px solid rgba(239, 68, 68, 0.3)" bg="#12141D" p={6} borderRadius="xl">
+      <VStack align="stretch" gap={5}>
+        <HStack gap={3}>
+          <Box p={2.5} bg="rgba(239, 68, 68, 0.15)" color="red.400" borderRadius="lg">
+            <FiShield size={24} />
+          </Box>
+          <Box>
+            <Heading size="md" color="white">Sécurité des Tokens & Clés d&apos;Accès</Heading>
+            <Text fontSize="xs" color="gray.400">
+              Gérez la confidentialité de vos tokens d&apos;overlays et régénérez-les instantanément en cas de fuite en direct.
+            </Text>
+          </Box>
+        </HStack>
+
+        <Separator borderColor="rgba(255,255,255,0.08)" />
+
+        {/* Token Box */}
+        <Box p={4} bg="#1F2330" borderRadius="lg" border="1px solid rgba(255,255,255,0.08)">
+          <VStack align="stretch" gap={3}>
+            <HStack justify="space-between">
+              <Text fontWeight="bold" fontSize="sm" color="white" display="flex" alignItems="center" gap={2}>
+                <FiKey color="#F59E0B" /> Token Principal d&apos;Overlay (OBS &amp; Modération)
+              </Text>
+              <Badge colorPalette="yellow" variant="outline">Clef de Sécurité</Badge>
+            </HStack>
+            
+            <Text fontSize="xs" color="gray.400">
+              Ce token sécurise l&apos;ensemble de vos URLs d&apos;overlays OBS (Twitch Chat, Multi Chat, Alerte Discord, Roue) et votre page de modération de la file d&apos;attente.
+            </Text>
+
+            <HStack>
+              <Input
+                type={showToken ? "text" : "password"}
+                value={overlayToken || "..."}
+                readOnly
+                bg="#12141D"
+                fontFamily="mono"
+                color="white"
+              />
+              <Button size="sm" variant="outline" colorPalette="gray" onClick={() => setShowToken(!showToken)}>
+                {showToken ? <FiEyeOff /> : <FiEye />}
+              </Button>
+              <Button size="sm" variant="outline" colorPalette="yellow" onClick={copyToken}>
+                {copied ? <FiCheck /> : <FiCopy />}
+              </Button>
+            </HStack>
+          </VStack>
+        </Box>
+
+        {/* Warning Alert & Regenerate Button */}
+        <Box p={4} bg="rgba(239, 68, 68, 0.1)" border="1px solid rgba(239, 68, 68, 0.3)" borderRadius="lg">
+          <HStack align="flex-start" gap={3}>
+            <Box color="red.400" pt={1}>
+              <FiAlertTriangle size={20} />
+            </Box>
+            <VStack align="stretch" gap={2} flex={1}>
+              <Text fontWeight="bold" fontSize="sm" color="red.300">
+                Que faire en cas de fuite de vos liens en plein stream ?
+              </Text>
+              <Text fontSize="xs" color="gray.300" lineHeight="1.5">
+                Si l&apos;une de vos clés ou votre lien d&apos;overlay a été aperçu à l&apos;écran, cliquez ci-dessous pour invalider immédiatement l&apos;ancien token et en générer un nouveau. Tous les anciens liens OBS et le lien de modération de la file d&apos;attente cesseront d&apos;être accessibles.
+              </Text>
+
+              <HStack pt={2}>
+                <Button colorPalette="red" size="sm" loading={loading} onClick={handleRegen}>
+                  <FiRefreshCw /> Régénérer le Token Overlay
+                </Button>
+              </HStack>
+            </VStack>
+          </HStack>
+        </Box>
+      </VStack>
+    </Card.Root>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const emptySubscribe = () => () => {};
@@ -709,6 +827,9 @@ export default function SettingsPage() {
                 </Badge>
               )}
             </Tabs.Trigger>
+            <Tabs.Trigger value="security">
+              <FiShield /> Sécurité &amp; Tokens
+            </Tabs.Trigger>
           </Tabs.List>
 
           <Tabs.Content value="twitch">
@@ -799,6 +920,29 @@ export default function SettingsPage() {
                 }}
               />
               <SpotifyHelpHelper origin={origin} />
+            </VStack>
+          </Tabs.Content>
+
+          <Tabs.Content value="security">
+            <VStack align="stretch" gap={6}>
+              <SecurityCard
+                overlayToken={settings.system?.overlayToken ?? ""}
+                onRegenerateToken={async () => {
+                  const res = await fetch("/api/settings/token", { method: "POST" });
+                  if (res.ok) {
+                    const data = await res.json();
+                    setSettings((prev) => ({
+                      ...prev,
+                      system: {
+                        ...prev.system,
+                        overlayToken: data.overlayToken,
+                      },
+                    }));
+                  } else {
+                    throw new Error("Failed to regenerate token");
+                  }
+                }}
+              />
             </VStack>
           </Tabs.Content>
         </Tabs.Root>

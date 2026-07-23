@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import styles from "./twitch-chat.module.css";
+import { renderEmotedText } from "@/lib/emoteParser";
 
 interface ChatMessage {
   id: string;
@@ -153,23 +154,34 @@ export default function TwitchChatOverlay() {
   const [visual, setVisual] = useState<ChatVisualConfig>(DEFAULT_VISUAL);
   const [status, setStatus] = useState<string>("Connexion au flux Twitch...");
   const [badgeMap, setBadgeMap] = useState<Record<string, string>>({});
+  const [sevenTvEmotes, setSevenTvEmotes] = useState<Record<string, string>>({});
   const visualRef = useRef(visual);
   useEffect(() => {
     visualRef.current = visual;
   }, [visual]);
 
-  // Fetch Twitch Badge images dictionary
+  // Fetch Twitch Badge images and 7TV emotes dictionary
   useEffect(() => {
     if (!mounted) return;
-    async function fetchBadges() {
+    async function fetchBadgesAndEmotes() {
       try {
-        const res = await fetch("/api/twitch/badges");
-        if (res.ok) {
-          setBadgeMap(await res.json());
+        const searchParams = new URLSearchParams(window.location.search);
+        const token = searchParams.get("token");
+        const tokenQuery = token ? `?token=${token}` : "";
+
+        const [badgeRes, emoteRes] = await Promise.all([
+          fetch("/api/twitch/badges"),
+          fetch(`/api/twitch/7tv-emotes${tokenQuery}`),
+        ]);
+        if (badgeRes.ok) {
+          setBadgeMap(await badgeRes.json());
+        }
+        if (emoteRes.ok) {
+          setSevenTvEmotes(await emoteRes.json());
         }
       } catch {}
     }
-    fetchBadges();
+    fetchBadgesAndEmotes();
   }, [mounted]);
 
   // Load visual configuration
@@ -309,7 +321,7 @@ export default function TwitchChatOverlay() {
             <span style={{ marginRight: "4px", color: "rgba(255,255,255,0.7)" }}>
               :{" "}
             </span>
-            <span className={styles.messageText}>{msg.message}</span>
+            <span className={styles.messageText}>{renderEmotedText(msg.message, sevenTvEmotes)}</span>
           </div>
         </div>
       ))}

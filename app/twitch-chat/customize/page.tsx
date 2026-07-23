@@ -24,7 +24,8 @@ import { Field } from "@/components/ui/field";
 import { FiArrowLeft, FiSave } from "react-icons/fi";
 import Link from "next/link";
 import { toaster, Toaster } from "@/components/ui/toaster";
-import { useTranslation } from '@/lib/i18n'
+import { useTranslation } from '@/lib/i18n';
+import { renderEmotedText } from "@/lib/emoteParser";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -245,17 +246,24 @@ function getFakeMessages(t: (key: string) => string) {
 
 function ChatPreview({ config, t }: { config: ChatVisualConfig; t: (key: string) => string }) {
   const [badgeMap, setBadgeMap] = useState<Record<string, string>>({});
+  const [sevenTvEmotes, setSevenTvEmotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    async function fetchBadges() {
+    async function fetchBadgesAndEmotes() {
       try {
-        const res = await fetch("/api/twitch/badges");
-        if (res.ok) {
-          setBadgeMap(await res.json());
+        const [badgeRes, emoteRes] = await Promise.all([
+          fetch("/api/twitch/badges"),
+          fetch("/api/twitch/7tv-emotes"),
+        ]);
+        if (badgeRes.ok) {
+          setBadgeMap(await badgeRes.json());
+        }
+        if (emoteRes.ok) {
+          setSevenTvEmotes(await emoteRes.json());
         }
       } catch {}
     }
-    fetchBadges();
+    fetchBadgesAndEmotes();
   }, []);
 
   const cssVars = {
@@ -291,7 +299,7 @@ function ChatPreview({ config, t }: { config: ChatVisualConfig; t: (key: string)
         letterSpacing="wide"
         fontFamily="mono"
       >
-        OBS PREVIEW
+        OBS PREVIEW (Support Emotes 7TV inclus)
       </Text>
 
       <Flex
@@ -345,7 +353,7 @@ function ChatPreview({ config, t }: { config: ChatVisualConfig; t: (key: string)
             <span style={{ color: "rgba(255,255,255,0.5)", marginRight: 4 }}>
               :
             </span>
-            <span>{msg.message}</span>
+            <span>{renderEmotedText(msg.message, sevenTvEmotes)}</span>
           </Box>
         ))}
       </Flex>

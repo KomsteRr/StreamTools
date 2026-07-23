@@ -16,6 +16,7 @@ import {
 import { toaster } from "@/components/ui/toaster";
 import { FiMessageSquare, FiCopy, FiSave } from "react-icons/fi";
 import { CombinedChatConfig } from "@/lib/combined-chat-config";
+import { renderEmotedText } from "@/lib/emoteParser";
 
 export default function CombinedChatCustomizePage() {
   const [config, setConfig] = useState<CombinedChatConfig>({
@@ -28,6 +29,7 @@ export default function CombinedChatCustomizePage() {
     chatWidth: 450,
   });
 
+  const [sevenTvEmotes, setSevenTvEmotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [overlayToken, setOverlayToken] = useState("");
   const [origin, setOrigin] = useState("");
@@ -40,6 +42,13 @@ export default function CombinedChatCustomizePage() {
       .then((data) => {
         if (data.fontSize) setConfig(data);
       });
+
+    fetch("/api/twitch/7tv-emotes")
+      .then((res) => res.json())
+      .then((data) => {
+        setSevenTvEmotes(data);
+      })
+      .catch(() => {});
 
     fetch("/api/settings")
       .then((res) => res.json())
@@ -124,7 +133,7 @@ export default function CombinedChatCustomizePage() {
                       {config.showBadges && <Text fontSize="10px" bg="#9146FF" px={1.5} py={0.5} borderRadius="md" color="white">Twitch</Text>}
                     </HStack>
                     <Text fontSize={`${config.fontSize}px`} color={config.textColor}>
-                      Super live ! Trop cool les nouveaux overlays 🔥
+                      {renderEmotedText("Super live ! Trop cool les nouveaux overlays KEKW 🔥", sevenTvEmotes)}
                     </Text>
                   </Box>
                 </HStack>

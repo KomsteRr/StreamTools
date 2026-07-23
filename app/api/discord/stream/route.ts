@@ -1,27 +1,68 @@
 import { discordMediaEmitter, DiscordMediaAlert } from "@/lib/discordMediaEmitter";
-import { getSession, getSafeUserId } from "@/lib/session";
+import { parseSession } from "@/lib/session";
+import { cookies } from "next/headers";
+import { isOverlayAuthorized } from "@/lib/overlay-token";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
-  const session = await getSession();
-  if (!session) return new Response("Unauthorized", { status: 401 });
+async function getUserId(req: Request): Promise<string | null | undefined> {
+  const auth = await isOverlayAuthorized(req);
+  if (auth.authorized) {
+    return auth.userId ?? null;
+  }
 
-  const userId = getSafeUserId(session);
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session")?.value;
+  if (sessionCookie) {
+    const session = await parseSession(sessionCookie);
+    if (session?.userId) {
+      return session.userId;
+    }
+  }
+
+  return undefined;
+}
+
+export async function GET(req: Request) {
+  const userId = await getUserId(req);
+  if (userId === undefined) return new Response("Unauthorized", { status: 401 });
+
   const encoder = new TextEncoder();
   let isAlive = true;
 
   const stream = new ReadableStream({
     start(controller) {
-      const unsubscribe = discordMediaEmitter.subscribe(userId, (alert: DiscordMediaAlert) => {
+      const unsubMedia = discordMediaEmitter.subscribe(userId, (alert: DiscordMediaAlert) => {
         if (!isAlive) return;
         try {
           controller.enqueue(
             encoder.encode(`event: media-alert\ndata: ${JSON.stringify(alert)}\n\n`),
           );
         } catch {
-          unsubscribe();
+          cleanup();
+        }
+      });
+
+      const unsubQueue = discordMediaEmitter.subscribeQueue(userId, (queue: DiscordMediaAlert[]) => {
+        if (!isAlive) return;
+        try {
+          controller.enqueue(
+            encoder.encode(`event: queue-update\ndata: ${JSON.stringify(queue)}\n\n`),
+          );
+        } catch {
+          cleanup();
+        }
+      });
+
+      const unsubDelete = discordMediaEmitter.subscribeDelete(userId, (alertId: string) => {
+        if (!isAlive) return;
+        try {
+          controller.enqueue(
+            encoder.encode(`event: media-delete\ndata: ${JSON.stringify({ id: alertId })}\n\n`),
+          );
+        } catch {
+          cleanup();
         }
       });
 
@@ -33,17 +74,20 @@ export async function GET() {
         try {
           controller.enqueue(encoder.encode(": heartbeat\n\n"));
         } catch {
-          clearInterval(heartbeat);
-          unsubscribe();
+          cleanup();
         }
       }, 15000);
 
-      controller.enqueue(encoder.encode(": connected\n\n"));
-      return () => {
+      const cleanup = () => {
         isAlive = false;
         clearInterval(heartbeat);
-        unsubscribe();
+        unsubMedia();
+        unsubQueue();
+        unsubDelete();
       };
+
+      controller.enqueue(encoder.encode(": connected\n\n"));
+      return cleanup;
     },
     cancel() {
       isAlive = false;

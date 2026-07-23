@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { CombinedChatMessage } from "@/lib/chatEmitter";
 import { CombinedChatConfig } from "@/lib/combined-chat-config";
+import { renderEmotedText } from "@/lib/emoteParser";
 
 const PLATFORM_COLORS: Record<string, string> = {
   twitch: "#9146FF",
@@ -22,6 +23,7 @@ export default function CombinedChatOverlayPage() {
   const token = searchParams.get("token");
 
   const [messages, setMessages] = useState<CombinedChatMessage[]>([]);
+  const [sevenTvEmotes, setSevenTvEmotes] = useState<Record<string, string>>({});
   const [config, setConfig] = useState<CombinedChatConfig>({
     fontSize: 14,
     maxMessages: 30,
@@ -35,14 +37,27 @@ export default function CombinedChatOverlayPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchConfig = async () => {
-      const url = token ? `/api/chat/config?token=${token}` : `/api/chat/config`;
-      const res = await fetch(url);
-      if (res.ok) {
-        setConfig(await res.json());
+    const fetchConfigAndEmotes = async () => {
+      const configUrl = token ? `/api/chat/config?token=${token}` : `/api/chat/config`;
+      const emotesUrl = token ? `/api/twitch/7tv-emotes?token=${token}` : `/api/twitch/7tv-emotes`;
+
+      try {
+        const [configRes, emotesRes] = await Promise.all([
+          fetch(configUrl),
+          fetch(emotesUrl),
+        ]);
+
+        if (configRes.ok) {
+          setConfig(await configRes.json());
+        }
+        if (emotesRes.ok) {
+          setSevenTvEmotes(await emotesRes.json());
+        }
+      } catch (e) {
+        console.error("[Combined Chat Overlay] Failed to fetch config or 7TV emotes:", e);
       }
     };
-    fetchConfig();
+    fetchConfigAndEmotes();
   }, [token]);
 
   useEffect(() => {
@@ -151,7 +166,7 @@ export default function CombinedChatOverlayPage() {
                 )}
               </div>
               <div style={{ fontSize: `${config.fontSize || 14}px`, color: config.textColor || "#E0E0E0" }}>
-                {msg.message}
+                {renderEmotedText(msg.message, sevenTvEmotes)}
               </div>
             </div>
           </div>

@@ -480,7 +480,7 @@ export default function DashboardPage() {
             icon={<FiBell size={20} />}
             iconBg="blue.50"
             iconColor="blue.500"
-            title="Bot & Overlay Media Discord"
+            title="Live Chat"
             status={
               <Badge colorPalette="blue" variant="subtle" borderRadius="full" px={2}>
                 Discord Bot

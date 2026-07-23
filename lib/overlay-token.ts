@@ -30,6 +30,37 @@ export async function getOverlayToken(userId?: string | null): Promise<string> {
   return newToken;
 }
 
+export async function regenerateOverlayToken(userId?: string | null): Promise<string> {
+  const safeUserId = userId ?? null;
+  const newToken = crypto.randomBytes(16).toString("hex");
+
+  const existing = await prisma.platformConfig.findFirst({
+    where: {
+      platform: "system",
+      key: "overlayToken",
+      userId: safeUserId,
+    },
+  });
+
+  if (existing) {
+    await prisma.platformConfig.update({
+      where: { id: existing.id },
+      data: { value: newToken },
+    });
+  } else {
+    await prisma.platformConfig.create({
+      data: {
+        platform: "system",
+        key: "overlayToken",
+        value: newToken,
+        userId: safeUserId,
+      },
+    });
+  }
+
+  return newToken;
+}
+
 export async function isOverlayAuthorized(req?: Request | null, searchParamsToken?: string | null): Promise<{ authorized: boolean; userId?: string | null }> {
   let token = searchParamsToken;
   if (!token && req) {

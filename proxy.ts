@@ -5,8 +5,10 @@ import { parseSession } from '@/lib/session'
 // Pages / routes that are always public (no session required)
 const PUBLIC_OVERLAYS = [
   '/twitch-chat-overlay',
+  '/combined-chat-overlay',
   '/spotify-stream',
   '/alerts-overlay',
+  '/discord-queue',
 ]
 
 const PUBLIC_API = [
@@ -15,6 +17,11 @@ const PUBLIC_API = [
   '/api/settings/public',
   '/api/alerts/stream',
   '/api/twitch/config',
+  '/api/twitch/badges',
+  '/api/twitch/7tv-emotes',
+  '/api/discord/queue',
+  '/api/discord/stream',
+  '/api/discord/config',
   '/api/invite/setup',     // Invite token validation
 ]
 
