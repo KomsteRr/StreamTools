@@ -154,7 +154,7 @@ export async function connectDiscordBot(userId?: string | null): Promise<{ ok: b
       }
 
       // Emit media alert
-      discordMediaEmitter.emitMediaAlert({
+      discordMediaEmitter.emitMediaAlert(userId, {
         authorName,
         authorAvatar,
         content,
