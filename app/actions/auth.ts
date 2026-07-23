@@ -79,7 +79,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
       httpOnly: true,
       secure: secureCookie,
       expires,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
     })
 
