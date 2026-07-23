@@ -26,16 +26,17 @@ export function renderEmotedText(
       return part;
     }
 
-    // Check exact match in emoteMap
-    const emoteUrl = emoteMap[part];
+    const cleanWord = part.replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+    // Check exact match or clean match in emoteMap
+    const emoteUrl = emoteMap[part] || emoteMap[cleanWord];
     if (emoteUrl) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           key={index}
           src={emoteUrl}
-          alt={part}
-          title={part}
+          alt={cleanWord}
+          title={cleanWord}
           style={{
             height: "1.4em",
             minHeight: "20px",

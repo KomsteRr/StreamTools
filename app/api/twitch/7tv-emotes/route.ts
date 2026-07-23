@@ -41,13 +41,18 @@ const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function add7tvEmotes(emotes: SevenTvEmote[], map: Record<string, string>) {
+function add7tvEmotes(emotes: any[], map: Record<string, string>) {
+  if (!Array.isArray(emotes)) return;
   for (const emote of emotes) {
-    if (!emote.name || !emote.id) continue;
-    const hostUrl = emote.data?.host?.url
-      ? `https:${emote.data.host.url}/2x.webp`
-      : `https://cdn.7tv.app/emote/${emote.id}/2x.webp`;
-    map[emote.name] = proxyUrl(hostUrl);
+    const name = emote.name || emote.data?.name;
+    const id = emote.id || emote.data?.id;
+    if (!name || !id) continue;
+    const rawHost = emote.data?.host?.url || emote.host?.url || `//cdn.7tv.app/emote/${id}`;
+    let fullUrl = rawHost.startsWith("//") ? `https:${rawHost}` : rawHost.startsWith("http") ? rawHost : `https://${rawHost}`;
+    if (!fullUrl.endsWith(".webp") && !fullUrl.endsWith(".gif") && !fullUrl.endsWith(".png")) {
+      fullUrl = `${fullUrl}/2x.webp`;
+    }
+    map[name] = proxyUrl(fullUrl);
   }
 }
 
@@ -98,10 +103,26 @@ export async function GET(request: Request) {
         if (userRes.ok) {
           const userData = await userRes.json();
           broadcasterId = userData.data?.[0]?.id ?? null;
-          console.log(`[Emotes] Resolved broadcaster ID for #${cleanChannel}: ${broadcasterId}`);
+          console.log(`[Emotes] Resolved broadcaster ID via Helix for #${cleanChannel}: ${broadcasterId}`);
         }
       } catch (e) {
-        console.warn("[Emotes] Could not resolve broadcaster ID:", e);
+        console.warn("[Emotes] Could not resolve broadcaster ID via Helix:", e);
+      }
+    }
+
+    if (!broadcasterId && cleanChannel) {
+      try {
+        const ivrRes = await fetch(`https://api.ivr.fi/v2/twitch/user?login=${cleanChannel}`, {
+          headers: { "User-Agent": "StreamAllInTools/1.0" },
+          cache: "no-store",
+        });
+        if (ivrRes.ok) {
+          const ivrData = await ivrRes.json();
+          broadcasterId = ivrData[0]?.id ?? null;
+          console.log(`[Emotes] Resolved broadcaster ID via IVR for #${cleanChannel}: ${broadcasterId}`);
+        }
+      } catch (e) {
+        console.warn("[Emotes] Could not resolve broadcaster ID via IVR:", e);
       }
     }
 
@@ -121,8 +142,6 @@ export async function GET(request: Request) {
       }).catch((e) => console.error("[Emotes] 7TV global failed:", e)),
 
       // ── 2. 7TV Channel — using numeric Twitch ID, then fetch emote set ────
-      // The 7TV v3 API requires the numeric Twitch ID, not the username.
-      // Flow: GET /v3/users/twitch/{twitchNumericId} → emote_set.id → GET /v3/emote-sets/{id}
       (broadcasterId ? (async () => {
         try {
           const seventvUserRes = await fetch(`https://7tv.io/v3/users/twitch/${broadcasterId}`, {
@@ -135,36 +154,28 @@ export async function GET(request: Request) {
           }
           const seventvUser = await seventvUserRes.json();
 
-          // The active emote set ID is at emote_set.id (already populated) or connections
           const emoteSetId: string | undefined =
+            seventvUser.emote_set_id ??
             seventvUser.emote_set?.id ??
-            seventvUser.connections?.find((c: { platform: string; emote_set_id?: string }) => c.platform === "TWITCH")?.emote_set_id;
+            seventvUser.user?.emote_set_id ??
+            seventvUser.user?.connections?.find((c: any) => c.emote_set_id || c.emote_set)?.emote_set_id ??
+            seventvUser.user?.connections?.find((c: any) => c.emote_set_id || c.emote_set)?.emote_set?.id;
 
-          if (!emoteSetId) {
-            // emote_set might be embedded directly
-            const directEmotes: SevenTvEmote[] = seventvUser.emote_set?.emotes || [];
-            if (directEmotes.length > 0) {
-              add7tvEmotes(directEmotes, emoteMap);
-              console.log(`[Emotes] 7TV channel (direct): ${directEmotes.length} emotes`);
-            } else {
-              console.warn("[Emotes] 7TV: no emote_set_id found for broadcaster");
+          let emotes: any[] = seventvUser.emote_set?.emotes || seventvUser.user?.emote_set?.emotes || [];
+          if (emoteSetId && emotes.length === 0) {
+            const setRes = await fetch(`https://7tv.io/v3/emote-sets/${emoteSetId}`, {
+              headers: { "User-Agent": "StreamAllInTools/1.0" },
+              cache: "no-store",
+            });
+            if (setRes.ok) {
+              const setData = await setRes.json();
+              emotes = setData.emotes || [];
             }
-            return;
           }
-
-          // Fetch the full emote set
-          const setRes = await fetch(`https://7tv.io/v3/emote-sets/${emoteSetId}`, {
-            headers: { "User-Agent": "StreamAllInTools/1.0" },
-            cache: "no-store",
-          });
-          if (!setRes.ok) {
-            console.warn(`[Emotes] 7TV emote-set fetch failed (${setRes.status}) for set ${emoteSetId}`);
-            return;
+          if (emotes.length > 0) {
+            add7tvEmotes(emotes, emoteMap);
+            console.log(`[Emotes] 7TV channel: ${emotes.length} emotes loaded`);
           }
-          const setData = await setRes.json();
-          const emotes: SevenTvEmote[] = setData.emotes || [];
-          add7tvEmotes(emotes, emoteMap);
-          console.log(`[Emotes] 7TV channel set ${emoteSetId}: ${emotes.length} emotes`);
         } catch (e) {
           console.error("[Emotes] 7TV channel failed:", e);
         }
