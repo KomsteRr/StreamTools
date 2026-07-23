@@ -94,7 +94,7 @@ export async function connectDiscordBot(userId?: string | null): Promise<{ ok: b
 
       // 1. Emit for Combined Chat
       if (content.trim()) {
-        chatEmitter.addMessage({
+        chatEmitter.addMessage(userId, {
           platform: "discord",
           user: authorName,
           avatar: authorAvatar,
