@@ -15,8 +15,13 @@ export function DashboardHeader({ hasSession }: { hasSession: boolean }) {
   const { t } = useTranslation();
   const pathname = usePathname();
 
+  const isOverlay =
+    config.streamAsset ||
+    pathname?.includes("-overlay") ||
+    pathname?.includes("-stream");
+
   // Never render on overlay pages or when logged out
-  if (!hasSession || config.streamAsset) {
+  if (!hasSession || isOverlay) {
     return null;
   }
 

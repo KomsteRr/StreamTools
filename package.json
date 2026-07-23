@@ -18,6 +18,8 @@
     "@emotion/styled": "^11.14.1",
     "@prisma/client": "^6.4.1",
     "bcryptjs": "^3.0.3",
+    "canvas-confetti": "^1.9.4",
+    "discord.js": "^14.18.0",
     "framer-motion": "^12.4.7",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
@@ -28,6 +30,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -35,7 +38,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "prisma": "^6.4.1",
-    "typescript": "^5",
-    "tsx": "^4.0.0"
+    "tsx": "^4.0.0",
+    "typescript": "^5"
   }
 }

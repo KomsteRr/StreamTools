@@ -59,14 +59,14 @@ Un tableau de bord complet et une suite d'outils pour les streamers, développé
 
 Créez un fichier `.env` en vous basant sur `.env.example` :
 
-| Variable               | Description                                                    | Obligatoire |
-|------------------------|----------------------------------------------------------------|:-----------:|
-| `SESSION_SECRET`       | Clé HMAC-SHA256 pour les cookies de session (256 bits)         | ✅          |
-| `ADMIN_PASSWORD`       | Mot de passe admin (haché bcrypt au premier login)             | ✅          |
-| `DATABASE_URL`         | Chemin SQLite, ex. `file:/data/prod.db`                        | ✅          |
-| `SPOTIFY_CLIENT_ID`    | ID client de votre application Spotify                         | ❌          |
-| `SPOTIFY_CLIENT_SECRET`| Secret client de votre application Spotify                     | ❌          |
-| `SPOTIFY_REDIRECT_URI` | URI de callback Spotify                                        | ❌          |
+| Variable                | Description                                            | Obligatoire |
+| ----------------------- | ------------------------------------------------------ | :---------: |
+| `SESSION_SECRET`        | Clé HMAC-SHA256 pour les cookies de session (256 bits) |     ✅      |
+| `ADMIN_PASSWORD`        | Mot de passe admin (haché bcrypt au premier login)     |     ✅      |
+| `DATABASE_URL`          | Chemin SQLite, ex. `file:/data/prod.db`                |     ✅      |
+| `SPOTIFY_CLIENT_ID`     | ID client de votre application Spotify                 |     ❌      |
+| `SPOTIFY_CLIENT_SECRET` | Secret client de votre application Spotify             |     ❌      |
+| `SPOTIFY_REDIRECT_URI`  | URI de callback Spotify                                |     ❌      |
 
 ### Build & Run (ligne de commande)
 
@@ -126,11 +126,11 @@ docker compose up -d
 
 ## Technologies Utilisées
 
-| Catégorie       | Technologie                              |
-|-----------------|------------------------------------------|
-| Framework       | Next.js 16 (App Router)                  |
-| Interface       | Chakra UI + Framer Motion                |
-| Base de données | Prisma ORM + SQLite                      |
-| APIs            | Twitch (tmi.js), Spotify Web API, YouTube|
-| Temps réel      | Server-Sent Events (SSE)                 |
-| Auth            | Cookies HMAC-SHA256 + bcrypt             |
+| Catégorie       | Technologie                               |
+| --------------- | ----------------------------------------- |
+| Framework       | Next.js 16 (App Router)                   |
+| Interface       | Chakra UI + Framer Motion                 |
+| Base de données | Prisma ORM + SQLite                       |
+| APIs            | Twitch (tmi.js), Spotify Web API, YouTube |
+| Temps réel      | Server-Sent Events (SSE)                  |
+| Auth            | Cookies HMAC-SHA256 + bcrypt              |

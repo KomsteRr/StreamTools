@@ -102,6 +102,108 @@ function getAnimCollection(t: any) {
   });
 }
 
+function TwitchBadgeIcon({ type, badgeMap }: { type: string; badgeMap?: Record<string, string> }) {
+  const norm = type.toLowerCase().trim();
+  const setId = norm.split("/")[0];
+
+  const imageUrl = badgeMap?.[norm] || badgeMap?.[type] || badgeMap?.[setId];
+  if (imageUrl) {
+    return (
+      <img
+        src={imageUrl}
+        alt={type}
+        title={type}
+        width="18"
+        height="18"
+        style={{ borderRadius: 3, verticalAlign: "middle", display: "inline-block" }}
+      />
+    );
+  }
+
+  switch (setId) {
+    case "broadcaster":
+    case "streamer":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>Streamer</title>
+          <rect width="18" height="18" rx="3" fill="#E91E63"/>
+          <path d="M4.5 5.5H10.5C11.05 5.5 11.5 5.95 11.5 6.5V11.5C11.5 12.05 11.05 12.5 10.5 12.5H4.5C3.95 12.5 3.5 12.05 3.5 11.5V6.5C3.5 5.95 3.95 5.5 4.5 5.5Z" fill="white"/>
+          <path d="M11.5 8.5L14.5 6.5V11.5L11.5 9.5V8.5Z" fill="white"/>
+        </svg>
+      );
+    case "moderator":
+    case "mod":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>Modérateur</title>
+          <rect width="18" height="18" rx="3" fill="#00AD03"/>
+          <path d="M12.5 3.5L14.5 5.5L9.5 10.5L10.5 11.5L9.5 12.5L8.5 11.5L7.5 12.5L5.5 10.5L6.5 9.5L5.5 8.5L6.5 7.5L7.5 8.5L12.5 3.5Z" fill="white"/>
+          <path d="M4 14L6 12L5 11L3 13L4 14Z" fill="white"/>
+        </svg>
+      );
+    case "vip":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>VIP</title>
+          <rect width="18" height="18" rx="3" fill="#E040FB"/>
+          <path d="M9 4.5L13.5 8.5L9 13.5L4.5 8.5L9 4.5Z" fill="white"/>
+        </svg>
+      );
+    case "subscriber":
+    case "sub":
+    case "founder":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>Abonné</title>
+          <rect width="18" height="18" rx="3" fill="#9146FF"/>
+          <path d="M9 4L10.5 7L14 7.5L11.5 10L12 13.5L9 12L6 13.5L6.5 10L4 7.5L7.5 7L9 4Z" fill="white"/>
+        </svg>
+      );
+    case "prime":
+    case "premium":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>Prime</title>
+          <rect width="18" height="18" rx="3" fill="#00A3DA"/>
+          <path d="M4.5 12.5V11L6.5 7.5L9 9.5L11.5 7.5L13.5 11V12.5H4.5Z" fill="white"/>
+        </svg>
+      );
+    case "partner":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>Partenaire</title>
+          <rect width="18" height="18" rx="3" fill="#9146FF"/>
+          <path d="M7.5 11.5L4.5 8.5L5.5 7.5L7.5 9.5L12.5 4.5L13.5 5.5L7.5 11.5Z" fill="white"/>
+        </svg>
+      );
+    case "turbo":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>Turbo</title>
+          <rect width="18" height="18" rx="3" fill="#FF5722"/>
+          <path d="M10 3L4.5 10H9.5L8 15L13.5 8H8.5L10 3Z" fill="white"/>
+        </svg>
+      );
+    case "bits":
+    case "bits-leader":
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>Bits</title>
+          <rect width="18" height="18" rx="3" fill="#F57C00"/>
+          <path d="M9 3L14 9L9 15L4 9L9 3Z" fill="white"/>
+        </svg>
+      );
+    default:
+      return (
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ borderRadius: 3, verticalAlign: "middle" }}>
+          <title>{type}</title>
+          <rect width="18" height="18" rx="3" fill="#757575"/>
+          <text x="9" y="12" fontSize="8" fontWeight="bold" fill="white" textAnchor="middle">{setId.substring(0, 2).toUpperCase()}</text>
+        </svg>
+      );
+  }
+}
+
 // ─── Fake messages ────────────────────────────────────────────────────────────
 
 function getFakeMessages(t: any) {
@@ -111,28 +213,28 @@ function getFakeMessages(t: any) {
       username: "StreamFan42",
       color: "#a970ff",
       message: t("twitchChat.previewMsg1"),
-      badges: [],
+      badges: ["subscriber"],
     },
     {
       id: "2",
       username: "Komsterr",
       color: "#ff6b6b",
       message: t("twitchChat.previewMsg2"),
-      badges: [],
+      badges: ["broadcaster"],
     },
     {
       id: "3",
       username: "ChatterPro",
       color: "#4ecdc4",
       message: t("twitchChat.previewMsg3"),
-      badges: [],
+      badges: ["moderator"],
     },
     {
       id: "4",
       username: "VipCoolGuy",
       color: "#ffd93d",
       message: "PogChamp PogChamp PogChamp",
-      badges: [],
+      badges: ["vip"],
     },
     {
       id: "5",
@@ -147,6 +249,20 @@ function getFakeMessages(t: any) {
 // ─── Inline Chat Preview ──────────────────────────────────────────────────────
 
 function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
+  const [badgeMap, setBadgeMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function fetchBadges() {
+      try {
+        const res = await fetch("/api/twitch/badges");
+        if (res.ok) {
+          setBadgeMap(await res.json());
+        }
+      } catch (e) {}
+    }
+    fetchBadges();
+  }, []);
+
   const cssVars = {
     "--chat-bgColor": config.chat_bgColor,
     "--chat-bgBlur": `${config.chat_bgBlur}px`,
@@ -157,6 +273,8 @@ function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
     "--chat-fontSize": `${config.chat_fontSize}px`,
     "--chat-font": config.chat_font,
   } as React.CSSProperties;
+
+  const showBadges = String(config.chat_showBadges ?? "true") === "true";
 
   return (
     <Box
@@ -219,6 +337,13 @@ function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
               color: "var(--chat-textColor)",
             }}
           >
+            {showBadges && msg.badges && msg.badges.length > 0 && (
+              <span style={{ display: "inline-flex", gap: 4, marginRight: 6, verticalAlign: "middle" }}>
+                {msg.badges.map((b) => (
+                  <TwitchBadgeIcon key={b} type={b} badgeMap={badgeMap} />
+                ))}
+              </span>
+            )}
             <span style={{ fontWeight: 700, color: msg.color }}>
               {msg.username}
             </span>
@@ -240,12 +365,16 @@ export default function TwitchChatCustomizePage() {
   const [config, setConfig] = useState<ChatVisualConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [overlayToken, setOverlayToken] = useState("");
 
   const fetchConfig = useCallback(async () => {
     const res = await fetch("/api/settings");
     const data = await res.json();
     if (data["twitch-chat"]) {
       setConfig((prev) => ({ ...prev, ...data["twitch-chat"] }));
+    }
+    if (data.system?.overlayToken) {
+      setOverlayToken(data.system.overlayToken);
     }
     setLoading(false);
   }, []);
@@ -306,6 +435,37 @@ export default function TwitchChatCustomizePage() {
             </Button>
           </HStack>
         </HStack>
+
+        {/* OBS URL Link Card */}
+        <Box mb={6} p={5} bg="white" _dark={{ bg: "gray.800" }} borderRadius="xl" shadow="sm" border="1px solid rgba(145, 70, 255, 0.3)">
+          <VStack align="stretch" gap={2}>
+            <Heading size="sm" color="purple.500">🔗 URL Source Navigateur OBS (Chat Twitch)</Heading>
+            <Text fontSize="xs" color="gray.400">
+              Copiez ce lien et collez-le dans OBS Studio (Taille recommandée: 400 × 600px).
+            </Text>
+            <HStack gap={2}>
+              <Input
+                value={`${typeof window !== "undefined" ? window.location.origin : ""}/twitch-chat-overlay${overlayToken ? `?token=${overlayToken}` : ""}`}
+                readOnly
+                size="sm"
+                bg="gray.100"
+                _dark={{ bg: "gray.700" }}
+                fontFamily="mono"
+              />
+              <Button
+                size="sm"
+                colorPalette="purple"
+                onClick={() => {
+                  const url = `${window.location.origin}/twitch-chat-overlay${overlayToken ? `?token=${overlayToken}` : ""}`;
+                  navigator.clipboard.writeText(url);
+                  toaster.create({ title: "Lien OBS copié !", type: "success" });
+                }}
+              >
+                Copier
+              </Button>
+            </HStack>
+          </VStack>
+        </Box>
 
         <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={8}>
           {/* LEFT — Live Preview */}
@@ -693,6 +853,7 @@ export default function TwitchChatCustomizePage() {
                       }
                       colorPalette="purple"
                     >
+                      <Switch.HiddenInput />
                       <Switch.Control>
                         <Switch.Thumb />
                       </Switch.Control>

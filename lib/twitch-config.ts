@@ -18,8 +18,12 @@ const DEFAULT_CONFIG: TwitchConfig = {
 
 export async function getTwitchConfig(userId?: string | null): Promise<TwitchConfig> {
   const safeUserId = userId ?? null;
+  const whereCondition = safeUserId
+    ? { platform: "twitch", OR: [{ userId: safeUserId }, { userId: null }] }
+    : { platform: "twitch" };
+
   const configItems = await prisma.platformConfig.findMany({
-    where: { platform: "twitch", userId: safeUserId },
+    where: whereCondition,
   });
   const config = { ...DEFAULT_CONFIG };
 
@@ -27,7 +31,7 @@ export async function getTwitchConfig(userId?: string | null): Promise<TwitchCon
     if (item.key === "clientId") config.twitchClientId = item.value;
     else if (item.key === "accessToken") config.twitchAccessToken = item.value;
     else if (Object.keys(DEFAULT_CONFIG).includes(item.key)) {
-      (config as any)[item.key] = item.value;
+      if (item.value) (config as any)[item.key] = item.value;
     }
   });
 
@@ -58,4 +62,62 @@ export async function saveTwitchConfig(newConfig: Partial<TwitchConfig>, userId?
       });
     }
   }
+}
+
+export async function getRealTwitchStats(userId?: string | null): Promise<{ followers: number; subs: number } | null> {
+  try {
+    const config = await getTwitchConfig(userId);
+    if (!config.channelName) return null;
+
+    const channel = config.channelName.toLowerCase().replace(/^#/, "").trim();
+    const clientId = config.twitchClientId;
+    const accessToken = config.twitchAccessToken;
+
+    if (clientId && accessToken) {
+      // 1. Get user id
+      const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
+        headers: {
+          "Client-ID": clientId,
+          "Authorization": `Bearer ${accessToken}`,
+        },
+      });
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        if (userData.data && userData.data.length > 0) {
+          const broadcasterId = userData.data[0].id;
+
+          // 2. Get followers
+          const folRes = await fetch(`https://api.twitch.tv/helix/channels/followers?broadcaster_id=${broadcasterId}`, {
+            headers: {
+              "Client-ID": clientId,
+              "Authorization": `Bearer ${accessToken}`,
+            },
+          });
+          let followers = 0;
+          if (folRes.ok) {
+            const folData = await folRes.json();
+            followers = folData.total ?? (folData.data ? folData.data.length : 0);
+          }
+
+          // 3. Get subs
+          const subRes = await fetch(`https://api.twitch.tv/helix/subscriptions?broadcaster_id=${broadcasterId}`, {
+            headers: {
+              "Client-ID": clientId,
+              "Authorization": `Bearer ${accessToken}`,
+            },
+          });
+          let subs = 0;
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            subs = subData.total ?? 0;
+          }
+
+          return { followers, subs };
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching real Twitch stats:", err);
+  }
+  return null;
 }

@@ -8,16 +8,19 @@ export async function GET(request: Request) {
     const session = await getSession();
     const overlayAuth = await isOverlayAuthorized(request);
 
-    if (!session && !overlayAuth.authorized) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = session ? getSafeUserId(session) : (overlayAuth.userId ?? null);
+    let config = await getTwitchConfig(userId);
+
+    // Fallback if empty channel name for target userId
+    if (!config.channelName) {
+      const globalConfig = await getTwitchConfig(null);
+      if (globalConfig.channelName) {
+        config.channelName = globalConfig.channelName;
+      }
     }
 
-    // Overlay tokens for admin will already resolve to `null`, but session needs getSafeUserId
-    const userId = session ? getSafeUserId(session) : (overlayAuth.userId ?? null);
-    const config = await getTwitchConfig(userId);
-
-    // If accessed via overlay token (no session), never leak the bot password
-    if (!session && overlayAuth.authorized) {
+    // Never leak botPassword when accessed via overlay token
+    if (!session) {
       config.botPassword = "";
     }
 

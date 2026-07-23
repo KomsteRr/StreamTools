@@ -10,7 +10,6 @@ import {
 import { usePathname } from "next/navigation";
 import { Box } from "@chakra-ui/react";
 import { Provider } from "@/components/ui/provider";
-import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/lib/i18n";
 
 interface GlobalContextType {
@@ -30,20 +29,19 @@ export const useGlobal = () => {
 
 export function Providers({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isStreamAsset =
-    pathname?.includes("/twitch-chat-overlay") ||
-    pathname?.includes("/spotify-stream") ||
-    pathname?.includes("/alerts-overlay");
+
+  const isOverlayPath = (path: string | null) => {
+    if (!path) return false;
+    return path.includes("-overlay") || path.includes("-stream");
+  };
+
+  const isStreamAsset = isOverlayPath(pathname);
 
   const [config, setConfig] = useState({ streamAsset: !!isStreamAsset });
 
   // Update config if pathname changes (navigation)
   useEffect(() => {
-    const isOverlay =
-      pathname?.includes("/twitch-chat-overlay") ||
-      pathname?.includes("/spotify-stream") ||
-      pathname?.includes("/alerts-overlay");
-    setConfig((prev) => ({ ...prev, streamAsset: !!isOverlay }));
+    setConfig((prev) => ({ ...prev, streamAsset: isOverlayPath(pathname) }));
   }, [pathname]);
 
   // Handle global background transparency for OBS
@@ -64,19 +62,17 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <GlobalContext.Provider value={{ config, setConfig }}>
       <Provider>
-        <ThemeProvider attribute="class" disableTransitionOnChange>
-          <Box
-            minH="100vh"
-            bg={config.streamAsset ? "transparent" : "white"}
-            color="gray.900"
-            _dark={{
-              bg: config.streamAsset ? "transparent" : "gray.900",
-              color: "white",
-            }}
-          >
-            <I18nProvider>{children}</I18nProvider>
-          </Box>
-        </ThemeProvider>
+        <Box
+          minH="100vh"
+          bg={config.streamAsset ? "transparent" : "white"}
+          color="gray.900"
+          _dark={{
+            bg: config.streamAsset ? "transparent" : "gray.900",
+            color: "white",
+          }}
+        >
+          <I18nProvider>{children}</I18nProvider>
+        </Box>
       </Provider>
     </GlobalContext.Provider>
   );

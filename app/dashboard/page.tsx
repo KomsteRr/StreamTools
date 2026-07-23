@@ -474,6 +474,74 @@ export default function DashboardPage() {
             overlayHref={`/alerts-overlay${tokenQuery}`}
             overlayUrl={`${origin}/alerts-overlay${tokenQuery}`}
           />
+
+          {/* Discord Media Alert Overlay */}
+          <ServiceCard
+            icon={<FiBell size={20} />}
+            iconBg="blue.50"
+            iconColor="blue.500"
+            title="Bot & Overlay Media Discord"
+            status={
+              <Badge colorPalette="blue" variant="subtle" borderRadius="full" px={2}>
+                Discord Bot
+              </Badge>
+            }
+            description="Affichez sur OBS les images, GIFs, vidéos et audios postés dans votre salon Discord."
+            configHref="/discord/customize"
+            overlayHref={`/discord-overlay${tokenQuery}`}
+            overlayUrl={`${origin}/discord-overlay${tokenQuery}`}
+          />
+
+          {/* Goal Bar Overlay */}
+          <ServiceCard
+            icon={<FiSliders size={20} />}
+            iconBg="purple.50"
+            iconColor="purple.500"
+            title="Goal Bar Overlay"
+            status={
+              <Badge colorPalette="purple" variant="subtle" borderRadius="full" px={2}>
+                Objectifs Stream
+              </Badge>
+            }
+            description="Jauge d'objectifs animée avec confettis lors du passage des 100%."
+            configHref="/goal/customize"
+            overlayHref={`/goal-overlay${tokenQuery}`}
+            overlayUrl={`${origin}/goal-overlay${tokenQuery}`}
+          />
+
+          {/* Combined Chat */}
+          <ServiceCard
+            icon={<FiMessageSquare size={20} />}
+            iconBg="green.50"
+            iconColor="green.500"
+            title="Chat Fusionné (Twitch/YT/Discord)"
+            status={
+              <Badge colorPalette="green" variant="subtle" borderRadius="full" px={2}>
+                Multi-plateforme
+              </Badge>
+            }
+            description="Un seul chat transparent sur OBS réunissant Twitch, YouTube et Discord."
+            configHref="/combined-chat/customize"
+            overlayHref={`/combined-chat-overlay${tokenQuery}`}
+            overlayUrl={`${origin}/combined-chat-overlay${tokenQuery}`}
+          />
+
+          {/* Roue de la Fortune */}
+          <ServiceCard
+            icon={<FiSliders size={20} />}
+            iconBg="yellow.50"
+            iconColor="yellow.600"
+            title="Roue de la Fortune Interactive"
+            status={
+              <Badge colorPalette="yellow" variant="subtle" borderRadius="full" px={2}>
+                Interactive
+              </Badge>
+            }
+            description="Roue des défis animée à déclencher en live sur OBS."
+            configHref="/wheel/customize"
+            overlayHref={`/wheel-overlay${tokenQuery}`}
+            overlayUrl={`${origin}/wheel-overlay${tokenQuery}`}
+          />
         </SimpleGrid>
 
         {/* ── Quick settings shortcut ── */}
