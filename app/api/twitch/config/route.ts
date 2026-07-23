@@ -8,20 +8,24 @@ export async function GET(request: Request) {
     const session = await getSession();
     const overlayAuth = await isOverlayAuthorized(request);
 
-    const userId = session ? getSafeUserId(session) : (overlayAuth.userId ?? null);
-    let config = await getTwitchConfig(userId);
-
-    // Fallback if empty channel name for target userId
-    if (!config.channelName) {
-      const globalConfig = await getTwitchConfig(null);
-      if (globalConfig.channelName) {
-        config.channelName = globalConfig.channelName;
-      }
+    if (!session && !overlayAuth.authorized) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Never leak botPassword when accessed via overlay token
+    const userId = session
+      ? getSafeUserId(session)
+      : overlayAuth.userId ?? null;
+    const config = await getTwitchConfig(userId);
+
+    // Overlay tokens are read-only capabilities and must never reveal credentials.
     if (!session) {
-      config.botPassword = "";
+      const {
+        botPassword: _botPassword,
+        twitchClientId: _clientId,
+        twitchAccessToken: _accessToken,
+        ...overlayConfig
+      } = config;
+      return NextResponse.json(overlayConfig);
     }
 
     return NextResponse.json(config);
@@ -29,23 +33,26 @@ export async function GET(request: Request) {
     console.error("Twitch Config Fetch Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch config" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: Request) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const session = await getSession();
-    const userId = getSafeUserId(session);
     const body = await request.json();
-    await saveTwitchConfig(body, userId);
+    await saveTwitchConfig(body, getSafeUserId(session));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Twitch Config Save Error:", error);
     return NextResponse.json(
-      { error: "Failed to save config", details: String(error) },
-      { status: 500 }
+      { error: "Failed to save config" },
+      { status: 500 },
     );
   }
 }
