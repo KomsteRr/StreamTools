@@ -13,6 +13,7 @@ import { Field } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
 
 import { LoginBackground } from "../components/login-background";
+import { LanguageSwitcher } from "@/app/components/language-switcher";
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -27,6 +28,9 @@ export default function LoginPage() {
         justifyContent="center"
         pos="relative"
       >
+        <Box pos="absolute" top={4} right={4} zIndex={10}>
+          <LanguageSwitcher />
+        </Box>
         <LoginBackground />
         <Container
           maxW="sm"

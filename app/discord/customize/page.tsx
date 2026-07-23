@@ -15,8 +15,10 @@ import {
 import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster";
 import { FaDiscord, FaCopy, FaPlay, FaSync } from "react-icons/fa";
+import { useTranslation } from "@/lib/i18n";
 
 export default function DiscordCustomizePage() {
+  const { t } = useTranslation();
   const [botToken, setBotToken] = useState("");
   const [channelId, setChannelId] = useState("");
   const [alertDuration, setAlertDuration] = useState(8);
@@ -112,25 +114,25 @@ export default function DiscordCustomizePage() {
       <Container maxW="container.lg" py={8}>
         <VStack align="stretch" gap={6}>
           <Heading size="xl" display="flex" alignItems="center" gap={3}>
-            <FaDiscord color="#5865F2" /> Configuration du Live Chat
+            <FaDiscord color="#5865F2" /> {t("discord.title")}
           </Heading>
           <Text color="gray.400">
-            Associez votre Bot Discord et specifiez l&apos;ID du canal. Lorsqu&apos;un membre y postera un texte, une image, un GIF, une video ou un son, une alerte animee apparaitra sur OBS !
+            {t("discord.subtitle")}
           </Text>
 
           {/* OBS Source Link Card */}
           <Card.Root bg="#12141D" border="1px solid rgba(88, 101, 242, 0.3)" p={6} borderRadius="xl">
             <VStack align="stretch" gap={3}>
               <Heading size="md" color="#5865F2">
-                URL Source Navigateur OBS
+                {t("discord.obsUrlTitle")}
               </Heading>
               <Text fontSize="sm" color="gray.300">
-                Copiez ce lien unique pour votre compte et ajoutez-le comme Source Navigateur dans OBS Studio (Taille recommandee: 800x600).
+                {t("discord.obsUrlDesc")}
               </Text>
               <HStack>
                 <Input value={obsUrl} readOnly bg="#1F2330" border="none" color="white" />
                 <Button colorPalette="purple" onClick={copyObsUrl}>
-                  <FaCopy /> Copier
+                  <FaCopy /> {t("common.copyBtn")}
                 </Button>
               </HStack>
             </VStack>
@@ -141,22 +143,22 @@ export default function DiscordCustomizePage() {
             <VStack align="stretch" gap={3}>
               <HStack justify="space-between">
                 <Heading size="md" color="#10B981">
-                  📋 Lien de Modération de la File d&apos;Attente (Modérateurs)
+                  📋 {t("discord.moderationCardTitle")}
                 </Heading>
                 <Button size="xs" variant="outline" colorPalette="red" onClick={handleRegenToken}>
-                  <FaSync /> Régénérer Token
+                  <FaSync /> {t("discord.regenTokenBtn")}
                 </Button>
               </HStack>
               <Text fontSize="sm" color="gray.300">
-                Transmettez ce lien à vos modérateurs pour qu&apos;ils puissent visualiser la file et supprimer des vidéos ou médias en direct sans avoir besoin d&apos;un compte administrateur.
+                {t("discord.moderationCardDesc")}
               </Text>
               <HStack>
                 <Input value={`${origin}/discord-queue${overlayToken ? `?token=${overlayToken}` : ""}`} readOnly bg="#1F2330" border="none" color="white" />
                 <Button colorPalette="green" onClick={() => {
                   navigator.clipboard.writeText(`${origin}/discord-queue${overlayToken ? `?token=${overlayToken}` : ""}`);
-                  toaster.create({ title: "Lien de modération copié !", type: "success" });
+                  toaster.create({ title: t("common.copied"), type: "success" });
                 }}>
-                  <FaCopy /> Copier Lien
+                  <FaCopy /> {t("common.copyBtn")}
                 </Button>
               </HStack>
             </VStack>

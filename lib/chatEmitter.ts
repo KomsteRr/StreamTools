@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 
 export interface CombinedChatMessage {
   id: string;
-  platform: "twitch" | "youtube" | "discord";
+  platform: "twitch" | "youtube";
   user: string;
   avatar?: string;
   message: string;

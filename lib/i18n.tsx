@@ -4,30 +4,53 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import en from '@/locales/en.json'
 import fr from '@/locales/fr.json'
 
-type Locale = 'en' | 'fr'
+export type Locale = 'en' | 'fr'
 
-const translations = { en, fr } as const
+const translations: Record<Locale, Record<string, unknown>> = { en, fr }
 
 interface I18nContextType {
   locale: Locale
   setLocale: (locale: Locale) => void
   t: (key: string) => string
-  locales: { value: Locale; label: string; flag: string }[]
+  locales: { value: Locale; label: string; flag: string; code: string }[]
 }
 
 const I18nContext = createContext<I18nContextType | null>(null)
 
 const STORAGE_KEY = 'streamtools-locale'
-const DEFAULT_LOCALE: Locale = 'en'
+const DEFAULT_LOCALE: Locale = 'fr'
 
-const LOCALE_OPTIONS = [
-  { value: 'en' as Locale, label: 'English', flag: '🇬🇧' },
-  { value: 'fr' as Locale, label: 'Français', flag: '🇫🇷' },
+export const LOCALE_OPTIONS: { value: Locale; label: string; flag: string; code: string }[] = [
+  { value: 'fr', label: 'Français', flag: '🇫🇷', code: 'FR' },
+  { value: 'en', label: 'English', flag: '🇬🇧', code: 'EN' },
 ]
 
-function getNestedValue(obj: Record<string, unknown>, path: string): string {
-  const value = path.split('.').reduce<unknown>((acc: unknown, part: string) => (acc as Record<string, unknown>)?.[part], obj)
-  if (typeof value === 'string') return value
+function getNestedValue(obj: Record<string, unknown>, fallbackObj: Record<string, unknown>, path: string): string {
+  const parts = path.split('.')
+  
+  let current: unknown = obj
+  for (const part of parts) {
+    if (current && typeof current === 'object') {
+      current = (current as Record<string, unknown>)[part]
+    } else {
+      current = undefined
+      break
+    }
+  }
+  if (typeof current === 'string') return current
+
+  // Fallback to primary locale object
+  let fallbackCurrent: unknown = fallbackObj
+  for (const part of parts) {
+    if (fallbackCurrent && typeof fallbackCurrent === 'object') {
+      fallbackCurrent = (fallbackCurrent as Record<string, unknown>)[part]
+    } else {
+      fallbackCurrent = undefined
+      break
+    }
+  }
+  if (typeof fallbackCurrent === 'string') return fallbackCurrent
+
   return path
 }
 
@@ -37,9 +60,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null
     if (saved && saved in translations) {
-      queueMicrotask(() => {
-        setLocaleState(saved)
-      })
+      setLocaleState(saved)
+    } else if (typeof navigator !== 'undefined') {
+      const browserLang = navigator.language.startsWith('fr') ? 'fr' : 'en'
+      setLocaleState(browserLang)
     }
   }, [])
 
@@ -54,7 +78,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const t = useCallback((key: string): string => {
-    return getNestedValue(translations[locale] as unknown as Record<string, unknown>, key)
+    const activeObj = translations[locale] || translations[DEFAULT_LOCALE]
+    const fallbackObj = translations[DEFAULT_LOCALE]
+    return getNestedValue(activeObj, fallbackObj, key)
   }, [locale])
 
   return (

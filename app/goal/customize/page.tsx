@@ -17,8 +17,10 @@ import {
 import { toaster } from "@/components/ui/toaster";
 import { FaFlag, FaCopy, FaSave, FaTwitch, FaYoutube, FaEdit, FaLock, FaUnlock } from "react-icons/fa";
 import { GoalConfig } from "@/lib/goal-config";
+import { useTranslation } from "@/lib/i18n";
 
 export default function GoalCustomizePage() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState<GoalConfig>({
     title: "Objectif Followers Twitch",
     currentAmount: 75,
@@ -68,9 +70,9 @@ export default function GoalCustomizePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
-      toaster.create({ title: "Objectif sauvegarde avec succes !", type: "success" });
+      toaster.create({ title: t("goal.saveSuccess"), type: "success" });
     } catch {
-      toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
+      toaster.create({ title: t("goal.saveError"), type: "error" });
     } finally {
       setLoading(false);
     }
@@ -118,7 +120,7 @@ export default function GoalCustomizePage() {
 
   const copyObsUrl = () => {
     navigator.clipboard.writeText(obsUrl);
-    toaster.create({ title: "Lien OBS copie !", type: "success" });
+    toaster.create({ title: t("common.copied"), type: "success" });
   };
 
   const percentage = Math.min(
@@ -134,19 +136,19 @@ export default function GoalCustomizePage() {
       <Container maxW="container.lg" py={8}>
         <VStack align="stretch" gap={6}>
           <Heading size="xl" display="flex" alignItems="center" gap={3}>
-            <FaFlag color="#9146FF" /> Personnalisation Goal Bar Overlay
+            <FaFlag color="#9146FF" /> {t("goal.title")}
           </Heading>
 
           {/* OBS Source Link Card */}
           <Card.Root bg="#12141D" border="1px solid rgba(145, 70, 255, 0.3)" p={6} borderRadius="xl">
             <VStack align="stretch" gap={3}>
-              <Heading size="md" color="#9146FF">URL Source Navigateur OBS</Heading>
+              <Heading size="md" color="#9146FF">{t("goal.obsUrlTitle")}</Heading>
               <Text fontSize="sm" color="gray.300">
-                Lien unique personnalise pour votre compte utilisateur (Recommande: 650x120px) :
+                {t("goal.obsUrlDesc")}
               </Text>
               <HStack>
                 <Input value={obsUrl} readOnly bg="#1F2330" border="none" color="white" />
-                <Button colorPalette="purple" onClick={copyObsUrl}><FaCopy /> Copier</Button>
+                <Button colorPalette="purple" onClick={copyObsUrl}><FaCopy /> {t("common.copyBtn")}</Button>
               </HStack>
             </VStack>
           </Card.Root>
@@ -345,7 +347,7 @@ export default function GoalCustomizePage() {
               </HStack>
 
               <Button colorPalette="purple" size="lg" loading={loading} onClick={handleSave} mt={4}>
-                <FaSave /> Sauvegarder l&apos;Objectif
+                <FaSave /> {t("goal.saveBtn")}
               </Button>
             </VStack>
           </Card.Root>

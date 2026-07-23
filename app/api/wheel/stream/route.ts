@@ -1,13 +1,19 @@
 import { wheelEmitter } from "@/lib/wheel-config";
 import { getSession, getSafeUserId } from "@/lib/session";
+import { isOverlayAuthorized } from "@/lib/overlay-token";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getSession();
-  if (!session) return new Response("Unauthorized", { status: 401 });
-  const userId = getSafeUserId(session);
+  const isAuth = await isOverlayAuthorized(request);
+
+  if (!session && !isAuth.authorized) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const userId = getSafeUserId(session) ?? isAuth.userId ?? null;
 
   const encoder = new TextEncoder();
   let isAlive = true;

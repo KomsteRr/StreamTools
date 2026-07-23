@@ -17,8 +17,10 @@ import { toaster } from "@/components/ui/toaster";
 import { FiMessageSquare, FiCopy, FiSave } from "react-icons/fi";
 import { CombinedChatConfig } from "@/lib/combined-chat-config";
 import { renderEmotedText } from "@/lib/emoteParser";
+import { useTranslation } from "@/lib/i18n";
 
 export default function CombinedChatCustomizePage() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState<CombinedChatConfig>({
     fontSize: 14,
     maxMessages: 30,
@@ -67,9 +69,9 @@ export default function CombinedChatCustomizePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
-      toaster.create({ title: "Configuration du chat sauvegardee !", type: "success" });
+      toaster.create({ title: t("combinedChat.saveSuccess"), type: "success" });
     } catch {
-      toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
+      toaster.create({ title: t("combinedChat.saveError"), type: "error" });
     } finally {
       setLoading(false);
     }
@@ -79,7 +81,7 @@ export default function CombinedChatCustomizePage() {
 
   const copyObsUrl = () => {
     navigator.clipboard.writeText(realObsUrl);
-    toaster.create({ title: "Lien OBS du Chat copie !", type: "success" });
+    toaster.create({ title: t("common.copied"), type: "success" });
   };
 
   return (
@@ -87,22 +89,22 @@ export default function CombinedChatCustomizePage() {
       <Container maxW="container.lg" py={8}>
         <VStack align="stretch" gap={6}>
           <Heading size="xl" display="flex" alignItems="center" gap={3}>
-            <FiMessageSquare color="#9146FF" /> Chat Multi-plateforme (Twitch + YouTube + Discord)
+            <FiMessageSquare color="#9146FF" /> {t("combinedChat.title")}
           </Heading>
           <Text color="gray.400">
-            Regroupez les messages en direct de Twitch, YouTube et Discord dans un seul et meme chat transparent pour OBS.
+            {t("combinedChat.subtitle")}
           </Text>
 
           {/* OBS Link Card */}
           <Card.Root bg="#12141D" border="1px solid rgba(145, 70, 255, 0.3)" p={6} borderRadius="xl">
             <VStack align="stretch" gap={3}>
-              <Heading size="md" color="#9146FF">URL Source Navigateur OBS</Heading>
+              <Heading size="md" color="#9146FF">{t("combinedChat.obsUrlTitle")}</Heading>
               <Text fontSize="sm" color="gray.300">
-                Copiez ce lien personnalise et ajoutez-le comme Source Navigateur dans OBS Studio (Taille recommandee: 500x700).
+                {t("combinedChat.obsUrlDesc")}
               </Text>
               <HStack>
                 <Input value={realObsUrl} readOnly bg="#1F2330" border="none" color="white" />
-                <Button colorPalette="purple" onClick={copyObsUrl}><FiCopy /> Copier</Button>
+                <Button colorPalette="purple" onClick={copyObsUrl}><FiCopy /> {t("common.copyBtn")}</Button>
               </HStack>
             </VStack>
           </Card.Root>
@@ -144,26 +146,26 @@ export default function CombinedChatCustomizePage() {
           {/* Settings Form */}
           <Card.Root bg="#12141D" p={6} borderRadius="xl">
             <VStack align="stretch" gap={4}>
-              <Heading size="md" color="white">Options d&apos;Affichage du Chat</Heading>
+              <Heading size="md" color="white">{t("combinedChat.optionsTitle")}</Heading>
 
               <HStack gap={4}>
                 <Field.Root flex={1}>
-                  <Field.Label>Taille du Texte (px)</Field.Label>
+                  <Field.Label>{t("combinedChat.fontSize")}</Field.Label>
                   <Input type="number" value={config.fontSize} onChange={(e) => setConfig({ ...config, fontSize: Number(e.target.value) })} bg="#1F2330" color="white" />
                 </Field.Root>
                 <Field.Root flex={1}>
-                  <Field.Label>Largeur Max du Chat (px)</Field.Label>
+                  <Field.Label>{t("combinedChat.chatWidth")}</Field.Label>
                   <Input type="number" value={config.chatWidth} onChange={(e) => setConfig({ ...config, chatWidth: Number(e.target.value) })} bg="#1F2330" color="white" />
                 </Field.Root>
                 <Field.Root flex={1}>
-                  <Field.Label>Messages Max Affiches</Field.Label>
+                  <Field.Label>{t("combinedChat.maxMessages")}</Field.Label>
                   <Input type="number" value={config.maxMessages} onChange={(e) => setConfig({ ...config, maxMessages: Number(e.target.value) })} bg="#1F2330" color="white" />
                 </Field.Root>
               </HStack>
 
               <HStack gap={4}>
                 <Field.Root flex={1}>
-                  <Field.Label>Couleur du Texte</Field.Label>
+                  <Field.Label>{t("combinedChat.textColor")}</Field.Label>
                   <Input type="color" value={config.textColor} onChange={(e) => setConfig({ ...config, textColor: e.target.value })} bg="#1F2330" h="40px" />
                 </Field.Root>
               </HStack>
@@ -174,19 +176,19 @@ export default function CombinedChatCustomizePage() {
                   colorPalette={config.showAvatars ? "purple" : "gray"}
                   onClick={() => setConfig({ ...config, showAvatars: !config.showAvatars })}
                 >
-                  {config.showAvatars ? "Afficher Avatars: Oui" : "Afficher Avatars: Non"}
+                  {t("combinedChat.showAvatars")} {config.showAvatars ? t("goal.yes") : t("goal.no")}
                 </Button>
                 <Button
                   variant={config.showBadges ? "solid" : "outline"}
                   colorPalette={config.showBadges ? "green" : "gray"}
                   onClick={() => setConfig({ ...config, showBadges: !config.showBadges })}
                 >
-                  {config.showBadges ? "Afficher Badges Plateforme: Oui" : "Afficher Badges: Non"}
+                  {t("combinedChat.showBadges")} {config.showBadges ? t("goal.yes") : t("goal.no")}
                 </Button>
               </HStack>
 
               <Button colorPalette="purple" size="lg" loading={loading} onClick={handleSave} mt={4}>
-                <FiSave /> Sauvegarder les Parametres
+                <FiSave /> {t("combinedChat.saveBtn")}
               </Button>
             </VStack>
           </Card.Root>

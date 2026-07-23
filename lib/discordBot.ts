@@ -92,18 +92,7 @@ export async function connectDiscordBot(userId?: string | null): Promise<{ ok: b
       const authorAvatar = message.author.displayAvatarURL({ extension: "png" });
       const content = message.content;
 
-      // 1. Emit for Combined Chat
-      if (content.trim()) {
-        chatEmitter.addMessage(userId, {
-          platform: "discord",
-          user: authorName,
-          avatar: authorAvatar,
-          message: content,
-          color: "#5865F2",
-        });
-      }
-
-      // 2. Extract media attachments & embeds (Videos, YouTube, Twitter, GIFs, Images)
+      // Extract media attachments & embeds (Videos, YouTube, Twitter, GIFs, Images)
       let mediaType: "image" | "gif" | "video" | "audio" | "youtube" | "text" = "text";
       let mediaUrl: string | undefined = undefined;
 

@@ -30,6 +30,7 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from '@/lib/i18n'
+import { LanguageSwitcher } from '@/app/components/language-switcher'
 
 const emptySubscribe = () => () => {};
 
@@ -53,7 +54,10 @@ export default function AdminSetupPage() {
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
   return (
-    <Box minH="100vh" bg="gray.50" _dark={{ bg: "gray.900" }} py={12}>
+    <Box minH="100vh" bg="gray.50" _dark={{ bg: "gray.900" }} py={12} pos="relative">
+      <Box pos="absolute" top={4} right={4} zIndex={10}>
+        <LanguageSwitcher />
+      </Box>
       <Container maxW="3xl">
         <Stack gap={8}>
           <Box textAlign="center">

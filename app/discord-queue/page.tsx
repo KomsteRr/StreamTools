@@ -27,6 +27,7 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 import { toaster, Toaster } from "@/components/ui/toaster";
+import { useTranslation } from "@/lib/i18n";
 
 interface DiscordMediaAlert {
   id: string;
@@ -41,6 +42,7 @@ interface DiscordMediaAlert {
 const emptySubscribe = () => () => {};
 
 export default function DiscordQueuePage() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -168,20 +170,20 @@ export default function DiscordQueuePage() {
                   <FaDiscord size={28} color="#5865F2" />
                 </Box>
                 <Box>
-                  <Heading size="lg" color="white">Modération File Discord</Heading>
+                  <Heading size="lg" color="white">{t("discord.queueTitle")}</Heading>
                   <Text fontSize="xs" color="gray.400">
-                    Écoutez, prévisualisez et gérez les médias en temps réel ({queue.length} en attente)
+                    ({queue.length})
                   </Text>
                 </Box>
               </HStack>
 
               <HStack gap={2}>
                 <Button size="sm" variant="outline" colorPalette="blue" onClick={fetchQueue}>
-                  <FaSync /> Actualiser
+                  <FaSync /> {t("settings.refreshBtn")}
                 </Button>
                 {queue.length > 0 && (
                   <Button size="sm" colorPalette="red" loading={clearing} onClick={handleClearAll}>
-                    <FaTrash /> Vider Tout
+                    <FaTrash /> {t("discord.queueClear")}
                   </Button>
                 )}
               </HStack>
@@ -200,10 +202,7 @@ export default function DiscordQueuePage() {
             <Card.Root bg="#12141D" border="1px solid rgba(255,255,255,0.08)" p={10} borderRadius="xl" textAlign="center">
               <VStack gap={3} align="center">
                 <FaExclamationTriangle size={36} color="#5865F2" />
-                <Heading size="md" color="white">Aucun média en attente</Heading>
-                <Text fontSize="sm" color="gray.400" maxW="400px">
-                  Dès qu&apos;un membre postera une vidéo, un GIF ou une image dans le canal Discord configuré, il apparaîtra immédiatement ici !
-                </Text>
+                <Heading size="md" color="white">{t("discord.queueEmpty")}</Heading>
               </VStack>
             </Card.Root>
           )}

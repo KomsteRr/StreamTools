@@ -9,13 +9,11 @@ import { renderEmotedText } from "@/lib/emoteParser";
 const PLATFORM_COLORS: Record<string, string> = {
   twitch: "#9146FF",
   youtube: "#FF0000",
-  discord: "#5865F2",
 };
 
 const PLATFORM_LABELS: Record<string, string> = {
   twitch: "TW",
   youtube: "YT",
-  discord: "DC",
 };
 
 export default function CombinedChatOverlayPage() {

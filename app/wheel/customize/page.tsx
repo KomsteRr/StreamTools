@@ -17,8 +17,10 @@ import { toaster } from "@/components/ui/toaster";
 import { FiCopy, FiSave } from "react-icons/fi";
 import { FaSyncAlt, FaPlus, FaTrash, FaPlay } from "react-icons/fa";
 import { WheelConfig, WheelSegment } from "@/lib/wheel-config";
+import { useTranslation } from "@/lib/i18n";
 
 export default function WheelCustomizePage() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState<WheelConfig>({
     title: "Roue des Defis Stream",
     segments: [
@@ -68,24 +70,20 @@ export default function WheelCustomizePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
-      toaster.create({ title: "Roue sauvegardee avec succes !", type: "success" });
+      toaster.create({ title: t("wheel.saveSuccess"), type: "success" });
     } catch {
-      toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
+      toaster.create({ title: t("wheel.saveError"), type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSpinTest = async () => {
+    if (spinning) return;
     setSpinning(true);
     try {
-      const res = await fetch("/api/wheel/spin", { method: "POST" });
-      const data = await res.json();
-      if (res.ok) {
-        toaster.create({ title: `Roue lancee ! Resultat : ${data.segment.label}`, type: "success" });
-      }
+      await fetch("/api/wheel/spin", { method: "POST" });
     } catch {
-      toaster.create({ title: "Erreur lors du lancer de la roue", type: "error" });
     } finally {
       setTimeout(() => setSpinning(false), (config.spinDuration || 4.5) * 1000);
     }
@@ -104,7 +102,7 @@ export default function WheelCustomizePage() {
 
   const removeSegment = (id: string) => {
     if (config.segments.length <= 2) {
-      toaster.create({ title: "Au moins 2 segments sont requis pour la roue !", type: "warning" });
+      toaster.create({ title: t("wheel.minSegmentsWarning"), type: "warning" });
       return;
     }
     setConfig({ ...config, segments: config.segments.filter((s) => s.id !== id) });
@@ -121,7 +119,7 @@ export default function WheelCustomizePage() {
 
   const copyObsUrl = () => {
     navigator.clipboard.writeText(realObsUrl);
-    toaster.create({ title: "Lien OBS de la Roue copie !", type: "success" });
+    toaster.create({ title: t("common.copied"), type: "success" });
   };
 
   return (
@@ -130,23 +128,23 @@ export default function WheelCustomizePage() {
         <VStack align="stretch" gap={6}>
           <HStack justify="space-between">
             <Heading size="xl" display="flex" alignItems="center" gap={3}>
-              <FaSyncAlt color="#FFD000" /> Roue de la Fortune Interactive
+              <FaSyncAlt color="#FFD000" /> {t("wheel.title")}
             </Heading>
             <Button colorPalette="yellow" size="lg" loading={spinning} onClick={handleSpinTest}>
-              <FaPlay /> Lancer la Roue !
+              <FaPlay /> {t("wheel.spinBtn")}
             </Button>
           </HStack>
 
           {/* OBS Link Card */}
           <Card.Root bg="#12141D" border="1px solid rgba(255, 215, 0, 0.3)" p={6} borderRadius="xl">
             <VStack align="stretch" gap={3}>
-              <Heading size="md" color="#FFD000">URL Source Navigateur OBS</Heading>
+              <Heading size="md" color="#FFD000">{t("wheel.obsUrlTitle")}</Heading>
               <Text fontSize="sm" color="gray.300">
-                Copiez ce lien unique et ajoutez-le dans OBS Studio (Taille recommandee: 600x600).
+                {t("wheel.obsUrlDesc")}
               </Text>
               <HStack>
                 <Input value={realObsUrl} readOnly bg="#1F2330" border="none" color="white" />
-                <Button colorPalette="purple" onClick={copyObsUrl}><FiCopy /> Copier</Button>
+                <Button colorPalette="purple" onClick={copyObsUrl}><FiCopy /> {t("common.copyBtn")}</Button>
               </HStack>
             </VStack>
           </Card.Root>
@@ -154,30 +152,30 @@ export default function WheelCustomizePage() {
           {/* Wheel Visual Customization */}
           <Card.Root bg="#12141D" p={6} borderRadius="xl">
             <VStack align="stretch" gap={4}>
-              <Heading size="md" color="white">Options d&apos;Animation & Apparence</Heading>
+              <Heading size="md" color="white">{t("wheel.optionsTitle")}</Heading>
 
               <HStack gap={4}>
                 <Field.Root flex={1}>
-                  <Field.Label>Diametre de la Roue (px)</Field.Label>
+                  <Field.Label>{t("wheel.wheelSize")}</Field.Label>
                   <Input type="number" value={config.wheelSize} onChange={(e) => setConfig({ ...config, wheelSize: Number(e.target.value) })} bg="#1F2330" color="white" />
                 </Field.Root>
                 <Field.Root flex={1}>
-                  <Field.Label>Duree de Rotation (secondes)</Field.Label>
+                  <Field.Label>{t("wheel.spinDuration")}</Field.Label>
                   <Input type="number" step="0.5" value={config.spinDuration} onChange={(e) => setConfig({ ...config, spinDuration: Number(e.target.value) })} bg="#1F2330" color="white" />
                 </Field.Root>
                 <Field.Root flex={1}>
-                  <Field.Label>Duree Affichage Gagnant (sec)</Field.Label>
+                  <Field.Label>{t("wheel.winnerDuration")}</Field.Label>
                   <Input type="number" value={config.winnerDisplayDuration} onChange={(e) => setConfig({ ...config, winnerDisplayDuration: Number(e.target.value) })} bg="#1F2330" color="white" />
                 </Field.Root>
               </HStack>
 
               <HStack gap={4}>
                 <Field.Root flex={1}>
-                  <Field.Label>Couleur de la Fleche Pointeur</Field.Label>
+                  <Field.Label>{t("wheel.pointerColor")}</Field.Label>
                   <Input type="color" value={config.pointerColor} onChange={(e) => setConfig({ ...config, pointerColor: e.target.value })} bg="#1F2330" h="40px" />
                 </Field.Root>
                 <Field.Root flex={1}>
-                  <Field.Label>Couleur du Centre</Field.Label>
+                  <Field.Label>{t("wheel.centerColor")}</Field.Label>
                   <Input type="color" value={config.centerColor} onChange={(e) => setConfig({ ...config, centerColor: e.target.value })} bg="#1F2330" h="40px" />
                 </Field.Root>
               </HStack>
@@ -188,7 +186,7 @@ export default function WheelCustomizePage() {
                   colorPalette={config.confettiOnWin ? "yellow" : "gray"}
                   onClick={() => setConfig({ ...config, confettiOnWin: !config.confettiOnWin })}
                 >
-                  {config.confettiOnWin ? "Confettis au Tirage: Oui" : "Confettis au Tirage: Non"}
+                  {t("wheel.confettiOnWin")} {config.confettiOnWin ? t("goal.yes") : t("goal.no")}
                 </Button>
               </HStack>
             </VStack>
@@ -198,8 +196,8 @@ export default function WheelCustomizePage() {
           <Card.Root bg="#12141D" p={6} borderRadius="xl">
             <VStack align="stretch" gap={4}>
               <HStack justify="space-between">
-                <Heading size="md" color="white">Segments & Defis</Heading>
-                <Button size="sm" colorPalette="green" onClick={addSegment}><FaPlus /> Ajouter un Defi</Button>
+                <Heading size="md" color="white">{t("wheel.segmentsTitle")}</Heading>
+                <Button size="sm" colorPalette="green" onClick={addSegment}><FaPlus /> {t("wheel.addSegment")}</Button>
               </HStack>
 
               {config.segments.map((seg, idx) => (
@@ -227,7 +225,7 @@ export default function WheelCustomizePage() {
               ))}
 
               <Button colorPalette="yellow" size="lg" loading={loading} onClick={handleSave} mt={4}>
-                <FiSave /> Sauvegarder la Roue
+                <FiSave /> {t("wheel.saveBtn")}
               </Button>
             </VStack>
           </Card.Root>
