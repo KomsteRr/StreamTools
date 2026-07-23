@@ -11,6 +11,8 @@ interface ChatMessage {
   message: string;
   avatar?: string;
   badges?: string[];
+  /** Twitch native emotes for this message: word → proxied image URL */
+  emotes?: Record<string, string>;
 }
 
 function TwitchBadgeIcon({ type, badgeMap }: { type: string; badgeMap?: Record<string, string> }) {
@@ -170,16 +172,26 @@ export default function TwitchChatOverlay() {
         const tokenQuery = token ? `?token=${token}` : "";
 
         const [badgeRes, emoteRes] = await Promise.all([
-          fetch("/api/twitch/badges"),
+          fetch(`/api/twitch/badges${tokenQuery}`),
           fetch(`/api/twitch/7tv-emotes${tokenQuery}`),
         ]);
         if (badgeRes.ok) {
-          setBadgeMap(await badgeRes.json());
+          const map = await badgeRes.json();
+          console.log(`[TwitchOverlay] Badges loaded: ${Object.keys(map).length} entries`);
+          setBadgeMap(map);
+        } else {
+          console.warn(`[TwitchOverlay] Badges fetch failed: ${badgeRes.status}`);
         }
         if (emoteRes.ok) {
-          setSevenTvEmotes(await emoteRes.json());
+          const map = await emoteRes.json();
+          console.log(`[TwitchOverlay] 7TV emotes loaded: ${Object.keys(map).length} entries`);
+          setSevenTvEmotes(map);
+        } else {
+          console.warn(`[TwitchOverlay] 7TV emotes fetch failed: ${emoteRes.status}`);
         }
-      } catch {}
+      } catch (e) {
+        console.error("[TwitchOverlay] Failed to fetch badges/emotes:", e);
+      }
     }
     fetchBadgesAndEmotes();
   }, [mounted]);
@@ -230,13 +242,14 @@ export default function TwitchChatOverlay() {
           const maxMessages = parseInt(visualRef.current.chat_maxMessages || "10", 10) || 10;
           const twitchMsgs: ChatMessage[] = initialMsgs
             .filter((m: { platform?: string }) => m.platform === "twitch")
-            .map((m: { id?: string; user?: string; color?: string; message?: string; avatar?: string; badges?: string[] }) => ({
+            .map((m: { id?: string; user?: string; color?: string; message?: string; avatar?: string; badges?: string[]; emotes?: Record<string, string> }) => ({
               id: m.id || Math.random().toString(),
               username: m.user || "Anonymous",
               color: m.color || "#9146FF",
               message: m.message || "",
               avatar: m.avatar,
               badges: m.badges || [],
+              emotes: m.emotes,
             }))
             .slice(-maxMessages);
           setMessages(twitchMsgs);
@@ -255,6 +268,7 @@ export default function TwitchChatOverlay() {
             message: msg.message || "",
             avatar: msg.avatar,
             badges: msg.badges || [],
+            emotes: msg.emotes,
           };
 
           const maxMessages = parseInt(visualRef.current.chat_maxMessages || "10", 10) || 10;
@@ -321,7 +335,9 @@ export default function TwitchChatOverlay() {
             <span style={{ marginRight: "4px", color: "rgba(255,255,255,0.7)" }}>
               :{" "}
             </span>
-            <span className={styles.messageText}>{renderEmotedText(msg.message, sevenTvEmotes)}</span>
+            <span className={styles.messageText}>
+              {renderEmotedText(msg.message, { ...sevenTvEmotes, ...(msg.emotes ?? {}) })}
+            </span>
           </div>
         </div>
       ))}

@@ -93,6 +93,32 @@ export async function initTwitchChatBot(userId?: string | null) {
             });
           }
 
+          // Parse Twitch native emotes from IRC tags
+          // Format: emotes=emoteId:start-end,start-end/emoteId2:start-end
+          const emotesByWord: Record<string, string> = {};
+          if (tags.emotes) {
+            const groups = tags.emotes.split("/");
+            for (const group of groups) {
+              const colonIdx = group.indexOf(":");
+              if (colonIdx < 0) continue;
+              const emoteId = group.substring(0, colonIdx);
+              const positions = group.substring(colonIdx + 1);
+              const firstPos = positions.split(",")[0];
+              if (!firstPos) continue;
+              const dashIdx = firstPos.indexOf("-");
+              if (dashIdx < 0) continue;
+              const start = parseInt(firstPos.substring(0, dashIdx), 10);
+              const end = parseInt(firstPos.substring(dashIdx + 1), 10);
+              if (isNaN(start) || isNaN(end) || start < 0 || end >= text.length) continue;
+              const emoteName = text.substring(start, end + 1);
+              if (emoteName) {
+                emotesByWord[emoteName] = `/api/proxy/image?url=${encodeURIComponent(
+                  `https://static-cdn.jtvnw.net/emoticons/v2/${emoteId}/default/dark/2.0`
+                )}`;
+              }
+            }
+          }
+
           const displayName = tags["display-name"] || usernameFromPrefix || "Anonymous";
           const color = tags.color || "#9146FF";
 
@@ -102,6 +128,7 @@ export async function initTwitchChatBot(userId?: string | null) {
             message: text,
             color,
             badges: badgeList,
+            emotes: Object.keys(emotesByWord).length > 0 ? emotesByWord : undefined,
           });
         });
       }

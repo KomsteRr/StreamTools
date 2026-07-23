@@ -8,6 +8,8 @@ export interface CombinedChatMessage {
   message: string;
   color?: string;
   badges?: string[];
+  /** Per-message emote map: word → proxied image URL (Twitch native emotes) */
+  emotes?: Record<string, string>;
   timestamp: number;
 }
 

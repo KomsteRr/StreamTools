@@ -3,30 +3,78 @@ import { getTwitchConfig } from "@/lib/twitch-config";
 
 export const dynamic = "force-dynamic";
 
+/** Rewrite external CDN URLs to go through the local proxy (avoids OBS/CSP issues). */
+function proxyUrl(url: string): string {
+  return `/api/proxy/image?url=${encodeURIComponent(url)}`;
+}
+
+// ── 7TV types ────────────────────────────────────────────────────────────────
 interface SevenTvEmote {
   id: string;
   name: string;
-  data?: {
-    host?: {
-      url?: string;
-    };
-  };
+  data?: { host?: { url?: string } };
 }
 
+// ── BTTV types ───────────────────────────────────────────────────────────────
+interface BttvEmote {
+  id: string;
+  code: string;
+}
+interface BttvChannelResponse {
+  channelEmotes?: BttvEmote[];
+  sharedEmotes?: BttvEmote[];
+}
+
+// ── FFZ types ────────────────────────────────────────────────────────────────
+interface FfzEmote {
+  id: number;
+  name: string;
+  urls?: Record<string, string>;
+}
+interface FfzSet {
+  emoticons?: FfzEmote[];
+}
+
+// ── In-memory cache ───────────────────────────────────────────────────────────
 let cachedEmotes: { map: Record<string, string>; channel: string; fetchedAt: number } | null = null;
-const CACHE_TTL = 15 * 60 * 1000; // 15 minutes cache
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function add7tvEmotes(emotes: SevenTvEmote[], map: Record<string, string>) {
+  for (const emote of emotes) {
+    if (!emote.name || !emote.id) continue;
+    const hostUrl = emote.data?.host?.url
+      ? `https:${emote.data.host.url}/2x.webp`
+      : `https://cdn.7tv.app/emote/${emote.id}/2x.webp`;
+    map[emote.name] = proxyUrl(hostUrl);
+  }
+}
+
+function addBttvEmotes(emotes: BttvEmote[], map: Record<string, string>) {
+  for (const emote of emotes) {
+    if (!emote.code || !emote.id) continue;
+    map[emote.code] = proxyUrl(`https://cdn.betterttv.net/emote/${emote.id}/2x`);
+  }
+}
+
+function addFfzEmotes(emoticons: FfzEmote[], map: Record<string, string>) {
+  for (const emote of emoticons) {
+    if (!emote.name || !emote.id) continue;
+    const url = emote.urls?.["2"] || emote.urls?.["1"] || `https://cdn.frankerfacez.com/emote/${emote.id}/2`;
+    map[emote.name] = proxyUrl(url.startsWith("//") ? `https:${url}` : url);
+  }
+}
+
+// ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const channelParam = searchParams.get("channel");
 
-    let channelName = channelParam || "";
-    if (!channelName) {
-      const twitchConfig = await getTwitchConfig();
-      channelName = twitchConfig.channelName || "";
-    }
-
+    const twitchConfig = await getTwitchConfig();
+    const channelName = channelParam || twitchConfig.channelName || "";
     const cleanChannel = channelName.toLowerCase().replace(/^#/, "").trim();
     const now = Date.now();
 
@@ -36,50 +84,152 @@ export async function GET(request: Request) {
 
     const emoteMap: Record<string, string> = {};
 
-    // 1. Fetch 7TV Global Emotes
-    try {
-      const globalRes = await fetch("https://7tv.io/v3/emote-sets/global", {
-        headers: { "User-Agent": "StreamAllInTools/1.0" },
-        next: { revalidate: 900 },
-      });
-      if (globalRes.ok) {
-        const globalData = await globalRes.json();
-        const emotes: SevenTvEmote[] = globalData.emotes || [];
-        for (const emote of emotes) {
-          if (emote.name && emote.id) {
-            emoteMap[emote.name] = `https://cdn.7tv.app/emote/${emote.id}/2x.webp`;
-          }
-        }
-      }
-    } catch (e) {
-      console.error("[7TV API] Failed to fetch global emotes:", e);
-    }
-
-    // 2. Fetch 7TV Channel Emotes
-    if (cleanChannel) {
+    // ── Resolve broadcaster Twitch numeric ID (needed for 7TV + BTTV channel emotes) ──
+    let broadcasterId: string | null = null;
+    if (cleanChannel && twitchConfig.twitchClientId && twitchConfig.twitchAccessToken) {
       try {
-        const channelRes = await fetch(`https://7tv.io/v3/users/twitch/${cleanChannel}`, {
-          headers: { "User-Agent": "StreamAllInTools/1.0" },
-          next: { revalidate: 900 },
+        const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${cleanChannel}`, {
+          headers: {
+            "Client-ID": twitchConfig.twitchClientId,
+            "Authorization": `Bearer ${twitchConfig.twitchAccessToken}`,
+          },
+          cache: "no-store",
         });
-        if (channelRes.ok) {
-          const channelData = await channelRes.json();
-          const emotes: SevenTvEmote[] = channelData.emote_set?.emotes || channelData.emotes || [];
-          for (const emote of emotes) {
-            if (emote.name && emote.id) {
-              emoteMap[emote.name] = `https://cdn.7tv.app/emote/${emote.id}/2x.webp`;
-            }
-          }
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          broadcasterId = userData.data?.[0]?.id ?? null;
+          console.log(`[Emotes] Resolved broadcaster ID for #${cleanChannel}: ${broadcasterId}`);
         }
       } catch (e) {
-        console.error(`[7TV API] Failed to fetch channel emotes for ${cleanChannel}:`, e);
+        console.warn("[Emotes] Could not resolve broadcaster ID:", e);
       }
     }
 
+    // Run all fetches in parallel
+    await Promise.allSettled([
+
+      // ── 1. 7TV Global ─────────────────────────────────────────────────────
+      fetch("https://7tv.io/v3/emote-sets/global", {
+        headers: { "User-Agent": "StreamAllInTools/1.0" },
+        cache: "no-store",
+      }).then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        const emotes: SevenTvEmote[] = data.emotes || [];
+        add7tvEmotes(emotes, emoteMap);
+        console.log(`[Emotes] 7TV global: ${emotes.length} emotes`);
+      }).catch((e) => console.error("[Emotes] 7TV global failed:", e)),
+
+      // ── 2. 7TV Channel — using numeric Twitch ID, then fetch emote set ────
+      // The 7TV v3 API requires the numeric Twitch ID, not the username.
+      // Flow: GET /v3/users/twitch/{twitchNumericId} → emote_set.id → GET /v3/emote-sets/{id}
+      (broadcasterId ? (async () => {
+        try {
+          const seventvUserRes = await fetch(`https://7tv.io/v3/users/twitch/${broadcasterId}`, {
+            headers: { "User-Agent": "StreamAllInTools/1.0" },
+            cache: "no-store",
+          });
+          if (!seventvUserRes.ok) {
+            console.warn(`[Emotes] 7TV user lookup failed (${seventvUserRes.status}) for broadcaster ${broadcasterId}`);
+            return;
+          }
+          const seventvUser = await seventvUserRes.json();
+
+          // The active emote set ID is at emote_set.id (already populated) or connections
+          const emoteSetId: string | undefined =
+            seventvUser.emote_set?.id ??
+            seventvUser.connections?.find((c: { platform: string; emote_set_id?: string }) => c.platform === "TWITCH")?.emote_set_id;
+
+          if (!emoteSetId) {
+            // emote_set might be embedded directly
+            const directEmotes: SevenTvEmote[] = seventvUser.emote_set?.emotes || [];
+            if (directEmotes.length > 0) {
+              add7tvEmotes(directEmotes, emoteMap);
+              console.log(`[Emotes] 7TV channel (direct): ${directEmotes.length} emotes`);
+            } else {
+              console.warn("[Emotes] 7TV: no emote_set_id found for broadcaster");
+            }
+            return;
+          }
+
+          // Fetch the full emote set
+          const setRes = await fetch(`https://7tv.io/v3/emote-sets/${emoteSetId}`, {
+            headers: { "User-Agent": "StreamAllInTools/1.0" },
+            cache: "no-store",
+          });
+          if (!setRes.ok) {
+            console.warn(`[Emotes] 7TV emote-set fetch failed (${setRes.status}) for set ${emoteSetId}`);
+            return;
+          }
+          const setData = await setRes.json();
+          const emotes: SevenTvEmote[] = setData.emotes || [];
+          add7tvEmotes(emotes, emoteMap);
+          console.log(`[Emotes] 7TV channel set ${emoteSetId}: ${emotes.length} emotes`);
+        } catch (e) {
+          console.error("[Emotes] 7TV channel failed:", e);
+        }
+      })() : Promise.resolve()),
+
+      // ── 3. BTTV Global ───────────────────────────────────────────────────
+      fetch("https://api.betterttv.net/3/cached/emotes/global", {
+        cache: "no-store",
+      }).then(async (res) => {
+        if (!res.ok) return;
+        const data: BttvEmote[] = await res.json();
+        addBttvEmotes(data, emoteMap);
+        console.log(`[Emotes] BTTV global: ${data.length} emotes`);
+      }).catch((e) => console.error("[Emotes] BTTV global failed:", e)),
+
+      // ── 4. BTTV Channel (uses numeric Twitch ID) ─────────────────────────
+      (broadcasterId ? fetch(`https://api.betterttv.net/3/cached/users/twitch/${broadcasterId}`, {
+        cache: "no-store",
+      }).then(async (res) => {
+        if (!res.ok) return;
+        const data: BttvChannelResponse = await res.json();
+        const all = [...(data.channelEmotes ?? []), ...(data.sharedEmotes ?? [])];
+        addBttvEmotes(all, emoteMap);
+        console.log(`[Emotes] BTTV channel: ${all.length} emotes`);
+      }).catch((e) => console.error("[Emotes] BTTV channel failed:", e)) : Promise.resolve()),
+
+      // ── 5. FFZ Global ────────────────────────────────────────────────────
+      fetch("https://api.frankerfacez.com/v1/set/global", {
+        cache: "no-store",
+      }).then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        const sets: Record<string, FfzSet> = data.sets || {};
+        let count = 0;
+        for (const set of Object.values(sets)) {
+          addFfzEmotes(set.emoticons || [], emoteMap);
+          count += set.emoticons?.length ?? 0;
+        }
+        console.log(`[Emotes] FFZ global: ${count} emotes`);
+      }).catch((e) => console.error("[Emotes] FFZ global failed:", e)),
+
+      // ── 6. FFZ Channel ───────────────────────────────────────────────────
+      (cleanChannel ? fetch(`https://api.frankerfacez.com/v1/room/${cleanChannel}`, {
+        cache: "no-store",
+      }).then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        const sets: Record<string, FfzSet> = data.sets || {};
+        let count = 0;
+        for (const set of Object.values(sets)) {
+          addFfzEmotes(set.emoticons || [], emoteMap);
+          count += set.emoticons?.length ?? 0;
+        }
+        console.log(`[Emotes] FFZ channel: ${count} emotes`);
+      }).catch((e) => console.error("[Emotes] FFZ channel failed:", e)) : Promise.resolve()),
+
+    ]);
+
+    const total = Object.keys(emoteMap).length;
+    console.log(`[Emotes] ✅ Total: ${total} emotes for #${cleanChannel} (7TV + BTTV + FFZ)`);
     cachedEmotes = { map: emoteMap, channel: cleanChannel, fetchedAt: now };
     return NextResponse.json(emoteMap);
+
   } catch (error) {
-    console.error("[7TV API] Error:", error);
+    console.error("[Emotes] Fatal error:", error);
     return NextResponse.json({});
   }
 }
