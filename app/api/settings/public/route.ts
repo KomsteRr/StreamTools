@@ -51,16 +51,16 @@ export async function GET(req: Request) {
     const rows = await prisma.platformConfig.findMany({
       where: { userId },
     });
-    const grouped: Record<string, Record<string, any>> = {};
+    const grouped: Record<string, Record<string, unknown>> = {};
 
     for (const r of rows) {
       if (isSensitiveKey(r.key)) continue;
       
-      let val: any = r.value;
+      let val: unknown = r.value;
       try {
         // Try parsing JSON values (for objects like youtube-chat settings)
-        if (val.startsWith("{") || val.startsWith("[")) {
-          val = JSON.parse(val);
+        if (typeof r.value === "string" && (r.value.startsWith("{") || r.value.startsWith("["))) {
+          val = JSON.parse(r.value);
         }
       } catch {}
 

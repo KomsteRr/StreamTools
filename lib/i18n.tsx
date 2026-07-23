@@ -25,8 +25,8 @@ const LOCALE_OPTIONS = [
   { value: 'fr' as Locale, label: 'Français', flag: '🇫🇷' },
 ]
 
-function getNestedValue(obj: Record<string, any>, path: string): string {
-  const value = path.split('.').reduce((acc: any, part: string) => acc?.[part], obj)
+function getNestedValue(obj: Record<string, unknown>, path: string): string {
+  const value = path.split('.').reduce<unknown>((acc: unknown, part: string) => (acc as Record<string, unknown>)?.[part], obj)
   if (typeof value === 'string') return value
   return path
 }
@@ -37,7 +37,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null
     if (saved && saved in translations) {
-      setLocaleState(saved)
+      queueMicrotask(() => {
+        setLocaleState(saved)
+      })
     }
   }, [])
 
@@ -52,7 +54,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const t = useCallback((key: string): string => {
-    return getNestedValue(translations[locale] as unknown as Record<string, any>, key)
+    return getNestedValue(translations[locale] as unknown as Record<string, unknown>, key)
   }, [locale])
 
   return (

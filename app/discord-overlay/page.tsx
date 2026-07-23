@@ -69,8 +69,10 @@ export default function DiscordMediaOverlayPage() {
   useEffect(() => {
     if (!currentAlert && queue.length > 0) {
       const nextAlert = queue[0];
-      setQueue((prev) => prev.slice(1));
-      setCurrentAlert(nextAlert);
+      queueMicrotask(() => {
+        setQueue((prev) => prev.slice(1));
+        setCurrentAlert(nextAlert);
+      });
 
       // Animate in
       requestAnimationFrame(() => setVisible(true));
@@ -117,6 +119,7 @@ export default function DiscordMediaOverlayPage() {
           {/* Header: Avatar + User */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginBottom: "16px" }}>
             {currentAlert.authorAvatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={currentAlert.authorAvatar}
                 alt={currentAlert.authorName}
@@ -170,6 +173,7 @@ export default function DiscordMediaOverlayPage() {
                   }}
                 />
               ) : (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={currentAlert.mediaUrl}
                   alt="Discord Media"

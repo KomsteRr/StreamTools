@@ -5,7 +5,7 @@ import { Box, Flex, HStack, Text } from "@chakra-ui/react";
 import { Button } from "@/components/ui/button";
 import { useGlobal } from "@/app/providers";
 import { usePathname } from "next/navigation";
-import { FiSettings, FiLogOut, FiArrowLeft } from "react-icons/fi";
+import { FiSettings, FiLogOut } from "react-icons/fi";
 import Link from "next/link";
 import { LanguageSwitcher } from "@/app/components/language-switcher";
 import { useTranslation } from "@/lib/i18n";
@@ -24,8 +24,6 @@ export function DashboardHeader({ hasSession }: { hasSession: boolean }) {
   if (!hasSession || isOverlay) {
     return null;
   }
-
-  const isOnDashboard = pathname === "/dashboard" || pathname === "/";
 
   return (
     <Box

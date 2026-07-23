@@ -69,7 +69,7 @@ export default function WheelCustomizePage() {
         body: JSON.stringify(config),
       });
       toaster.create({ title: "Roue sauvegardee avec succes !", type: "success" });
-    } catch (e) {
+    } catch {
       toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
     } finally {
       setLoading(false);
@@ -84,7 +84,7 @@ export default function WheelCustomizePage() {
       if (res.ok) {
         toaster.create({ title: `Roue lancee ! Resultat : ${data.segment.label}`, type: "success" });
       }
-    } catch (e) {
+    } catch {
       toaster.create({ title: "Erreur lors du lancer de la roue", type: "error" });
     } finally {
       setTimeout(() => setSpinning(false), (config.spinDuration || 4.5) * 1000);
@@ -154,7 +154,7 @@ export default function WheelCustomizePage() {
           {/* Wheel Visual Customization */}
           <Card.Root bg="#12141D" p={6} borderRadius="xl">
             <VStack align="stretch" gap={4}>
-              <Heading size="md" color="white">Options d'Animation & Apparence</Heading>
+              <Heading size="md" color="white">Options d&apos;Animation & Apparence</Heading>
 
               <HStack gap={4}>
                 <Field.Root flex={1}>

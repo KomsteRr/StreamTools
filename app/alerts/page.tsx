@@ -30,7 +30,6 @@ import {
   FiAward,
   FiSettings,
   FiPlay,
-  FiCopy,
   FiCheck,
   FiTwitch,
   FiYoutube,
@@ -73,7 +72,7 @@ const PLATFORMS = [
   },
 ];
 
-function getAlertMeta(t: any): Record<
+function getAlertMeta(t: (key: string) => string): Record<
   string,
   { label: string; icon: React.ReactNode; color: string; desc: string }
 > {

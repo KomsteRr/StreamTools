@@ -30,7 +30,7 @@ export async function getConfig(userId?: string | null): Promise<VisualConfig> {
     
     if (visualItems.length === 0 && techItems.length === 0) return DEFAULT_CONFIG;
 
-    const config = { ...DEFAULT_CONFIG } as any;
+    const config = { ...DEFAULT_CONFIG } as Record<string, unknown>;
     visualItems.forEach((item) => {
       config[item.key] = item.value;
     });
@@ -40,7 +40,7 @@ export async function getConfig(userId?: string | null): Promise<VisualConfig> {
       }
     });
 
-    return config as VisualConfig;
+    return config as unknown as VisualConfig;
   } catch (e) {
     console.error("Error reading config", e);
     return DEFAULT_CONFIG;

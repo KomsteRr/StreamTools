@@ -45,7 +45,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
     let adminUser = null
     try {
       adminUser = await prisma.user.findUnique({ where: { username: 'admin' } })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur lors de la vérification de l\'admin:', error)
       return { error: 'Erreur de connexion à la base de données.' }
     }
@@ -93,8 +93,8 @@ export async function login(prevState: { error: string } | null, formData: FormD
   let user = null
   try {
     user = await prisma.user.findUnique({ where: { username: username.toLowerCase() } })
-  } catch (error: any) {
-    if (error?.code === 'P2021') {
+  } catch (error: unknown) {
+    if ((error as { code?: string })?.code === 'P2021') {
       return { error: 'L\'application n\'est pas encore configurée. Connectez-vous en tant qu\'admin pour initialiser le système.' }
     }
     console.error('Erreur de base de données (Regular Login):', error)

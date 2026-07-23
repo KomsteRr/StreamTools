@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useEffect } from "react";
+import { useActionState, useState, useEffect, useSyncExternalStore } from "react";
 import { submitSetup } from "@/app/actions/setup";
 import { getDbEnvVar } from "@/app/actions/env";
 import {
@@ -31,20 +31,18 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from '@/lib/i18n'
 
+const emptySubscribe = () => () => {};
+
 export default function AdminSetupPage() {
   const { t } = useTranslation()
   const [state, formAction, isPending] = useActionState(submitSetup, null);
   const [step, setStep] = useState(1);
   const [dbType, setDbType] = useState("sqlite");
   const [twitchBotActive, setTwitchBotActive] = useState(false);
-  const [origin, setOrigin] = useState("");
+  const origin = useSyncExternalStore(emptySubscribe, () => window.location.origin, () => "");
   const [envDbUrl, setEnvDbUrl] = useState("");
   
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOrigin(window.location.origin);
-    }
-    
     // Fetch env db url if it exists
     getDbEnvVar().then((url) => {
       if (url) setEnvDbUrl(url);

@@ -69,7 +69,7 @@ export default function GoalCustomizePage() {
         body: JSON.stringify(config),
       });
       toaster.create({ title: "Objectif sauvegarde avec succes !", type: "success" });
-    } catch (e) {
+    } catch {
       toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
     } finally {
       setLoading(false);
@@ -154,7 +154,7 @@ export default function GoalCustomizePage() {
           {/* Preset Selection Buttons */}
           <Card.Root bg="#12141D" p={6} borderRadius="xl">
             <VStack align="stretch" gap={3}>
-              <Heading size="md" color="white">🎯 Pré-réglages de la Source d'Objectif</Heading>
+              <Heading size="md" color="white">🎯 Pré-réglages de la Source d&apos;Objectif</Heading>
               <Text color="gray.400" fontSize="sm">
                 Choisissez une source automatique (Twitch / YouTube) ou passez en mode Manuel pour editer librement le chiffre :
               </Text>
@@ -234,7 +234,7 @@ export default function GoalCustomizePage() {
             <VStack align="stretch" gap={4}>
               <HStack gap={4}>
                 <Field.Root flex={2}>
-                  <Field.Label>Titre de l'Objectif</Field.Label>
+                  <Field.Label>Titre de l&apos;Objectif</Field.Label>
                   <Input value={config.title} onChange={(e) => setConfig({ ...config, title: e.target.value })} bg="#1F2330" />
                 </Field.Root>
                 <Field.Root flex={1}>
@@ -345,7 +345,7 @@ export default function GoalCustomizePage() {
               </HStack>
 
               <Button colorPalette="purple" size="lg" loading={loading} onClick={handleSave} mt={4}>
-                <FaSave /> Sauvegarder l'Objectif
+                <FaSave /> Sauvegarder l&apos;Objectif
               </Button>
             </VStack>
           </Card.Root>

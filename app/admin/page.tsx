@@ -14,8 +14,6 @@ import {
   Flex,
   Spinner,
   IconButton,
-  Clipboard,
-  InputGroup,
   Table,
   Stack,
 } from '@chakra-ui/react'

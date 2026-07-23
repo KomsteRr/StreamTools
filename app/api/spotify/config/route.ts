@@ -10,6 +10,7 @@ export async function GET() {
 
   const config = await getConfig(session.userId);
   const { clientSecret: _clientSecret, ...safeConfig } = config;
+  void _clientSecret;
 
   return NextResponse.json({
     ...safeConfig,
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     await saveConfig(body, session.userId);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to update config" },
       { status: 500 },

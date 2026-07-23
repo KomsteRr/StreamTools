@@ -166,9 +166,10 @@ export async function connectDiscordBot(userId?: string | null): Promise<{ ok: b
     await client.login(config.botToken);
     globalThis._discordBotInstance = { client, channelId: config.channelId };
     return { ok: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Discord Bot Login Error]:", err);
-    return { ok: false, error: err.message || "Erreur de connexion au Bot Discord." };
+    const message = err instanceof Error ? err.message : "Erreur de connexion au Bot Discord.";
+    return { ok: false, error: message };
   }
 }
 

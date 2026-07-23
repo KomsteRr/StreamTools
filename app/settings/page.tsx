@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import {
   Box,
   Container,
@@ -47,7 +47,7 @@ interface AllSettings {
 
 // ─── Field definitions per platform ─────────────────────────────────────────
 
-function getTwitchFields(t: any) {
+function getTwitchFields(t: (key: string) => string) {
   return [
     {
       key: "channelName",
@@ -88,7 +88,7 @@ function getTwitchFields(t: any) {
 ]
 }
 
-function getSpotifyFields(t: any) {
+function getSpotifyFields(t: (key: string) => string) {
   return [
     {
       key: "clientId",
@@ -105,7 +105,7 @@ function getSpotifyFields(t: any) {
   ];
 }
 
-function getYoutubeFields(t: any) {
+function getYoutubeFields(t: (key: string) => string) {
   return [
     {
       key: "channelId",
@@ -472,9 +472,9 @@ function TwitchBroadcasterIdHelper() {
             borderRadius="md"
             wordBreak="break-all"
           >
-            curl -H "Authorization: Bearer VOTRE_TOKEN" -H "Client-Id:
-            VOTRE_CLIENT_ID"
-            "https://api.twitch.tv/helix/users?login=VOTRE_PSEUDO"
+            curl -H &quot;Authorization: Bearer VOTRE_TOKEN&quot; -H &quot;Client-Id:
+            VOTRE_CLIENT_ID&quot;
+            &quot;https://api.twitch.tv/helix/users?login=VOTRE_PSEUDO&quot;
           </Box>
           <Text>{t("settings.twitchIdHelpOpt2Desc")}</Text>
 
@@ -559,11 +559,13 @@ function SpotifyHelpHelper({ origin }: { origin: string }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+const emptySubscribe = () => () => {};
+
 export default function SettingsPage() {
   const { t } = useTranslation()
   const [settings, setSettings] = useState<AllSettings>({});
   const [loading, setLoading] = useState(true);
-  const [origin, setOrigin] = useState("");
+  const origin = useSyncExternalStore(emptySubscribe, () => window.location.origin, () => "");
   const [twitchConnected, setTwitchConnected] = useState<boolean | null>(null);
   const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(
     null,
@@ -593,8 +595,9 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    setOrigin(window.location.origin);
-    fetchSettings().finally(() => setLoading(false));
+    queueMicrotask(() => {
+      fetchSettings().finally(() => setLoading(false));
+    });
   }, [fetchSettings]);
 
   async function savePlatform(platform: string, values: PlatformSettings) {

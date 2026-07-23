@@ -8,13 +8,9 @@ import { publishAlert } from "./alertEmitter";
 import { prisma } from "./prisma";
 
 declare global {
-  // eslint-disable-next-line no-var
   var _youtubePollingActiveMap: Map<string, boolean>;
-  // eslint-disable-next-line no-var
   var _youtubePollingIntervalMap: Map<string, ReturnType<typeof setInterval>>;
-  // eslint-disable-next-line no-var
   var _youtubeNextPageTokenMap: Map<string, string | null>;
-  // eslint-disable-next-line no-var
   var _youtubeLiveChatIdMap: Map<string, string | null>;
 }
 

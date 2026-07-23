@@ -11,12 +11,12 @@ const ALERT_CONFIG_FIELDS = [
   "containerLayout", "textAlign", "imageSize", "fontFamily",
 ] as const;
 
-function pickAlertConfigFields(input: Record<string, unknown>): Record<string, any> {
+function pickAlertConfigFields(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(input).filter(([key]) =>
       (ALERT_CONFIG_FIELDS as readonly string[]).includes(key),
     ),
-  ) as Record<string, any>;
+  ) as Record<string, unknown>;
 }
 
 const ALERT_DEFAULTS: Record<string, { text: string; bgColor: string }> = {

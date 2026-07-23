@@ -1,7 +1,6 @@
 // Global alert emitter using a simple in-memory pub/sub
 // Stored on globalThis to survive HMR in development
 declare global {
-  // eslint-disable-next-line no-var
   var alertListenersMap: Map<string, Set<(data: string) => void>>;
 }
 

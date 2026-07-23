@@ -19,12 +19,10 @@ export async function GET(request: Request) {
 
     // Overlay tokens are read-only capabilities and must never reveal credentials.
     if (!session) {
-      const {
-        botPassword: _botPassword,
-        twitchClientId: _clientId,
-        twitchAccessToken: _accessToken,
-        ...overlayConfig
-      } = config;
+      const overlayConfig = { ...config };
+      delete (overlayConfig as { botPassword?: string }).botPassword;
+      delete (overlayConfig as { twitchClientId?: string }).twitchClientId;
+      delete (overlayConfig as { twitchAccessToken?: string }).twitchAccessToken;
       return NextResponse.json(overlayConfig);
     }
 

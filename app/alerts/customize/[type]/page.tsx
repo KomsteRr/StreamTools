@@ -48,7 +48,7 @@ import {
 import { FileUploader } from "@/app/alerts/components/FileUploader";
 import { useTranslation } from '@/lib/i18n'
 
-function getAlertLabels(t: any): Record<string, string> {
+function getAlertLabels(t: (key: string) => string): Record<string, string> {
   return {
     follow: t("alerts.followLabel"),
     sub: t("alerts.subLabel"),
@@ -59,7 +59,7 @@ function getAlertLabels(t: any): Record<string, string> {
   };
 }
 
-function getLayoutOptions(t: any) {
+function getLayoutOptions(t: (key: string) => string) {
   return [
     { value: "column", label: t("alerts.layoutCol"), icon: <FiAlignLeft /> },
     { value: "column-reverse", label: t("alerts.layoutColRev"), icon: <FiAlignLeft /> },

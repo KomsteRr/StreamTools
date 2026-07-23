@@ -5,7 +5,7 @@ import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 
-export async function submitSetup(prevState: any, formData: FormData) {
+export async function submitSetup(prevState: unknown, formData: FormData) {
   const session = await getSession()
   if (!session || session.role !== 'admin') {
     return { error: 'Non autorisé' }

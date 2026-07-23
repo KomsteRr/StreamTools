@@ -14,7 +14,7 @@ import {
   Field,
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
-import { FaDiscord, FaCopy, FaPlay, FaSave } from "react-icons/fa";
+import { FaDiscord, FaCopy, FaPlay } from "react-icons/fa";
 
 export default function DiscordCustomizePage() {
   const [botToken, setBotToken] = useState("");
@@ -71,7 +71,7 @@ export default function DiscordCustomizePage() {
       } else {
         toaster.create({ title: data.error || "Erreur de connexion Discord", type: "error" });
       }
-    } catch (e: any) {
+    } catch {
       toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
     } finally {
       setLoading(false);
@@ -99,7 +99,7 @@ export default function DiscordCustomizePage() {
             <FaDiscord color="#5865F2" /> Configuration Bot & Overlay Media Discord
           </Heading>
           <Text color="gray.400">
-            Associez votre Bot Discord et specifiez l'ID du canal. Lorsqu'un membre y postera un texte, une image, un GIF, une video ou un son, une alerte animee apparaitra sur OBS !
+            Associez votre Bot Discord et specifiez l&apos;ID du canal. Lorsqu&apos;un membre y postera un texte, une image, un GIF, une video ou un son, une alerte animee apparaitra sur OBS !
           </Text>
 
           {/* OBS Source Link Card */}
@@ -123,11 +123,11 @@ export default function DiscordCustomizePage() {
           {/* Display Customization Card */}
           <Card.Root bg="#12141D" border="1px solid rgba(255,255,255,0.1)" p={6} borderRadius="xl">
             <VStack align="stretch" gap={4}>
-              <Heading size="md">🎨 Personnalisation Visuelle de l'Alerte</Heading>
+              <Heading size="md">🎨 Personnalisation Visuelle de l&apos;Alerte</Heading>
 
               <HStack gap={4}>
                 <Field.Root flex={1}>
-                  <Field.Label>Duree d'Affichage (secondes)</Field.Label>
+                  <Field.Label>Duree d&apos;Affichage (secondes)</Field.Label>
                   <Input type="number" value={alertDuration} onChange={(e) => setAlertDuration(Number(e.target.value))} bg="#1F2330" />
                 </Field.Root>
                 <Field.Root flex={1}>

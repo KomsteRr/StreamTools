@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const userId = getSafeUserId(session) ?? isAuth.userId ?? null;
     const config = await getCombinedChatConfig(userId);
     return NextResponse.json(config);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to load chat config" }, { status: 500 });
   }
 }
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     await saveCombinedChatConfig(body, userId);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to save chat config" }, { status: 500 });
   }
 }

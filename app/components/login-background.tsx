@@ -2,7 +2,7 @@
 
 import { Box } from '@chakra-ui/react'
 import { keyframes } from '@emotion/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 const animStar = keyframes`
   from { transform: translateY(0px) }
@@ -18,19 +18,11 @@ function multipleBoxShadow(n: number) {
 }
 
 export function LoginBackground() {
-  const [shadows, setShadows] = useState({
-    small: '',
-    medium: '',
-    big: '',
-  })
-
-  useEffect(() => {
-    setShadows({
-      small: multipleBoxShadow(700),
-      medium: multipleBoxShadow(200),
-      big: multipleBoxShadow(100),
-    })
-  }, [])
+  const [shadows] = useState(() => ({
+    small: typeof window !== 'undefined' ? multipleBoxShadow(700) : '',
+    medium: typeof window !== 'undefined' ? multipleBoxShadow(200) : '',
+    big: typeof window !== 'undefined' ? multipleBoxShadow(100) : '',
+  }))
 
   return (
     <Box

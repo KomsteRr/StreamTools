@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Container,
@@ -16,7 +16,6 @@ import {
   GridItem,
   Select,
   createListCollection,
-  Switch,
   Spinner,
 } from "@chakra-ui/react";
 import { Button } from "@/components/ui/button";
@@ -81,7 +80,7 @@ const animCollection = createListCollection({ items: ANIMATIONS });
 
 // ─── Fake messages ────────────────────────────────────────────────────────────
 
-function getFakeMessages(t: any) {
+function getFakeMessages(t: (key: string) => string) {
   return [
     {
       id: "1",
@@ -194,7 +193,7 @@ yt-live-chat-author-chip {
 
 // ─── Inline Chat Preview ──────────────────────────────────────────────────────
 
-function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
+function ChatPreview({ config, t }: { config: ChatVisualConfig; t: (key: string) => string }) {
   const generatedCSS = generateYoutubeCSS(config);
 
   return (
@@ -305,7 +304,7 @@ export default function YouTubeChatCustomize() {
         description: t('youtube.chatUpdated'),
         type: "success",
       });
-    } catch (err) {
+    } catch {
       toaster.create({
         title: t('common.error'),
         description: t('common.saveError'),

@@ -37,7 +37,7 @@ export async function getTwitchConfig(userId?: string | null): Promise<TwitchCon
     if (item.key === "clientId") config.twitchClientId = item.value;
     else if (item.key === "accessToken") config.twitchAccessToken = item.value;
     else if (Object.keys(DEFAULT_CONFIG).includes(item.key)) {
-      if (item.value) (config as any)[item.key] = item.value;
+      if (item.value) (config as unknown as Record<string, string>)[item.key] = item.value;
     }
   });
 
