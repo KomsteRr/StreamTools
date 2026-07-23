@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { parseSession } from '@/lib/session'
 
-// Pages / routes that are always public (no session required)
+// Pages / routes that are always public (used in OBS, no session required)
 const PUBLIC_OVERLAYS = [
   '/twitch-chat-overlay',
   '/combined-chat-overlay',
-  '/spotify-stream',
+  '/discord-overlay',
   '/alerts-overlay',
+  '/goal-overlay',
+  '/wheel-overlay',
+  '/spotify-stream',
   '/discord-queue',
 ]
 
@@ -16,12 +19,18 @@ const PUBLIC_API = [
   '/api/spotify/now-playing',
   '/api/settings/public',
   '/api/alerts/stream',
+  '/api/alerts/config',
+  '/api/chat/stream',
+  '/api/chat/config',
   '/api/twitch/config',
   '/api/twitch/badges',
   '/api/twitch/7tv-emotes',
   '/api/discord/queue',
   '/api/discord/stream',
   '/api/discord/config',
+  '/api/goal/config',
+  '/api/wheel/config',
+  '/api/wheel/stream',
   '/api/invite/setup',     // Invite token validation
 ]
 
