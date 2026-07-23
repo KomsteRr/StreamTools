@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -25,7 +26,7 @@ async function main() {
       await checkClient.platformConfig.delete({ where: { id: pending.id } });
       console.log('   ✅ Entrée pending_migration supprimée.');
     }
-  } catch (e) {
+  } catch {
     // PlatformConfig table might not exist yet, that's ok
   }
   await checkClient.$disconnect();

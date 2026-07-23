@@ -11,20 +11,29 @@ export interface DiscordMediaAlert {
 }
 
 class DiscordMediaEmitter extends EventEmitter {
-  private alertsQueue: DiscordMediaAlert[] = [];
+  private key(userId?: string | null) {
+    return userId ?? "global";
+  }
 
-  public emitMediaAlert(alert: Omit<DiscordMediaAlert, "id" | "timestamp">) {
+  public emitMediaAlert(
+    userId: string | null | undefined,
+    alert: Omit<DiscordMediaAlert, "id" | "timestamp">,
+  ) {
     const fullAlert: DiscordMediaAlert = {
       ...alert,
       id: Math.random().toString(36).substring(2, 9),
       timestamp: Date.now(),
     };
-    this.alertsQueue.push(fullAlert);
-    this.emit("media-alert", fullAlert);
+    this.emit(`media-alert:${this.key(userId)}`, fullAlert);
   }
 
-  public getQueue(): DiscordMediaAlert[] {
-    return this.alertsQueue;
+  public subscribe(
+    userId: string | null | undefined,
+    listener: (alert: DiscordMediaAlert) => void,
+  ) {
+    const event = `media-alert:${this.key(userId)}`;
+    this.on(event, listener);
+    return () => this.off(event, listener);
   }
 }
 
@@ -38,4 +47,3 @@ export const discordMediaEmitter =
 if (process.env.NODE_ENV !== "production") {
   globalThis._discordMediaEmitter = discordMediaEmitter;
 }
-

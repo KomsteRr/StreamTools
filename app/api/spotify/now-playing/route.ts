@@ -59,7 +59,7 @@ export async function GET(request: Request) {
       };
 
       await saveTokens(tokens, userId);
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: "Token refresh error" }, { status: 500 });
     }
   }
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ is_playing: false, error: "Fetch error" });
   }
 }

@@ -7,40 +7,36 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  try {
-    const session = await getSession();
-    const isAuth = await isOverlayAuthorized(request);
-    const userId = getSafeUserId(session) ?? isAuth.userId ?? null;
+  const session = await getSession();
+  const overlayAuth = await isOverlayAuthorized(request);
+  if (!session && !overlayAuth.authorized) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-    // Automatically trigger Twitch IRC bot connection for the target user's channel
-    initTwitchChatBot(userId).catch(console.error);
-  } catch (e) {}
+  const userId = getSafeUserId(session) ?? overlayAuth.userId ?? null;
+  initTwitchChatBot(userId).catch(console.error);
 
   const encoder = new TextEncoder();
   let isAlive = true;
 
   const stream = new ReadableStream({
     start(controller) {
-      // Send initial messages buffer
-      const recentMessages = chatEmitter.getRecentMessages();
-      try {
-        controller.enqueue(
-          encoder.encode(`event: init\ndata: ${JSON.stringify(recentMessages)}\n\n`)
-        );
-      } catch {}
+      const recentMessages = chatEmitter.getRecentMessages(userId);
+      controller.enqueue(
+        encoder.encode(`event: init\ndata: ${JSON.stringify(recentMessages)}\n\n`),
+      );
 
-      const onMessage = (msg: CombinedChatMessage) => {
+      const unsubscribe = chatEmitter.subscribe(userId, (msg: CombinedChatMessage) => {
         if (!isAlive) return;
         try {
           controller.enqueue(
-            encoder.encode(`event: message\ndata: ${JSON.stringify(msg)}\n\n`)
+            encoder.encode(`event: message\ndata: ${JSON.stringify(msg)}\n\n`),
           );
-        } catch {}
-      };
+        } catch {
+          unsubscribe();
+        }
+      });
 
-      chatEmitter.on("message", onMessage);
-
-      // Heartbeat every 15s
       const heartbeat = setInterval(() => {
         if (!isAlive) {
           clearInterval(heartbeat);
@@ -49,18 +45,16 @@ export async function GET(request: Request) {
         try {
           controller.enqueue(encoder.encode(": heartbeat\n\n"));
         } catch {
-          isAlive = false;
           clearInterval(heartbeat);
+          unsubscribe();
         }
       }, 15000);
 
-      const cleanup = () => {
+      return () => {
         isAlive = false;
         clearInterval(heartbeat);
-        chatEmitter.off("message", onMessage);
+        unsubscribe();
       };
-
-      return cleanup;
     },
     cancel() {
       isAlive = false;

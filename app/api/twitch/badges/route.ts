@@ -6,12 +6,24 @@ export const dynamic = "force-dynamic";
 let cachedBadges: { map: Record<string, string>; fetchedAt: number } | null = null;
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes cache
 
-function parseBadgeSets(badgeSets: any, map: Record<string, string>) {
+interface BadgeVersionObj {
+  id?: string;
+  image_url_1x?: string;
+  image_url_2x?: string;
+  image_url_4x?: string;
+}
+
+interface HelixBadgeItem {
+  set_id?: string;
+  versions?: BadgeVersionObj[];
+}
+
+function parseBadgeSets(badgeSets: Record<string, { versions?: Record<string, BadgeVersionObj> }> | null | undefined, map: Record<string, string>) {
   if (!badgeSets) return;
-  for (const [setId, setObj] of Object.entries(badgeSets as any)) {
-    if (setObj && (setObj as any).versions) {
-      for (const [versionId, versionObj] of Object.entries((setObj as any).versions as any)) {
-        const url = (versionObj as any).image_url_2x || (versionObj as any).image_url_1x || (versionObj as any).image_url_4x;
+  for (const [setId, setObj] of Object.entries(badgeSets)) {
+    if (setObj && setObj.versions) {
+      for (const [versionId, versionObj] of Object.entries(setObj.versions)) {
+        const url = versionObj.image_url_2x || versionObj.image_url_1x || versionObj.image_url_4x;
         if (url) {
           map[`${setId.toLowerCase()}/${versionId}`] = url;
           if (!map[setId.toLowerCase()]) {
@@ -23,7 +35,7 @@ function parseBadgeSets(badgeSets: any, map: Record<string, string>) {
   }
 }
 
-function parseHelixBadges(data: any[], map: Record<string, string>) {
+function parseHelixBadges(data: HelixBadgeItem[] | undefined, map: Record<string, string>) {
   if (!Array.isArray(data)) return;
   for (const setItem of data) {
     const setId = setItem.set_id?.toLowerCase();
@@ -61,7 +73,7 @@ export async function GET() {
         const globalData = await globalRes.json();
         parseBadgeSets(globalData.badge_sets, badgesMap);
       }
-    } catch (e) {}
+    } catch {}
 
     // 2. Fetch Helix Badges if API credentials exist
     try {
@@ -107,7 +119,7 @@ export async function GET() {
           }
         }
       }
-    } catch (e) {}
+    } catch {}
 
     cachedBadges = { map: badgesMap, fetchedAt: now };
     return NextResponse.json(badgesMap);

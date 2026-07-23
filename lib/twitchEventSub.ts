@@ -15,9 +15,7 @@ interface TwitchCredentials {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var _twitchEventSubWsMap: Map<string, WebSocket>;
-  // eslint-disable-next-line no-var
   var _twitchEventSubActiveMap: Map<string, boolean>;
 }
 

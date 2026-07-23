@@ -53,7 +53,7 @@ export async function POST(
           platform: toPlatform, 
           ...copyData, 
           userId: userId 
-        } as any, // Type assertion since Prisma type inference struggles with the spread here
+        } as unknown as Parameters<typeof prisma.alertConfig.create>[0]["data"], // Type assertion since Prisma type inference struggles with the spread here
       });
     }
 

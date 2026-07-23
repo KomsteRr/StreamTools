@@ -2,6 +2,23 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, getSafeUserId } from "@/lib/session";
 
+const ALERT_CONFIG_FIELDS = [
+  "enabled", "soundUrl", "imageUrl", "bgMediaUrl", "bgMediaType",
+  "text", "textColor", "fontSize", "glowColor", "glowSize",
+  "borderColor", "borderWidth", "duration", "volume", "bgColor",
+  "bgOverlayOpacity", "position", "animation", "exitAnimation",
+  "containerImageUrl", "containerWidth", "containerHeight",
+  "containerLayout", "textAlign", "imageSize", "fontFamily",
+] as const;
+
+function pickAlertConfigFields(input: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(input).filter(([key]) =>
+      (ALERT_CONFIG_FIELDS as readonly string[]).includes(key),
+    ),
+  ) as Record<string, unknown>;
+}
+
 const ALERT_DEFAULTS: Record<string, { text: string; bgColor: string }> = {
   follow: { text: "{user} vient de follow ! 🎉", bgColor: "#6441a5" },
   sub: { text: "{user} vient de s'abonner ! 🎊", bgColor: "#1a7f37" },
@@ -24,16 +41,13 @@ async function seedDefaults(platform: string, userId: string | null) {
   }
 }
 
-// GET /api/alerts/config?platform=twitch
 export async function GET(req: Request) {
   try {
     const session = await getSession();
     const userId = getSafeUserId(session);
-    const url = new URL(req.url);
-    const platform = url.searchParams.get("platform") ?? "twitch";
+    const platform = new URL(req.url).searchParams.get("platform") ?? "twitch";
 
     await seedDefaults(platform, userId);
-
     const configs = await prisma.alertConfig.findMany({
       where: { platform, userId },
       orderBy: { type: "asc" },
@@ -45,27 +59,22 @@ export async function GET(req: Request) {
   }
 }
 
-// PUT /api/alerts/config — upsert a config (body must include type + platform)
 export async function PUT(req: Request) {
   try {
     const session = await getSession();
     const userId = getSafeUserId(session);
     const body = await req.json();
-    const { type, platform = "twitch", id: _id, ...data } = body;
-    void _id;
+    const { type, platform = "twitch" } = body;
     if (!type) return NextResponse.json({ error: "Missing type" }, { status: 400 });
 
+    const data = pickAlertConfigFields(body);
     const existing = await prisma.alertConfig.findFirst({
       where: { type, platform, userId },
     });
-    let config;
-    if (existing) {
-      config = await prisma.alertConfig.update({ where: { id: existing.id }, data });
-    } else {
-      config = await prisma.alertConfig.create({
-        data: { type, platform, ...data, userId },
-      });
-    }
+    const config = existing
+      ? await prisma.alertConfig.update({ where: { id: existing.id }, data })
+      : await prisma.alertConfig.create({ data: { type, platform, ...data, userId } });
+
     return NextResponse.json(config);
   } catch (error) {
     console.error("PUT /api/alerts/config error:", error);

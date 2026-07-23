@@ -59,7 +59,7 @@ export default function CombinedChatCustomizePage() {
         body: JSON.stringify(config),
       });
       toaster.create({ title: "Configuration du chat sauvegardee !", type: "success" });
-    } catch (e) {
+    } catch {
       toaster.create({ title: "Erreur lors de la sauvegarde", type: "error" });
     } finally {
       setLoading(false);
@@ -135,7 +135,7 @@ export default function CombinedChatCustomizePage() {
           {/* Settings Form */}
           <Card.Root bg="#12141D" p={6} borderRadius="xl">
             <VStack align="stretch" gap={4}>
-              <Heading size="md" color="white">Options d'Affichage du Chat</Heading>
+              <Heading size="md" color="white">Options d&apos;Affichage du Chat</Heading>
 
               <HStack gap={4}>
                 <Field.Root flex={1}>

@@ -41,7 +41,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
   // Update config if pathname changes (navigation)
   useEffect(() => {
-    setConfig((prev) => ({ ...prev, streamAsset: isOverlayPath(pathname) }));
+    queueMicrotask(() => {
+      setConfig((prev) => ({ ...prev, streamAsset: isOverlayPath(pathname) }));
+    });
   }, [pathname]);
 
   // Handle global background transparency for OBS

@@ -253,7 +253,7 @@ export function AlertOverlayDisplay({
             px={hasContainerImage ? 6 : 10}
             py={hasContainerImage ? 4 : 6}
             display="flex"
-            flexDir={layout as any}
+            flexDir={layout as React.CSSProperties["flexDirection"]}
             alignItems="center"
             justifyContent="center"
             gap={3}

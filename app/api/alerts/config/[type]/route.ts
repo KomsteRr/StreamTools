@@ -2,14 +2,29 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, getSafeUserId } from "@/lib/session";
 
-// GET /api/alerts/config/[type]?platform=twitch
+const ALERT_CONFIG_FIELDS = [
+  "enabled", "soundUrl", "imageUrl", "bgMediaUrl", "bgMediaType",
+  "text", "textColor", "fontSize", "glowColor", "glowSize",
+  "borderColor", "borderWidth", "duration", "volume", "bgColor",
+  "bgOverlayOpacity", "position", "animation", "exitAnimation",
+  "containerImageUrl", "containerWidth", "containerHeight",
+  "containerLayout", "textAlign", "imageSize", "fontFamily",
+] as const;
+
+function pickAlertConfigFields(input: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(input).filter(([key]) =>
+      (ALERT_CONFIG_FIELDS as readonly string[]).includes(key),
+    ),
+  ) as Record<string, unknown>;
+}
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ type: string }> },
 ) {
   const { type } = await params;
-  const url = new URL(req.url);
-  const platform = url.searchParams.get("platform") ?? "twitch";
+  const platform = new URL(req.url).searchParams.get("platform") ?? "twitch";
   const session = await getSession();
   const userId = getSafeUserId(session);
 
@@ -25,37 +40,24 @@ export async function GET(
   }
 }
 
-// PUT /api/alerts/config/[type]?platform=twitch
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ type: string }> },
 ) {
   const { type } = await params;
-  const url = new URL(req.url);
-  const platform = url.searchParams.get("platform") ?? "twitch";
+  const platform = new URL(req.url).searchParams.get("platform") ?? "twitch";
   const session = await getSession();
   const userId = getSafeUserId(session);
 
   try {
-    const data = await req.json();
-    const { type: _t, platform: _p, id: _id, ...fields } = data;
-    void _t; void _p; void _id;
-
+    const fields = pickAlertConfigFields(await req.json());
     const existing = await prisma.alertConfig.findFirst({
       where: { type, platform, userId },
     });
 
-    let config;
-    if (existing) {
-      config = await prisma.alertConfig.update({
-        where: { id: existing.id },
-        data: fields,
-      });
-    } else {
-      config = await prisma.alertConfig.create({
-        data: { type, platform, ...fields, userId },
-      });
-    }
+    const config = existing
+      ? await prisma.alertConfig.update({ where: { id: existing.id }, data: fields })
+      : await prisma.alertConfig.create({ data: { type, platform, ...fields, userId } });
 
     return NextResponse.json(config);
   } catch (error) {

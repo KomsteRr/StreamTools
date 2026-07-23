@@ -96,7 +96,7 @@ export async function initTwitchChatBot(userId?: string | null) {
           const displayName = tags["display-name"] || usernameFromPrefix || "Anonymous";
           const color = tags.color || "#9146FF";
 
-          chatEmitter.addMessage({
+          chatEmitter.addMessage(safeUserId, {
             platform: "twitch",
             user: displayName,
             message: text,

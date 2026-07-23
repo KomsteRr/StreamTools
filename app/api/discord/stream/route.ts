@@ -1,26 +1,30 @@
 import { discordMediaEmitter, DiscordMediaAlert } from "@/lib/discordMediaEmitter";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
+  const session = await getSession();
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const userId = getSafeUserId(session);
   const encoder = new TextEncoder();
   let isAlive = true;
 
   const stream = new ReadableStream({
     start(controller) {
-      const onMediaAlert = (alert: DiscordMediaAlert) => {
+      const unsubscribe = discordMediaEmitter.subscribe(userId, (alert: DiscordMediaAlert) => {
         if (!isAlive) return;
         try {
           controller.enqueue(
-            encoder.encode(`event: media-alert\ndata: ${JSON.stringify(alert)}\n\n`)
+            encoder.encode(`event: media-alert\ndata: ${JSON.stringify(alert)}\n\n`),
           );
-        } catch {}
-      };
+        } catch {
+          unsubscribe();
+        }
+      });
 
-      discordMediaEmitter.on("media-alert", onMediaAlert);
-
-      // Heartbeat every 15s
       const heartbeat = setInterval(() => {
         if (!isAlive) {
           clearInterval(heartbeat);
@@ -29,22 +33,17 @@ export async function GET() {
         try {
           controller.enqueue(encoder.encode(": heartbeat\n\n"));
         } catch {
-          isAlive = false;
           clearInterval(heartbeat);
+          unsubscribe();
         }
       }, 15000);
 
-      // Cleanup when client disconnects
-      const cleanup = () => {
+      controller.enqueue(encoder.encode(": connected\n\n"));
+      return () => {
         isAlive = false;
         clearInterval(heartbeat);
-        discordMediaEmitter.off("media-alert", onMediaAlert);
+        unsubscribe();
       };
-
-      // Return cleanup for cancel
-      controller.enqueue(encoder.encode(": connected\n\n"));
-
-      return cleanup;
     },
     cancel() {
       isAlive = false;

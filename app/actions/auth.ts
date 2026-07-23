@@ -23,10 +23,8 @@ export async function login(prevState: { error: string } | null, formData: FormD
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
   const ip = (forwardedFor ? forwardedFor.split(',')[0].trim() : null) || headersList.get('x-real-ip') || 'unknown'
-  const forwardedProto = headersList.get('x-forwarded-proto')?.split(',')[0].trim().toLowerCase()
-  const secureCookie = process.env.COOKIE_SECURE
-    ? process.env.COOKIE_SECURE === 'true'
-    : forwardedProto === 'https'
+  // Production must never silently downgrade the session cookie. Set COOKIE_SECURE=false only for local HTTP development.
+  const secureCookie = process.env.COOKIE_SECURE !== 'false'
 
   const rateCheck = checkLoginRateLimit(ip)
   if (!rateCheck.allowed) {
@@ -47,7 +45,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
     let adminUser = null
     try {
       adminUser = await prisma.user.findUnique({ where: { username: 'admin' } })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur lors de la vérification de l\'admin:', error)
       return { error: 'Erreur de connexion à la base de données.' }
     }
@@ -72,16 +70,16 @@ export async function login(prevState: { error: string } | null, formData: FormD
 
     // Verify admin password with bcrypt
     if (!adminUser.passwordHash || !(await bcrypt.compare(password, adminUser.passwordHash))) {
-      return { error: 'Mot de passe incorrect.' }
+      return { error: 'Identifiants invalides.' }
     }
 
-    const sessionValue = await createSessionValue(adminUser.id, 'admin')
+    const sessionValue = await createSessionValue(adminUser.id, 'admin', expires)
     const cookieStore = await cookies()
     cookieStore.set('session', sessionValue, {
       httpOnly: true,
       secure: secureCookie,
       expires,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
     })
 
@@ -95,8 +93,8 @@ export async function login(prevState: { error: string } | null, formData: FormD
   let user = null
   try {
     user = await prisma.user.findUnique({ where: { username: username.toLowerCase() } })
-  } catch (error: any) {
-    if (error?.code === 'P2021') {
+  } catch (error: unknown) {
+    if ((error as { code?: string })?.code === 'P2021') {
       return { error: 'L\'application n\'est pas encore configurée. Connectez-vous en tant qu\'admin pour initialiser le système.' }
     }
     console.error('Erreur de base de données (Regular Login):', error)
@@ -104,7 +102,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
   }
 
   if (!user || !user.passwordHash) {
-    return { error: 'Utilisateur introuvable ou compte non activé.' }
+    return { error: 'Identifiants invalides.' }
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash)
@@ -112,7 +110,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
     return { error: 'Mot de passe incorrect.' }
   }
 
-  const sessionValue = await createSessionValue(user.id, user.role as 'admin' | 'user')
+  const sessionValue = await createSessionValue(user.id, user.role as 'admin' | 'user', expires)
   const cookieStore = await cookies()
   cookieStore.set('session', sessionValue, {
     httpOnly: true,

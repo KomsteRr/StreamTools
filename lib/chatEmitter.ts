@@ -12,30 +12,38 @@ export interface CombinedChatMessage {
 }
 
 class ChatEmitter extends EventEmitter {
-  private messages: CombinedChatMessage[] = [];
-  private maxMessages = 100;
+  private readonly messagesByUser = new Map<string, CombinedChatMessage[]>();
+  private readonly maxMessages = 100;
 
-  constructor() {
-    super();
-    // Allow up to 100 simultaneous overlay connections without warning
-    this.setMaxListeners(100);
+  private key(userId?: string | null) {
+    return userId ?? "global";
   }
 
-  public addMessage(msg: Omit<CombinedChatMessage, "id" | "timestamp">) {
+  public addMessage(
+    userId: string | null | undefined,
+    msg: Omit<CombinedChatMessage, "id" | "timestamp">,
+  ) {
+    const key = this.key(userId);
     const fullMsg: CombinedChatMessage = {
       ...msg,
       id: Math.random().toString(36).substring(2, 9),
       timestamp: Date.now(),
     };
-    this.messages.push(fullMsg);
-    if (this.messages.length > this.maxMessages) {
-      this.messages.shift();
-    }
-    this.emit("message", fullMsg);
+    const messages = this.messagesByUser.get(key) ?? [];
+    messages.push(fullMsg);
+    if (messages.length > this.maxMessages) messages.shift();
+    this.messagesByUser.set(key, messages);
+    this.emit(`message:${key}`, fullMsg);
   }
 
-  public getRecentMessages(): CombinedChatMessage[] {
-    return this.messages;
+  public getRecentMessages(userId?: string | null): CombinedChatMessage[] {
+    return this.messagesByUser.get(this.key(userId)) ?? [];
+  }
+
+  public subscribe(userId: string | null | undefined, listener: (message: CombinedChatMessage) => void) {
+    const event = `message:${this.key(userId)}`;
+    this.on(event, listener);
+    return () => this.off(event, listener);
   }
 }
 

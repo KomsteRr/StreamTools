@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 export interface SessionPayload {
   userId: string;
   role: "admin" | "user";
+  expiresAt: number;
 }
 
 // Internal helper to get a CryptoKey for HMAC-SHA256
@@ -63,8 +64,12 @@ async function sign(payload: string): Promise<string> {
   return bufferToBase64Url(signature);
 }
 
-export async function createSessionValue(userId: string, role: "admin" | "user"): Promise<string> {
-  const payload = JSON.stringify({ userId, role, iat: Date.now() });
+export async function createSessionValue(
+  userId: string,
+  role: "admin" | "user",
+  expiresAt: Date,
+): Promise<string> {
+  const payload = JSON.stringify({ userId, role, iat: Date.now(), exp: expiresAt.getTime() });
   const encoder = new TextEncoder();
   
   // Use a standard ArrayBuffer
@@ -106,9 +111,14 @@ export async function parseSession(cookieValue: string): Promise<SessionPayload 
     const decodedBytes = base64UrlToUint8Array(encoded);
     const jsonString = new TextDecoder().decode(decodedBytes);
     const json = JSON.parse(jsonString);
-    if (!json.userId || !json.role) return null;
+    if (
+      !json.userId ||
+      (json.role !== "admin" && json.role !== "user") ||
+      typeof json.exp !== "number" ||
+      Date.now() >= json.exp
+    ) return null;
 
-    return { userId: json.userId, role: json.role };
+    return { userId: json.userId, role: json.role, expiresAt: json.exp };
   } catch {
     return null;
   }

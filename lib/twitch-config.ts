@@ -18,20 +18,26 @@ const DEFAULT_CONFIG: TwitchConfig = {
 
 export async function getTwitchConfig(userId?: string | null): Promise<TwitchConfig> {
   const safeUserId = userId ?? null;
-  const whereCondition = safeUserId
-    ? { platform: "twitch", OR: [{ userId: safeUserId }, { userId: null }] }
-    : { platform: "twitch" };
-
   const configItems = await prisma.platformConfig.findMany({
-    where: whereCondition,
+    where: safeUserId
+      ? { platform: "twitch", OR: [{ userId: null }, { userId: safeUserId }] }
+      : { platform: "twitch", userId: null },
   });
   const config = { ...DEFAULT_CONFIG };
 
-  configItems.forEach((item) => {
+  // Global values are fallbacks; user-specific values take precedence.
+  const orderedItems = safeUserId
+    ? [
+        ...configItems.filter((item) => item.userId === null),
+        ...configItems.filter((item) => item.userId === safeUserId),
+      ]
+    : configItems;
+
+  orderedItems.forEach((item) => {
     if (item.key === "clientId") config.twitchClientId = item.value;
     else if (item.key === "accessToken") config.twitchAccessToken = item.value;
     else if (Object.keys(DEFAULT_CONFIG).includes(item.key)) {
-      if (item.value) (config as any)[item.key] = item.value;
+      if (item.value) (config as unknown as Record<string, string>)[item.key] = item.value;
     }
   });
 

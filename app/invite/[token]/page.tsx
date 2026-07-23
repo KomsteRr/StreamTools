@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from '@/lib/i18n'
 import { useParams, useRouter } from 'next/navigation'
 import {

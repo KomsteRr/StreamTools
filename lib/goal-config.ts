@@ -52,7 +52,7 @@ export async function getGoalConfig(userId?: string | null): Promise<GoalConfig>
     if (item.key === "title") config.title = item.value;
     else if (item.key === "currentAmount") config.currentAmount = Number(item.value) || 0;
     else if (item.key === "targetAmount") config.targetAmount = Number(item.value) || 100;
-    else if (item.key === "goalType") config.goalType = item.value as any;
+    else if (item.key === "goalType") config.goalType = item.value as GoalConfig["goalType"];
     else if (item.key === "customUnit") config.customUnit = item.value;
     else if (item.key === "barColor") config.barColor = item.value;
     else if (item.key === "gradientColor") config.gradientColor = item.value;

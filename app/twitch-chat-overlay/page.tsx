@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import styles from "./twitch-chat.module.css";
 
 interface ChatMessage {
@@ -19,6 +19,7 @@ function TwitchBadgeIcon({ type, badgeMap }: { type: string; badgeMap?: Record<s
   const imageUrl = badgeMap?.[norm] || badgeMap?.[type] || badgeMap?.[setId];
   if (imageUrl) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageUrl}
         alt={type}
@@ -144,18 +145,18 @@ const DEFAULT_VISUAL: ChatVisualConfig = {
   chat_enterAnimation: "slideIn",
 };
 
+const emptySubscribe = () => () => {};
+
 export default function TwitchChatOverlay() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [visual, setVisual] = useState<ChatVisualConfig>(DEFAULT_VISUAL);
   const [status, setStatus] = useState<string>("Connexion au flux Twitch...");
   const [badgeMap, setBadgeMap] = useState<Record<string, string>>({});
   const visualRef = useRef(visual);
-  visualRef.current = visual;
-
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    visualRef.current = visual;
+  }, [visual]);
 
   // Fetch Twitch Badge images dictionary
   useEffect(() => {
@@ -166,7 +167,7 @@ export default function TwitchChatOverlay() {
         if (res.ok) {
           setBadgeMap(await res.json());
         }
-      } catch (e) {}
+      } catch {}
     }
     fetchBadges();
   }, [mounted]);
@@ -216,8 +217,8 @@ export default function TwitchChatOverlay() {
         if (Array.isArray(initialMsgs)) {
           const maxMessages = parseInt(visualRef.current.chat_maxMessages || "10", 10) || 10;
           const twitchMsgs: ChatMessage[] = initialMsgs
-            .filter((m: any) => m.platform === "twitch")
-            .map((m: any) => ({
+            .filter((m: { platform?: string }) => m.platform === "twitch")
+            .map((m: { id?: string; user?: string; color?: string; message?: string; avatar?: string; badges?: string[] }) => ({
               id: m.id || Math.random().toString(),
               username: m.user || "Anonymous",
               color: m.color || "#9146FF",
@@ -228,7 +229,7 @@ export default function TwitchChatOverlay() {
             .slice(-maxMessages);
           setMessages(twitchMsgs);
         }
-      } catch (e) {}
+      } catch {}
     });
 
     es.addEventListener("message", (event) => {
@@ -250,7 +251,7 @@ export default function TwitchChatOverlay() {
             return next.slice(-maxMessages);
           });
         }
-      } catch (e) {}
+      } catch {}
     });
 
     es.addEventListener("error", () => {

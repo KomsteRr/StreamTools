@@ -196,7 +196,7 @@ export function AlertPreview({
           px={hasContainerImage ? 3 : 6}
           py={hasContainerImage ? 2 : 4}
           display="flex"
-          flexDir={layout as any}
+          flexDir={layout as React.CSSProperties["flexDirection"]}
           alignItems="center"
           justifyContent="center"
           gap={2}

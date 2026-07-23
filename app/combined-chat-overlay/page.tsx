@@ -111,6 +111,7 @@ export default function CombinedChatOverlayPage() {
             {config.showAvatars && (
               <div style={{ flexShrink: 0, marginTop: "2px" }}>
                 {msg.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={msg.avatar} alt={msg.user} style={{ width: "24px", height: "24px", borderRadius: "50%" }} />
                 ) : (
                   <span style={{

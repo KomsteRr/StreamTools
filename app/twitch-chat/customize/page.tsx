@@ -69,12 +69,6 @@ const FONTS = [
   "Bebas Neue",
   "Monospace",
 ];
-const ANIMATIONS = [
-  { label: "Slide In", value: "slideIn" },
-  { label: "Fade In", value: "fadeIn" },
-  { label: "Zoom In", value: "zoomIn" },
-  { label: "Bounce In", value: "bounceIn" },
-];
 const POSITIONS = [
   "top-left",
   "top-center",
@@ -91,7 +85,7 @@ const fontCollection = createListCollection({
   items: FONTS.map((f) => ({ label: f, value: f })),
 });
 
-function getAnimCollection(t: any) {
+function getAnimCollection(t: (key: string) => string) {
   return createListCollection({
     items: [
       { label: t("twitchChat.animSlideIn"), value: "slideIn" },
@@ -109,6 +103,7 @@ function TwitchBadgeIcon({ type, badgeMap }: { type: string; badgeMap?: Record<s
   const imageUrl = badgeMap?.[norm] || badgeMap?.[type] || badgeMap?.[setId];
   if (imageUrl) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageUrl}
         alt={type}
@@ -206,7 +201,7 @@ function TwitchBadgeIcon({ type, badgeMap }: { type: string; badgeMap?: Record<s
 
 // ─── Fake messages ────────────────────────────────────────────────────────────
 
-function getFakeMessages(t: any) {
+function getFakeMessages(t: (key: string) => string) {
   return [
     {
       id: "1",
@@ -248,7 +243,7 @@ function getFakeMessages(t: any) {
 
 // ─── Inline Chat Preview ──────────────────────────────────────────────────────
 
-function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
+function ChatPreview({ config, t }: { config: ChatVisualConfig; t: (key: string) => string }) {
   const [badgeMap, setBadgeMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -258,7 +253,7 @@ function ChatPreview({ config, t }: { config: ChatVisualConfig; t: any }) {
         if (res.ok) {
           setBadgeMap(await res.json());
         }
-      } catch (e) {}
+      } catch {}
     }
     fetchBadges();
   }, []);
