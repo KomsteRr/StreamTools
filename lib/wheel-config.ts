@@ -52,15 +52,12 @@ export async function getWheelConfig(userId?: string | null): Promise<WheelConfi
     else if (item.key === "spinDuration") config.spinDuration = Number(item.value) || 4.5;
     else if (item.key === "pointerColor") config.pointerColor = item.value;
     else if (item.key === "centerColor") config.centerColor = item.value;
-    else if (item.key === "winnerDisplayDuration") config.winnerDisplayDuration = Number(item.value) || 8;
+    else if (item.key === "winnerDisplayDuration") config.winnerDisplayDuration = Number(item.value) || 5;
     else if (item.key === "confettiOnWin") config.confettiOnWin = item.value === "true";
     else if (item.key === "segments") {
-      try {
-        config.segments = JSON.parse(item.value);
-      } catch {}
+      try { config.segments = JSON.parse(item.value); } catch {}
     }
   });
-
   return config;
 }
 
@@ -72,10 +69,7 @@ export async function saveWheelConfig(newConfig: Partial<WheelConfig>, userId?: 
       where: { platform: "wheel", key, userId: safeUserId },
     });
     if (existing) {
-      await prisma.platformConfig.update({
-        where: { id: existing.id },
-        data: { value: stringVal },
-      });
+      await prisma.platformConfig.update({ where: { id: existing.id }, data: { value: stringVal } });
     } else {
       await prisma.platformConfig.create({
         data: { platform: "wheel", key, value: stringVal, userId: safeUserId },
@@ -85,8 +79,21 @@ export async function saveWheelConfig(newConfig: Partial<WheelConfig>, userId?: 
 }
 
 class WheelEmitter extends EventEmitter {
-  public spin(winnerIndex: number) {
-    this.emit("spin", { winnerIndex, timestamp: Date.now() });
+  private key(userId?: string | null) {
+    return userId ?? "global";
+  }
+
+  public spin(userId: string | null | undefined, winnerIndex: number) {
+    this.emit(`spin:${this.key(userId)}`, { winnerIndex, timestamp: Date.now() });
+  }
+
+  public subscribe(
+    userId: string | null | undefined,
+    listener: (event: { winnerIndex: number; timestamp: number }) => void,
+  ) {
+    const event = `spin:${this.key(userId)}`;
+    this.on(event, listener);
+    return () => this.off(event, listener);
   }
 }
 
