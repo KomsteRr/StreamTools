@@ -7,8 +7,16 @@ const ALLOWED_DOMAINS = [
   "static-cdn.jtvnw.net",
   "badges.twitch.tv",
   "cdn.7tv.app",
+  "7tv.app",
+  "7tv.io",
   "cdn.betterttv.net",
+  "betterttv.net",
   "cdn.frankerfacez.com",
+  "frankerfacez.com",
+  "ivr.fi",
+  "yt3.ggpht.com",
+  "ggpht.com",
+  "googleusercontent.com",
 ];
 
 export async function GET(request: NextRequest) {

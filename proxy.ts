@@ -25,6 +25,7 @@ const PUBLIC_API = [
   '/api/twitch/config',
   '/api/twitch/badges',
   '/api/twitch/7tv-emotes',
+  '/api/proxy/image',
   '/api/discord/queue',
   '/api/discord/stream',
   '/api/discord/config',

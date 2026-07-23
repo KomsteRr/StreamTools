@@ -164,7 +164,7 @@ export default function CombinedChatOverlayPage() {
                 )}
               </div>
               <div style={{ fontSize: `${config.fontSize || 14}px`, color: config.textColor || "#E0E0E0" }}>
-                {renderEmotedText(msg.message, sevenTvEmotes)}
+                {renderEmotedText(msg.message, { ...sevenTvEmotes, ...(msg.emotes ?? {}) })}
               </div>
             </div>
           </div>

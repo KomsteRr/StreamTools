@@ -71,16 +71,19 @@ export async function GET() {
 
     const badgesMap: Record<string, string> = {};
 
-    // 1. Fetch Global Badges from badges.twitch.tv public endpoint
+    // 1. Fetch Global Badges from IVR public endpoint (since badges.twitch.tv was retired by Twitch)
     try {
-      const globalRes = await fetch("https://badges.twitch.tv/v1/badges/global/display", {
-        headers: { "Client-ID": "kimne78kx3ncx6br8ac4bb50c8b543" },
+      const globalRes = await fetch("https://api.ivr.fi/v2/twitch/badges/global", {
+        headers: { "User-Agent": "StreamAllInTools/1.0" },
+        cache: "no-store",
       });
       if (globalRes.ok) {
-        const globalData = await globalRes.json();
-        parseBadgeSets(globalData.badge_sets, badgesMap);
+        const ivrData = await globalRes.json();
+        parseHelixBadges(ivrData, badgesMap);
       }
-    } catch {}
+    } catch (e) {
+      console.warn("IVR global badges fetch failed:", e);
+    }
 
     // 2. Fetch Helix Badges if API credentials exist
     try {
