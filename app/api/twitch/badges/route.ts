@@ -6,6 +6,11 @@ export const dynamic = "force-dynamic";
 let cachedBadges: { map: Record<string, string>; fetchedAt: number } | null = null;
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes cache
 
+/** Rewrite external image URLs to go through the local proxy (avoids OBS/CSP issues). */
+function proxyUrl(url: string): string {
+  return `/api/proxy/image?url=${encodeURIComponent(url)}`;
+}
+
 interface BadgeVersionObj {
   id?: string;
   image_url_1x?: string;
@@ -23,8 +28,9 @@ function parseBadgeSets(badgeSets: Record<string, { versions?: Record<string, Ba
   for (const [setId, setObj] of Object.entries(badgeSets)) {
     if (setObj && setObj.versions) {
       for (const [versionId, versionObj] of Object.entries(setObj.versions)) {
-        const url = versionObj.image_url_2x || versionObj.image_url_1x || versionObj.image_url_4x;
-        if (url) {
+        const rawUrl = versionObj.image_url_2x || versionObj.image_url_1x || versionObj.image_url_4x;
+        if (rawUrl) {
+          const url = proxyUrl(rawUrl);
           map[`${setId.toLowerCase()}/${versionId}`] = url;
           if (!map[setId.toLowerCase()]) {
             map[setId.toLowerCase()] = url;
@@ -43,8 +49,9 @@ function parseHelixBadges(data: HelixBadgeItem[] | undefined, map: Record<string
     if (Array.isArray(setItem.versions)) {
       for (const ver of setItem.versions) {
         const versionId = ver.id;
-        const url = ver.image_url_2x || ver.image_url_1x || ver.image_url_4x;
-        if (url) {
+        const rawUrl = ver.image_url_2x || ver.image_url_1x || ver.image_url_4x;
+        if (rawUrl) {
+          const url = proxyUrl(rawUrl);
           map[`${setId}/${versionId}`] = url;
           if (!map[setId]) {
             map[setId] = url;
