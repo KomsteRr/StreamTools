@@ -1,26 +1,27 @@
 import { wheelEmitter } from "@/lib/wheel-config";
+import { getSession, getSafeUserId } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
+  const session = await getSession();
+  if (!session) return new Response("Unauthorized", { status: 401 });
+  const userId = getSafeUserId(session);
+
   const encoder = new TextEncoder();
   let isAlive = true;
-
   const stream = new ReadableStream({
     start(controller) {
-      const onSpin = (data: { winnerIndex: number; timestamp: number }) => {
+      const unsubscribe = wheelEmitter.subscribe(userId, (data) => {
         if (!isAlive) return;
         try {
-          controller.enqueue(
-            encoder.encode(`event: spin\ndata: ${JSON.stringify(data)}\n\n`)
-          );
-        } catch {}
-      };
+          controller.enqueue(encoder.encode(`event: spin\ndata: ${JSON.stringify(data)}\n\n`));
+        } catch {
+          unsubscribe();
+        }
+      });
 
-      wheelEmitter.on("spin", onSpin);
-
-      // Heartbeat every 15s
       const heartbeat = setInterval(() => {
         if (!isAlive) {
           clearInterval(heartbeat);
@@ -29,20 +30,17 @@ export async function GET() {
         try {
           controller.enqueue(encoder.encode(": heartbeat\n\n"));
         } catch {
-          isAlive = false;
           clearInterval(heartbeat);
+          unsubscribe();
         }
       }, 15000);
 
-      const cleanup = () => {
+      controller.enqueue(encoder.encode(": connected\n\n"));
+      return () => {
         isAlive = false;
         clearInterval(heartbeat);
-        wheelEmitter.off("spin", onSpin);
+        unsubscribe();
       };
-
-      controller.enqueue(encoder.encode(": connected\n\n"));
-
-      return cleanup;
     },
     cancel() {
       isAlive = false;
