@@ -23,10 +23,8 @@ export async function login(prevState: { error: string } | null, formData: FormD
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
   const ip = (forwardedFor ? forwardedFor.split(',')[0].trim() : null) || headersList.get('x-real-ip') || 'unknown'
-  const forwardedProto = headersList.get('x-forwarded-proto')?.split(',')[0].trim().toLowerCase()
-  const secureCookie = process.env.COOKIE_SECURE
-    ? process.env.COOKIE_SECURE === 'true'
-    : forwardedProto === 'https'
+  // Production must never silently downgrade the session cookie. Set COOKIE_SECURE=false only for local HTTP development.
+  const secureCookie = process.env.COOKIE_SECURE !== 'false'
 
   const rateCheck = checkLoginRateLimit(ip)
   if (!rateCheck.allowed) {
@@ -72,10 +70,10 @@ export async function login(prevState: { error: string } | null, formData: FormD
 
     // Verify admin password with bcrypt
     if (!adminUser.passwordHash || !(await bcrypt.compare(password, adminUser.passwordHash))) {
-      return { error: 'Mot de passe incorrect.' }
+      return { error: 'Identifiants invalides.' }
     }
 
-    const sessionValue = await createSessionValue(adminUser.id, 'admin')
+    const sessionValue = await createSessionValue(adminUser.id, 'admin', expires)
     const cookieStore = await cookies()
     cookieStore.set('session', sessionValue, {
       httpOnly: true,
@@ -104,7 +102,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
   }
 
   if (!user || !user.passwordHash) {
-    return { error: 'Utilisateur introuvable ou compte non activé.' }
+    return { error: 'Identifiants invalides.' }
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash)
@@ -112,7 +110,7 @@ export async function login(prevState: { error: string } | null, formData: FormD
     return { error: 'Mot de passe incorrect.' }
   }
 
-  const sessionValue = await createSessionValue(user.id, user.role as 'admin' | 'user')
+  const sessionValue = await createSessionValue(user.id, user.role as 'admin' | 'user', expires)
   const cookieStore = await cookies()
   cookieStore.set('session', sessionValue, {
     httpOnly: true,
